@@ -50,7 +50,7 @@ export function EventHero({ event, past, userStatus, accent, onShare }: EventHer
             <div className="absolute top-3 left-3">
               <Badge
                 variant="activity"
-                activity={activityToBadge[event.activity_type] ?? 'workshop'}
+                activity={activityToBadge[event.activity_type] ?? 'other'}
                 size="md"
               >
                 {ACTIVITY_TYPE_LABELS[event.activity_type] ?? event.activity_type}
@@ -99,7 +99,7 @@ export function EventHero({ event, past, userStatus, accent, onShare }: EventHer
             <div className="flex items-center gap-2.5">
               <Badge
                 variant="activity"
-                activity={activityToBadge[event.activity_type] ?? 'workshop'}
+                activity={activityToBadge[event.activity_type] ?? 'other'}
                 size="md"
               >
                 {ACTIVITY_TYPE_LABELS[event.activity_type] ?? event.activity_type}

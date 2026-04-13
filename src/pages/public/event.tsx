@@ -23,15 +23,13 @@ function formatDate(date: string) {
 }
 
 const ACTIVITY_LABELS: Record<string, string> = {
-  shore_cleanup: 'Cleanup',
+  clean_up: 'Clean Up',
   tree_planting: 'Tree Planting',
-  land_regeneration: 'Land Regeneration',
-  nature_walk: 'Nature Walks',
+  ecosystem_restoration: 'Ecosystem Restoration',
+  nature_hike: 'Nature Hike',
   camp_out: 'Camp Out',
-  retreat: 'Retreats',
-  film_screening: 'Film Screening',
-  marine_restoration: 'Marine Restoration',
-  workshop: 'Workshop',
+  spotlighting: 'Spotlighting',
+  other: 'Other',
 }
 
 export default function PublicEventPage() {

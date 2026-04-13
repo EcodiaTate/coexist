@@ -1034,7 +1034,7 @@ export default function DevToolsPage() {
   const seedEvent = useSeedTestEvent()
   const cleanup = useCleanupTests()
 
-  const [selectedActivity, setSelectedActivity] = useState<Database['public']['Enums']['activity_type']>('shore_cleanup')
+  const [selectedActivity, setSelectedActivity] = useState<Database['public']['Enums']['activity_type']>('clean_up')
 
   const { stagger, fadeUp } = adminVariants(!!shouldReduceMotion)
 

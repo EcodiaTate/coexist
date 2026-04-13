@@ -17,8 +17,8 @@ const MOCK_EVENTS = [
   {
     id: '1',
     title: 'Yarra River Shore Cleanup',
-    activity_type: 'shore_cleanup',
-    activity_label: 'SHORE CLEANUP',
+    activity_type: 'clean_up',
+    activity_label: 'CLEAN UP',
     date: 'Sat, Apr 12',
     time: '7:30 AM - 11:00 AM',
     duration: '3.5 hrs',
@@ -55,8 +55,8 @@ const MOCK_EVENTS = [
   {
     id: '3',
     title: 'Moonlight Marine Survey',
-    activity_type: 'marine_restoration',
-    activity_label: 'MARINE RESTORATION',
+    activity_type: 'ecosystem_restoration',
+    activity_label: 'ECOSYSTEM RESTORATION',
     date: 'Fri, Apr 25',
     time: '6:30 PM - 9:30 PM',
     duration: '3 hrs',
@@ -78,15 +78,13 @@ const MOCK_EVENTS = [
 /* ------------------------------------------------------------------ */
 
 const activityTagStyle: Record<string, { bg: string; text: string; iconBg: string; iconText: string }> = {
-  shore_cleanup:      { bg: 'bg-sky-500/90',     text: 'text-white', iconBg: 'bg-sky-100',     iconText: 'text-sky-700' },
-  tree_planting:      { bg: 'bg-emerald-600/90', text: 'text-white', iconBg: 'bg-emerald-100', iconText: 'text-emerald-700' },
-  land_regeneration:  { bg: 'bg-sprout-600/90',  text: 'text-white', iconBg: 'bg-sprout-100',  iconText: 'text-sprout-700' },
-  nature_walk:        { bg: 'bg-bark-500/90',    text: 'text-white', iconBg: 'bg-bark-100',    iconText: 'text-bark-700' },
-  camp_out:           { bg: 'bg-amber-600/90',   text: 'text-white', iconBg: 'bg-amber-100',   iconText: 'text-amber-700' },
-  retreat:            { bg: 'bg-plum-500/90',    text: 'text-white', iconBg: 'bg-plum-100',    iconText: 'text-plum-700' },
-  film_screening:     { bg: 'bg-coral-500/90',   text: 'text-white', iconBg: 'bg-coral-100',   iconText: 'text-coral-700' },
-  marine_restoration: { bg: 'bg-blue-600/90',    text: 'text-white', iconBg: 'bg-blue-100',    iconText: 'text-blue-700' },
-  workshop:           { bg: 'bg-moss-600/90',    text: 'text-white', iconBg: 'bg-moss-100',    iconText: 'text-moss-700' },
+  clean_up:               { bg: 'bg-sky-500/90',     text: 'text-white', iconBg: 'bg-sky-100',     iconText: 'text-sky-700' },
+  tree_planting:           { bg: 'bg-emerald-600/90', text: 'text-white', iconBg: 'bg-emerald-100', iconText: 'text-emerald-700' },
+  ecosystem_restoration:   { bg: 'bg-sprout-600/90',  text: 'text-white', iconBg: 'bg-sprout-100',  iconText: 'text-sprout-700' },
+  nature_hike:             { bg: 'bg-bark-500/90',    text: 'text-white', iconBg: 'bg-bark-100',    iconText: 'text-bark-700' },
+  camp_out:                { bg: 'bg-amber-600/90',   text: 'text-white', iconBg: 'bg-amber-100',   iconText: 'text-amber-700' },
+  spotlighting:            { bg: 'bg-indigo-500/90',  text: 'text-white', iconBg: 'bg-indigo-100',  iconText: 'text-indigo-700' },
+  other:                   { bg: 'bg-neutral-600/90', text: 'text-white', iconBg: 'bg-neutral-100', iconText: 'text-neutral-700' },
 }
 
 const defaultTag = { bg: 'bg-primary-600/90', text: 'text-white', iconBg: 'bg-primary-100', iconText: 'text-primary-700' }

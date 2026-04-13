@@ -183,7 +183,7 @@ async function fetchCollectiveFullStats(collectiveId: string): Promise<Collectiv
         .neq('status', 'cancelled').neq('status', 'draft'),
       supabase.from('events').select('id', { count: 'exact', head: true })
         .eq('collective_id', collectiveId)
-        .in('activity_type', ['shore_cleanup', 'marine_restoration'])
+        .in('activity_type', ['clean_up'])
         .lt('date_start', now),
       supabase.from('app_settings').select('value')
         .eq('key', 'leaders_empowered:' + collectiveId).single(),

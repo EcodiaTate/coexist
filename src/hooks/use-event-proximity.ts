@@ -65,8 +65,8 @@ const PROXIMITY_RADIUS_M = 500
 /** How often to re-check location (ms) */
 const CHECK_INTERVAL_MS = 5 * 60 * 1000 // 5 minutes
 
-/** How far ahead/behind to look for events (ms) */
-const TIME_WINDOW_MS = 60 * 60 * 1000 // 1 hour before start, during event
+/** How far ahead/behind to look for events (ms) — max 30 min before start */
+const TIME_WINDOW_MS = 30 * 60 * 1000 // 30 minutes before start, during event
 
 /* ------------------------------------------------------------------ */
 /*  Hook                                                               */

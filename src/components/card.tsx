@@ -25,15 +25,13 @@ import { OptimizedImage } from './optimized-image'
 
 /** Map activity types to their watermark Lucide icon */
 const ACTIVITY_WATERMARK_ICONS: Record<string, ReactNode> = {
-  shore_cleanup:      <Waves size={72} strokeWidth={1} />,
-  tree_planting:      <TreePine size={72} strokeWidth={1} />,
-  land_regeneration:  <Sprout size={72} strokeWidth={1} />,
-  nature_walk:        <Compass size={72} strokeWidth={1} />,
-  camp_out:           <Bird size={72} strokeWidth={1} />,
-  retreat:            <Flower2 size={72} strokeWidth={1} />,
-  film_screening:     <Leaf size={72} strokeWidth={1} />,
-  marine_restoration: <Droplets size={72} strokeWidth={1} />,
-  workshop:           <Sprout size={72} strokeWidth={1} />,
+  clean_up:               <Waves size={72} strokeWidth={1} />,
+  tree_planting:           <TreePine size={72} strokeWidth={1} />,
+  ecosystem_restoration:   <Sprout size={72} strokeWidth={1} />,
+  nature_hike:             <Compass size={72} strokeWidth={1} />,
+  camp_out:                <Bird size={72} strokeWidth={1} />,
+  spotlighting:            <Flower2 size={72} strokeWidth={1} />,
+  other:                   <Leaf size={72} strokeWidth={1} />,
 }
 
 const DEFAULT_WATERMARK = <Leaf size={72} strokeWidth={1} />

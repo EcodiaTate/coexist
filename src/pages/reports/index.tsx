@@ -197,7 +197,7 @@ async function fetchReportData(
         supabase
           .from('events')
           .select('id', { count: 'exact', head: true })
-          .in('activity_type', ['shore_cleanup', 'marine_restoration'])
+          .in('activity_type', ['clean_up'])
           .gte('date_start', dateRange.start)
           .lte('date_start', dateRange.end),
       )

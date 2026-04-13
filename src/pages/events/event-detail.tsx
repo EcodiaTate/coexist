@@ -341,7 +341,8 @@ export default function EventDetailPage() {
   const isAtCapacity = event?.capacity ? event.registration_count >= event.capacity : false
 
   // Event is "active" if it started (or starts within the check-in window) and hasn't ended
-  const checkinWindowMinutes = (event as unknown as Record<string, unknown>)?.checkin_window_minutes as number | undefined ?? 60
+  const rawCheckinWindow = (event as Record<string, unknown>)?.checkin_window_minutes as number | null | undefined
+  const checkinWindowMinutes = Math.min(rawCheckinWindow ?? 30, 30)
   const isEventActive = useMemo(() => {
     if (checkInForcedOpen) return true
     if (!event) return false

@@ -385,15 +385,13 @@ const TYPE_META: Record<string, { icon: typeof Megaphone; label: string; iconBg:
 }
 
 const ACTIVITY_LABELS: Record<string, string> = {
-  shore_cleanup: 'Cleanup',
+  clean_up: 'Clean Up',
   tree_planting: 'Tree Planting',
-  land_regeneration: 'Land Regeneration',
-  nature_walk: 'Nature Walk',
+  ecosystem_restoration: 'Ecosystem Restoration',
+  nature_hike: 'Nature Hike',
   camp_out: 'Camp Out',
-  retreat: 'Retreat',
-  film_screening: 'Film Screening',
-  marine_restoration: 'Marine Restoration',
-  workshop: 'Workshop',
+  spotlighting: 'Spotlighting',
+  other: 'Other',
 }
 
 export function AnnouncementCard({

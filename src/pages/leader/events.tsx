@@ -296,7 +296,7 @@ export default function LeaderEventsPage() {
                         {event.activity_type && (
                           <Badge
                             variant="activity"
-                            activity={activityToBadge[event.activity_type] ?? 'workshop'}
+                            activity={activityToBadge[event.activity_type] ?? 'other'}
                             size="sm"
                           >
                             {ACTIVITY_TYPE_LABELS[event.activity_type] ?? event.activity_type}

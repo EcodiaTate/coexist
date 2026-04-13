@@ -221,15 +221,13 @@ function NationalStat({
 /* ------------------------------------------------------------------ */
 
 const ACTIVITY_BAR_COLORS: Record<string, string> = {
-  shore_cleanup: 'bg-sky-500',
+  clean_up: 'bg-sky-500',
   tree_planting: 'bg-primary-600',
-  land_regeneration: 'bg-sprout-500',
-  nature_walk: 'bg-primary-500',
+  ecosystem_restoration: 'bg-sprout-500',
+  nature_hike: 'bg-primary-500',
   camp_out: 'bg-moss-600',
-  retreat: 'bg-plum-500',
-  film_screening: 'bg-coral-400',
-  marine_restoration: 'bg-sky-600',
-  workshop: 'bg-bark-500',
+  spotlighting: 'bg-indigo-500',
+  other: 'bg-neutral-500',
 }
 
 /* ------------------------------------------------------------------ */

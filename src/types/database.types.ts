@@ -2975,6 +2975,7 @@ export type Database = {
           address: string | null
           capacity: number | null
           check_in_code: string | null
+          checkin_window_minutes: number | null
           collective_id: string
           cover_image_url: string | null
           created_at: string | null
@@ -2998,6 +2999,7 @@ export type Database = {
           address?: string | null
           capacity?: number | null
           check_in_code?: string | null
+          checkin_window_minutes?: number | null
           collective_id: string
           cover_image_url?: string | null
           created_at?: string | null
@@ -3021,6 +3023,7 @@ export type Database = {
           address?: string | null
           capacity?: number | null
           check_in_code?: string | null
+          checkin_window_minutes?: number | null
           collective_id?: string
           cover_image_url?: string | null
           created_at?: string | null
@@ -6446,15 +6449,13 @@ export type Database = {
     }
     Enums: {
       activity_type:
-        | "shore_cleanup"
+        | "clean_up"
         | "tree_planting"
-        | "land_regeneration"
-        | "nature_walk"
+        | "ecosystem_restoration"
+        | "nature_hike"
         | "camp_out"
-        | "retreat"
-        | "film_screening"
-        | "marine_restoration"
-        | "workshop"
+        | "spotlighting"
+        | "other"
       collective_role: "member" | "assist_leader" | "co_leader" | "leader"
       dev_assignment_scope: "collective" | "individual"
       dev_category: "learning" | "leadership_development" | "onboarding"
@@ -6625,15 +6626,13 @@ export const Constants = {
   public: {
     Enums: {
       activity_type: [
-        "shore_cleanup",
+        "clean_up",
         "tree_planting",
-        "land_regeneration",
-        "nature_walk",
+        "ecosystem_restoration",
+        "nature_hike",
         "camp_out",
-        "retreat",
-        "film_screening",
-        "marine_restoration",
-        "workshop",
+        "spotlighting",
+        "other",
       ],
       collective_role: ["member", "assist_leader", "co_leader", "leader"],
       dev_assignment_scope: ["collective", "individual"],

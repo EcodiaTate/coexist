@@ -8,15 +8,13 @@
 /* ------------------------------------------------------------------ */
 
 export const ACTIVITY_COLORS: Record<string, string> = {
-  shore_cleanup: 'bg-sky-100 text-sky-700',
+  clean_up: 'bg-sky-100 text-sky-700',
   tree_planting: 'bg-sprout-100 text-sprout-700',
-  land_regeneration: 'bg-moss-100 text-moss-700',
-  nature_walk: 'bg-bark-100 text-bark-700',
+  ecosystem_restoration: 'bg-moss-100 text-moss-700',
+  nature_hike: 'bg-bark-100 text-bark-700',
   camp_out: 'bg-moss-100 text-moss-700',
-  retreat: 'bg-plum-100 text-plum-700',
-  film_screening: 'bg-coral-100 text-coral-700',
-  marine_restoration: 'bg-primary-100 text-primary-700',
-  workshop: 'bg-bark-100 text-bark-700',
+  spotlighting: 'bg-primary-100 text-primary-700',
+  other: 'bg-neutral-100 text-neutral-700',
 }
 
 /* ------------------------------------------------------------------ */

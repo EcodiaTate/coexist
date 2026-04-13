@@ -10,26 +10,22 @@
 /* ------------------------------------------------------------------ */
 
 export type ActivityBadgeSlug =
-  | 'shore-cleanup'
+  | 'clean-up'
   | 'tree-planting'
-  | 'land-regeneration'
-  | 'nature-walk'
+  | 'ecosystem-restoration'
+  | 'nature-hike'
   | 'camp-out'
-  | 'retreat'
-  | 'film-screening'
-  | 'marine-restoration'
-  | 'workshop'
+  | 'spotlighting'
+  | 'other'
 
 export const activityToBadge: Record<string, ActivityBadgeSlug> = {
-  shore_cleanup: 'shore-cleanup',
+  clean_up: 'clean-up',
   tree_planting: 'tree-planting',
-  land_regeneration: 'land-regeneration',
-  nature_walk: 'nature-walk',
+  ecosystem_restoration: 'ecosystem-restoration',
+  nature_hike: 'nature-hike',
   camp_out: 'camp-out',
-  retreat: 'retreat',
-  film_screening: 'film-screening',
-  marine_restoration: 'marine-restoration',
-  workshop: 'workshop',
+  spotlighting: 'spotlighting',
+  other: 'other',
 }
 
 /* ------------------------------------------------------------------ */
@@ -37,15 +33,13 @@ export const activityToBadge: Record<string, ActivityBadgeSlug> = {
 /* ------------------------------------------------------------------ */
 
 export const ACTIVITY_META: Record<string, { gradient: string }> = {
-  shore_cleanup: { gradient: 'from-sky-400 to-moss-500' },
+  clean_up: { gradient: 'from-sky-400 to-moss-500' },
   tree_planting: { gradient: 'from-success-400 to-primary-500' },
-  land_regeneration: { gradient: 'from-sprout-400 to-success-500' },
-  nature_walk: { gradient: 'from-bark-400 to-bark-500' },
+  ecosystem_restoration: { gradient: 'from-sprout-400 to-success-500' },
+  nature_hike: { gradient: 'from-bark-400 to-bark-500' },
   camp_out: { gradient: 'from-moss-400 to-primary-500' },
-  retreat: { gradient: 'from-plum-400 to-plum-500' },
-  film_screening: { gradient: 'from-coral-400 to-coral-500' },
-  marine_restoration: { gradient: 'from-primary-400 to-moss-500' },
-  workshop: { gradient: 'from-bark-400 to-warning-500' },
+  spotlighting: { gradient: 'from-amber-400 to-amber-500' },
+  other: { gradient: 'from-neutral-400 to-neutral-500' },
 }
 
 /* ------------------------------------------------------------------ */
@@ -61,15 +55,13 @@ export interface ActivityAccent {
 }
 
 export const activityAccent: Record<string, ActivityAccent> = {
-  shore_cleanup:      { gradient: 'from-sky-400 to-cyan-500',         glow: '',    bg: 'bg-sky-50',        text: 'text-sky-700',      border: 'border-sky-200/50' },
-  tree_planting:      { gradient: 'from-emerald-400 to-green-500',    glow: '',    bg: 'bg-emerald-50',    text: 'text-emerald-700',  border: 'border-emerald-200/50' },
-  land_regeneration:  { gradient: 'from-lime-400 to-green-500',       glow: '',    bg: 'bg-lime-50',       text: 'text-lime-700',     border: 'border-lime-200/50' },
-  nature_walk:        { gradient: 'from-teal-400 to-emerald-500',     glow: '',    bg: 'bg-teal-50',       text: 'text-teal-700',     border: 'border-teal-200/50' },
-  camp_out:           { gradient: 'from-amber-400 to-orange-500',     glow: '',    bg: 'bg-amber-50',      text: 'text-amber-700',    border: 'border-amber-200/50' },
-  retreat:            { gradient: 'from-violet-400 to-purple-500',    glow: '',    bg: 'bg-violet-50',     text: 'text-violet-700',   border: 'border-violet-200/50' },
-  film_screening:     { gradient: 'from-rose-400 to-pink-500',        glow: '',    bg: 'bg-rose-50',       text: 'text-rose-700',     border: 'border-rose-200/50' },
-  marine_restoration: { gradient: 'from-blue-400 to-indigo-500',      glow: '',    bg: 'bg-blue-50',       text: 'text-blue-700',     border: 'border-blue-200/50' },
-  workshop:           { gradient: 'from-fuchsia-400 to-purple-500',   glow: '',    bg: 'bg-fuchsia-50',    text: 'text-fuchsia-700',  border: 'border-fuchsia-200/50' },
+  clean_up:               { gradient: 'from-sky-400 to-cyan-500',         glow: '',    bg: 'bg-sky-50',        text: 'text-sky-700',      border: 'border-sky-200/50' },
+  tree_planting:           { gradient: 'from-emerald-400 to-green-500',    glow: '',    bg: 'bg-emerald-50',    text: 'text-emerald-700',  border: 'border-emerald-200/50' },
+  ecosystem_restoration:   { gradient: 'from-lime-400 to-green-500',       glow: '',    bg: 'bg-lime-50',       text: 'text-lime-700',     border: 'border-lime-200/50' },
+  nature_hike:             { gradient: 'from-teal-400 to-emerald-500',     glow: '',    bg: 'bg-teal-50',       text: 'text-teal-700',     border: 'border-teal-200/50' },
+  camp_out:                { gradient: 'from-amber-400 to-orange-500',     glow: '',    bg: 'bg-amber-50',      text: 'text-amber-700',    border: 'border-amber-200/50' },
+  spotlighting:            { gradient: 'from-indigo-400 to-violet-500',    glow: '',    bg: 'bg-indigo-50',     text: 'text-indigo-700',   border: 'border-indigo-200/50' },
+  other:                   { gradient: 'from-neutral-400 to-neutral-500',  glow: '',    bg: 'bg-neutral-50',    text: 'text-neutral-700',  border: 'border-neutral-200/50' },
 }
 
 /* ------------------------------------------------------------------ */

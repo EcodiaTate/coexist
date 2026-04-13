@@ -1128,7 +1128,7 @@ export default function LogImpactPage() {
         )}
 
         {/* Species tracking */}
-        {(activityType === 'tree_planting' || activityType === 'land_regeneration') && (
+        {(activityType === 'tree_planting' || activityType === 'ecosystem_restoration') && (
           <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
             <SpeciesTracker species={species} onChange={setSpecies} activityType={activityType} />
           </motion.div>

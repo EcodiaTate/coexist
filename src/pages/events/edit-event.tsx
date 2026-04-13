@@ -32,6 +32,7 @@ import {
     Button,
     Input,
     Toggle,
+    Dropdown,
     Skeleton,
     EmptyState,
 } from '@/components'
@@ -62,6 +63,7 @@ export default function EditEventPage() {
   const [isTicketed, setIsTicketed] = useState(false)
   const [ticketTiers, setTicketTiers] = useState<TicketTypeDraft[]>([])
   const [removedTierIds, setRemovedTierIds] = useState<string[]>([])
+  const [checkinWindowMinutes, setCheckinWindowMinutes] = useState(30)
   const ticketsInitialised = useRef(false)
 
   // Pre-populate from event data
@@ -85,6 +87,7 @@ export default function EditEventPage() {
         external_registration_url: event.external_registration_url ?? '',
       })
       setIsTicketed(event.is_ticketed ?? false)
+      setCheckinWindowMinutes((event as Record<string, unknown>).checkin_window_minutes as number ?? 30)
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [event])
@@ -137,6 +140,7 @@ export default function EditEventPage() {
         is_public: form.fields.is_public,
         is_external_collaboration: form.fields.is_external_collaboration,
         external_registration_url: form.fields.external_registration_url || null,
+        checkin_window_minutes: checkinWindowMinutes,
       })
 
       // Save ticket types
@@ -307,6 +311,17 @@ export default function EditEventPage() {
             onChange={form.updateFields}
             disabled={isDayOfMode}
           />
+          {!isDayOfMode && (
+            <Dropdown
+              label="When should check-in open?"
+              value={String(checkinWindowMinutes)}
+              onChange={(v) => setCheckinWindowMinutes(parseInt(v, 10))}
+              options={[
+                { value: '0', label: 'At event start time' },
+                { value: '30', label: '30 minutes before (default)' },
+              ]}
+            />
+          )}
         </motion.div>
 
         {/* Cover Image */}

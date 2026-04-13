@@ -42,12 +42,12 @@ const PD_LINKS = [
   {
     title: 'Collective Leader',
     description: 'Find the Collective Leader Position Description here',
-    url: 'https://xbwivnfmkpbgzqtfzidn.supabase.co/storage/v1/object/public/documents/coexist/collective-leader-pd.pdf',
+    url: 'https://tjutlbzekfouwsiaplbr.supabase.co/storage/v1/object/public/dev-assets/CollectiveLeader.pdf',
   },
   {
     title: 'Assistant Leader',
     description: 'Find the Assistant Leader Position Description here',
-    url: 'https://xbwivnfmkpbgzqtfzidn.supabase.co/storage/v1/object/public/documents/coexist/assistant-leader-pd.pdf',
+    url: 'https://tjutlbzekfouwsiaplbr.supabase.co/storage/v1/object/public/dev-assets/AssistantLeader.pdf',
   },
 ]
 

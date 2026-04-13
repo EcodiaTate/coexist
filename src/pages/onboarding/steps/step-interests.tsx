@@ -1,19 +1,17 @@
 import { motion, useReducedMotion } from 'framer-motion'
-import { Trees, Waves, Bird, Sprout, Flower2, Droplets, Fence, Leaf } from 'lucide-react'
+import { Trees, Waves, Sprout, Leaf, Fence, Flashlight, MoreHorizontal } from 'lucide-react'
 import { Chip } from '@/components/chip'
 import { Button } from '@/components/button'
 import { adminStagger as stagger, fadeUp } from '@/lib/admin-motion'
 
 const INTERESTS = [
-  { id: 'shore_cleanup', label: 'Cleanup', icon: <Waves size={16} /> },
+  { id: 'clean_up', label: 'Clean Up', icon: <Waves size={16} /> },
   { id: 'tree_planting', label: 'Tree Planting', icon: <Trees size={16} /> },
-  { id: 'land_regeneration', label: 'Land Regeneration', icon: <Sprout size={16} /> },
-  { id: 'nature_walk', label: 'Nature Walks', icon: <Leaf size={16} /> },
+  { id: 'ecosystem_restoration', label: 'Ecosystem Restoration', icon: <Sprout size={16} /> },
+  { id: 'nature_hike', label: 'Nature Hike', icon: <Leaf size={16} /> },
   { id: 'camp_out', label: 'Camp Out', icon: <Fence size={16} /> },
-  { id: 'retreat', label: 'Retreats', icon: <Flower2 size={16} /> },
-  { id: 'film_screening', label: 'Film Screening', icon: <Bird size={16} /> },
-  { id: 'marine_restoration', label: 'Marine Restoration', icon: <Droplets size={16} /> },
-  { id: 'workshop', label: 'Workshop', icon: <Trees size={16} /> },
+  { id: 'spotlighting', label: 'Spotlighting', icon: <Flashlight size={16} /> },
+  { id: 'other', label: 'Other', icon: <MoreHorizontal size={16} /> },
 ]
 
 interface StepInterestsProps {

@@ -66,7 +66,7 @@ export const adminNavCategories: NavCategory[] = [
     labelColor: 'text-amber-600',
     dotColor: 'bg-amber-500',
     items: [
-      { label: 'Legal Pages', path: '/admin/legal-pages', icon: icon(FileText), capability: 'manage_system' },
+      { label: 'Organisational Policies', path: '/admin/legal-pages', icon: icon(FileText), capability: 'manage_system' },
       { label: 'Applications', path: '/admin/applications', icon: icon(ClipboardList), capability: 'manage_users' },
       { label: 'Partners', path: '/admin/partners', icon: icon(Handshake), capability: 'manage_partners' },
       { label: 'Contacts', path: '/admin/contacts', icon: icon(Phone), capability: 'manage_users' },

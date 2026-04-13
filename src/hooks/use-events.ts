@@ -64,15 +64,13 @@ export interface WaitlistEntry {
 /* ------------------------------------------------------------------ */
 
 export const ACTIVITY_TYPE_OPTIONS: { value: ActivityType; label: string }[] = [
-  { value: 'shore_cleanup', label: 'Cleanup' },
+  { value: 'clean_up', label: 'Clean Up' },
   { value: 'tree_planting', label: 'Tree Planting' },
-  { value: 'land_regeneration', label: 'Land Regeneration' },
-  { value: 'nature_walk', label: 'Nature Walks' },
+  { value: 'ecosystem_restoration', label: 'Ecosystem Restoration' },
+  { value: 'nature_hike', label: 'Nature Hike' },
   { value: 'camp_out', label: 'Camp Out' },
-  { value: 'retreat', label: 'Retreats' },
-  { value: 'film_screening', label: 'Film Screening' },
-  { value: 'marine_restoration', label: 'Marine Restoration' },
-  { value: 'workshop', label: 'Workshop' },
+  { value: 'spotlighting', label: 'Spotlighting' },
+  { value: 'other', label: 'Other' },
 ]
 
 export const ACTIVITY_TYPE_LABELS: Record<string, string> = Object.fromEntries(

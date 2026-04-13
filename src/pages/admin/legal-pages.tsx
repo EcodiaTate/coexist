@@ -250,7 +250,7 @@ export default function AdminLegalPagesPage() {
 
   const previewHtml = sanitise(form.content)
 
-  useAdminHeader(editing ? 'Edit Legal Page' : 'Legal Pages')
+  useAdminHeader(editing ? 'Edit Policy' : 'Organisational Policies')
 
   const startEdit = useCallback((page: LegalPage) => {
     setEditing(page)
@@ -440,10 +440,10 @@ export default function AdminLegalPagesPage() {
             </div>
             <div>
               <h3 className="text-sm font-semibold text-neutral-900">
-                Legal & Policy Pages
+                Organisational Policies
               </h3>
               <p className="mt-1 text-sm leading-relaxed text-neutral-600">
-                Manage your Terms of Service, Privacy Policy, and other legal pages.
+                Manage your Terms of Service, Privacy Policy, and other organisational policies.
                 Changes go live immediately when a page is published.
               </p>
             </div>
@@ -459,7 +459,7 @@ export default function AdminLegalPagesPage() {
 
         {pages?.length === 0 && (
           <motion.div variants={fadeUp} className="text-center py-12">
-            <p className="text-sm text-neutral-400">No legal pages found. Run the database migration to seed default pages.</p>
+            <p className="text-sm text-neutral-400">No organisational policies found. Run the database migration to seed default pages.</p>
           </motion.div>
         )}
       </motion.div>

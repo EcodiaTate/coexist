@@ -60,7 +60,7 @@ export function useNationalImpact(timeRange: TimeRange = 'all-time') {
           .from('events')
           .select('address')
           .in('id', eventIds)
-          .in('activity_type', ['shore_cleanup', 'marine_restoration'])
+          .in('activity_type', ['clean_up'])
         for (const e of cleanupEvents ?? []) {
           const addr = (e.address ?? '').trim().toLowerCase()
           if (addr) cleanupAddresses.add(addr)
@@ -132,7 +132,7 @@ export function useCollectiveImpact(collectiveId: string | undefined, timeRange:
           .from('events')
           .select('address')
           .in('id', eventIds)
-          .in('activity_type', ['shore_cleanup', 'marine_restoration'])
+          .in('activity_type', ['clean_up'])
         for (const e of cleanupEvents ?? []) {
           const addr = (e.address ?? '').trim().toLowerCase()
           if (addr) cleanupAddresses.add(addr)
@@ -262,7 +262,7 @@ export function useImpactStats(userId?: string) {
               .from('events')
               .select('address')
               .in('id', chunk)
-              .in('activity_type', ['shore_cleanup', 'marine_restoration'])
+              .in('activity_type', ['clean_up'])
             for (const e of data ?? []) {
               const addr = (e.address ?? '').trim().toLowerCase()
               if (addr) addrs.add(addr)
@@ -365,7 +365,7 @@ export function useImpactByCategory(userId?: string) {
 
       const categoryCounts = new Map<string, number>()
       for (const reg of registrations) {
-        const actType = (reg.events as { activity_type: string } | null)?.activity_type ?? 'workshop'
+        const actType = (reg.events as { activity_type: string } | null)?.activity_type ?? 'other'
         categoryCounts.set(actType, (categoryCounts.get(actType) ?? 0) + 1)
       }
 

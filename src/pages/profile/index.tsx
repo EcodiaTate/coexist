@@ -174,9 +174,9 @@ export default function ProfilePage() {
   // Core metrics always show (even if 0) - these are the canonical Co-Exist impact metrics.
   // Secondary metrics show if value > 0 OR user attended a relevant activity type.
   const at = stats?.activityTypeCounts ?? {}
-  const didLand = (at.tree_planting ?? 0) > 0 || (at.land_regeneration ?? 0) > 0
-  const didCoast = (at.shore_cleanup ?? 0) > 0 || (at.marine_restoration ?? 0) > 0
-  const didWild = didCoast || (at.nature_walk ?? 0) > 0
+  const didLand = (at.tree_planting ?? 0) > 0 || (at.ecosystem_restoration ?? 0) > 0
+  const didCoast = (at.clean_up ?? 0) > 0
+  const didWild = didCoast || (at.nature_hike ?? 0) > 0
 
   const allStats = [
     // Core metrics - always visible

@@ -26,27 +26,23 @@ import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 
 /* ─── category meta ─── */
 const CATEGORY_COLORS: Record<string, string> = {
-  shore_cleanup: 'var(--color-moss-500)',
+  clean_up: 'var(--color-moss-500)',
   tree_planting: 'var(--color-primary-600)',
-  land_regeneration: 'var(--color-moss-600)',
-  nature_walk: 'var(--color-primary-500)',
+  ecosystem_restoration: 'var(--color-moss-600)',
+  nature_hike: 'var(--color-primary-500)',
   camp_out: 'var(--color-secondary-500)',
-  retreat: 'var(--color-plum-500)',
-  film_screening: 'var(--color-bark-500)',
-  marine_restoration: 'var(--color-moss-700)',
-  workshop: 'var(--color-bark-600)',
+  spotlighting: 'var(--color-plum-500)',
+  other: 'var(--color-bark-500)',
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
-  shore_cleanup: 'Cleanup',
+  clean_up: 'Clean Up',
   tree_planting: 'Tree Planting',
-  land_regeneration: 'Land Regeneration',
-  nature_walk: 'Nature Walks',
+  ecosystem_restoration: 'Ecosystem Restoration',
+  nature_hike: 'Nature Hike',
   camp_out: 'Camp Out',
-  retreat: 'Retreats',
-  film_screening: 'Film Screening',
-  marine_restoration: 'Marine Restoration',
-  workshop: 'Workshop',
+  spotlighting: 'Spotlighting',
+  other: 'Other',
 }
 
 /* ─── animation ─── */

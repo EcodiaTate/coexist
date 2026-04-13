@@ -303,7 +303,7 @@ export default function ExplorePage() {
                                     </div>
                                   )}
                                   <Card.Badge position="top-left">
-                                    <Badge variant="activity" activity={activityToBadge[event.activity_type] ?? 'workshop'} size="sm">
+                                    <Badge variant="activity" activity={activityToBadge[event.activity_type] ?? 'other'} size="sm">
                                       {ACTIVITY_TYPE_LABELS[event.activity_type] ?? event.activity_type}
                                     </Badge>
                                   </Card.Badge>

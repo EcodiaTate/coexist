@@ -112,7 +112,7 @@ const INITIAL_EXTRA: CreateExtraFields = {
   partner_name: '',
   is_ticketed: false,
   ticket_tiers: [],
-  checkin_window_minutes: 60,
+  checkin_window_minutes: 30,
 }
 
 /* ------------------------------------------------------------------ */
@@ -237,15 +237,13 @@ const STEPS = [
 /* ------------------------------------------------------------------ */
 
 const activityIcons: Record<string, React.ReactNode> = {
-  shore_cleanup: <Waves size={18} />,
+  clean_up: <Waves size={18} />,
   tree_planting: <TreePine size={18} />,
-  land_regeneration: <Sprout size={18} />,
-  nature_walk: <Footprints size={18} />,
+  ecosystem_restoration: <Sprout size={18} />,
+  nature_hike: <Footprints size={18} />,
   camp_out: <Mountain size={18} />,
-  retreat: <Flower2 size={18} />,
-  film_screening: <Eye size={18} />,
-  marine_restoration: <Droplets size={18} />,
-  workshop: <BookOpen size={18} />,
+  spotlighting: <Eye size={18} />,
+  other: <BookOpen size={18} />,
 }
 
 /* ------------------------------------------------------------------ */
@@ -666,18 +664,16 @@ function StepDetails({
       <StepCard>
         <SectionLabel icon={<Clock size={14} />}>Check-in Window</SectionLabel>
         <Dropdown
-          label="Open check-in before event starts"
+          label="When should check-in open?"
           value={String(extra.checkin_window_minutes)}
           onChange={(v) => onExtraChange({ checkin_window_minutes: parseInt(v, 10) })}
           options={[
-            { value: '30', label: '30 minutes before' },
-            { value: '60', label: '1 hour before (default)' },
-            { value: '90', label: '1.5 hours before' },
-            { value: '120', label: '2 hours before' },
+            { value: '0', label: 'At event start time' },
+            { value: '30', label: '30 minutes before (default)' },
           ]}
         />
         <p className="text-caption text-neutral-500 mt-2">
-          Leaders can always override this and open check-in early from the event page.
+          Check-in can open up to 30 minutes before the event starts. Leaders can always override this and open check-in early from the event page.
         </p>
       </StepCard>
 
@@ -1636,6 +1632,7 @@ export default function CreateEventPage() {
           is_ticketed: extra.is_ticketed,
           is_external_collaboration: form.fields.is_external_collaboration,
           external_registration_url: form.fields.external_registration_url || null,
+          checkin_window_minutes: extra.checkin_window_minutes,
           status: isDraft ? 'draft' : 'published',
           ...(extra.is_recurring && {
             is_recurring: true,
