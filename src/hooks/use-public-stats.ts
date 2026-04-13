@@ -27,7 +27,7 @@ export function usePublicStats() {
       const [{ rows }, profilesRes, collectivesRes, eventsRes] = await Promise.all([
         fetchImpactRows({ timeRange: 'all-time' }),
         supabase.from('profiles').select('id', { count: 'exact', head: true }),
-        supabase.from('collectives').select('id', { count: 'exact', head: true }).eq('is_active', true),
+        supabase.from('collectives').select('id', { count: 'exact', head: true }).eq('is_active', true).neq('is_national', true),
         supabase.from('events').select('id', { count: 'exact', head: true })
           .lt('date_start', new Date().toISOString())
           .gte('date_start', new Date('2026-01-01').toISOString()),

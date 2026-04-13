@@ -38,7 +38,7 @@ const CATEGORY_COLORS: Record<string, string> = {
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
-  shore_cleanup: 'Shore Cleanup',
+  shore_cleanup: 'Cleanup',
   tree_planting: 'Tree Planting',
   land_regeneration: 'Land Regeneration',
   nature_walk: 'Nature Walks',

@@ -81,6 +81,8 @@ export default function EditEventPage() {
         capacity: event.capacity ? String(event.capacity) : '',
         cover_image_url: event.cover_image_url ?? '',
         is_public: event.is_public ?? true,
+        is_external_collaboration: event.is_external_collaboration ?? false,
+        external_registration_url: event.external_registration_url ?? '',
       })
       setIsTicketed(event.is_ticketed ?? false)
     })
@@ -133,6 +135,8 @@ export default function EditEventPage() {
         capacity: form.parsedCapacity(),
         cover_image_url: form.fields.cover_image_url || null,
         is_public: form.fields.is_public,
+        is_external_collaboration: form.fields.is_external_collaboration,
+        external_registration_url: form.fields.external_registration_url || null,
       })
 
       // Save ticket types
@@ -504,6 +508,30 @@ export default function EditEventPage() {
             </>
           )}
         </motion.div>
+
+        {/* External Collaboration */}
+        {!isDayOfMode && (
+          <motion.div variants={fadeUp} className="space-y-4 rounded-2xl p-4 border bg-white border-neutral-100">
+            <h3 className="text-sm font-semibold text-neutral-900">External Collaboration</h3>
+            <Toggle
+              label="External Collaboration"
+              description="This event is managed by an external partner or organisation"
+              checked={form.fields.is_external_collaboration}
+              onChange={(v) => form.updateFields({
+                is_external_collaboration: v,
+                ...(!v && { external_registration_url: '' }),
+              })}
+            />
+            {form.fields.is_external_collaboration && (
+              <Input
+                label="External Registration URL"
+                placeholder="https://partner-org.com/register"
+                value={form.fields.external_registration_url}
+                onChange={(e) => form.updateFields({ external_registration_url: e.target.value })}
+              />
+            )}
+          </motion.div>
+        )}
       </motion.div>
     </Page>
   )

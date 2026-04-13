@@ -130,7 +130,7 @@ const scopeOptions = [
 ]
 
 const assigneeRoleOptions = [
-  { value: 'assist_leader', label: 'Assist Leader+' },
+  { value: 'assist_leader', label: 'Assistant Leader+' },
   { value: 'co_leader', label: 'Co-Leader+' },
   { value: 'leader', label: 'Leader Only' },
 ]
@@ -159,7 +159,7 @@ const SCHEDULE_ICONS: Record<string, typeof Calendar> = {
 
 const ACTIVITY_TYPE_OPTIONS = [
   { value: '', label: 'Any event type' },
-  { value: 'shore_cleanup', label: 'Shore Cleanup' },
+  { value: 'shore_cleanup', label: 'Cleanup' },
   { value: 'tree_planting', label: 'Tree Planting' },
   { value: 'land_regeneration', label: 'Land Regeneration' },
   { value: 'nature_walk', label: 'Nature Walks' },
@@ -1009,7 +1009,7 @@ export default function AdminWorkflowsPage() {
                   <ol className="text-[11px] text-info-700 leading-relaxed list-decimal pl-3.5 space-y-0.5">
                     <li>Tap <span className="font-medium">Create Template</span></li>
                     <li>Set schedule to <span className="font-medium">One-time</span> so it only appears once per user</li>
-                    <li>Set scope to <span className="font-medium">All Collectives</span> and assign to <span className="font-medium">Assist Leader+</span></li>
+                    <li>Set scope to <span className="font-medium">All Collectives</span> and assign to <span className="font-medium">Assistant Leader+</span></li>
                     <li>Upload the handbook PDF using the <span className="font-medium">Attachment</span> file picker</li>
                     <li>Once a leader completes or skips the task, it never reappears for them</li>
                   </ol>

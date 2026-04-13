@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import {
@@ -10,7 +10,7 @@ import {
 import { useAuth } from '@/hooks/use-auth'
 import { useProfile } from '@/hooks/use-profile'
 import { useCheckIn } from '@/hooks/use-events'
-import { useTicketCheckIn } from '@/hooks/use-event-tickets'
+import { useCodeCheckIn } from '@/hooks/use-event-tickets'
 import { useOffline } from '@/hooks/use-offline'
 import { useCheckInValidation } from '@/hooks/use-check-in-validation'
 import { CHECK_IN_ERROR_MESSAGES, type CheckInErrorKind } from '@/lib/constants/check-in'
@@ -20,14 +20,13 @@ import { Button } from '@/components/button'
 import { Celebration } from '@/components/celebration'
 import { Confetti } from '@/components/confetti'
 import { WhatsNext } from '@/components/whats-next'
-import { QrScanner } from '@/components/qr-scanner'
 import { ProfileDetails, CheckInModeView } from '@/components/check-in-form'
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
 /* ------------------------------------------------------------------ */
 
-type Step = 'details' | 'checkin' | 'scanning' | 'success' | 'error'
+type Step = 'details' | 'checkin' | 'success' | 'error'
 type ErrorKind = CheckInErrorKind
 
 /* ------------------------------------------------------------------ */
@@ -40,7 +39,7 @@ interface CheckInSheetProps {
   eventId: string
   eventTitle: string
   collectiveName?: string
-  /** When true, immediately start the QR camera scan when the sheet opens */
+  /** @deprecated QR scanning removed - this prop is ignored */
   autoScan?: boolean
 }
 
@@ -48,14 +47,14 @@ interface CheckInSheetProps {
 /*  Orchestrator                                                       */
 /* ------------------------------------------------------------------ */
 
-export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveName, autoScan = false }: CheckInSheetProps) {
+export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveName }: CheckInSheetProps) {
   const navigate = useNavigate()
   const { user } = useAuth()
   const rm = useReducedMotion()
   const { isOffline } = useOffline()
   const { data: profileData } = useProfile()
   const checkInMutation = useCheckIn()
-  const ticketCheckIn = useTicketCheckIn()
+  const codeCheckIn = useCodeCheckIn()
   const { validateRegistration } = useCheckInValidation()
 
   const needsDetails = profileData && !profileData.profile_details_completed
@@ -63,8 +62,6 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
   const [errorKind, setErrorKind] = useState<ErrorKind>('generic')
   const [showCelebration, setShowCelebration] = useState(false)
   const [checkedInOffline, setCheckedInOffline] = useState(false)
-  const [nativeScannerActive, setNativeScannerActive] = useState(false)
-  const autoScanTriggered = useRef(false)
 
   // Reset state when sheet opens
   useEffect(() => {
@@ -72,11 +69,6 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
       setStep(needsDetails ? 'details' : 'checkin')
       setShowCelebration(false)
       setCheckedInOffline(false)
-      setNativeScannerActive(false)
-      autoScanTriggered.current = false
-    } else {
-      document.body.classList.remove('scanner-active')
-      setNativeScannerActive(false)
     }
   }, [open, needsDetails])
 
@@ -93,7 +85,7 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
         return
       }
 
-      // waitlisted users can't check in via the sheet (no waitlist promotion flow here)
+      // waitlisted users can't check in via the sheet
       if (validation.status === 'waitlisted') {
         setErrorKind('not_registered')
         setStep('error')
@@ -125,33 +117,29 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
     setTimeout(() => setShowCelebration(true), 600)
   }, [eventId, user])
 
-  const handleCheckIn = useCallback((scannedEventId: string) => {
+  const handleCheckIn = useCallback((resolvedEventId: string) => {
     if (isOffline) handleOfflineCheckIn()
-    else validateAndCheckIn(scannedEventId)
+    else validateAndCheckIn(resolvedEventId)
   }, [isOffline, validateAndCheckIn, handleOfflineCheckIn])
 
-  /* ---- Scan handlers ---- */
-  const handleStartScan = useCallback(() => {
-    setStep('scanning')
-  }, [])
-
-  const handleScanResult = useCallback((scannedEventId: string) => {
-    handleCheckIn(scannedEventId)
-  }, [handleCheckIn])
-
-  // Ticket QR code scanned - check in via ticket code
-  const handleTicketScan = useCallback((ticketCode: string) => {
-    ticketCheckIn.mutate(
-      { ticketCode, eventId },
+  /* ---- 3-digit code handler ---- */
+  const handleCodeSubmit = useCallback((code: string) => {
+    if (!user) return
+    codeCheckIn.mutate(
+      { checkInCode: code },
       {
-        onSuccess: () => {
+        onSuccess: (result) => {
           setStep('success')
           setTimeout(() => setShowCelebration(true), 600)
         },
         onError: (err) => {
           const msg = err instanceof Error ? err.message : ''
-          if (msg.includes('Already checked in')) {
+          if (msg.includes('Already checked in') || msg.includes('already checked in')) {
             setErrorKind('already_checked_in')
+          } else if (msg.includes('not found') || msg.includes('No event')) {
+            setErrorKind('invalid_qr')
+          } else if (msg.includes('not registered')) {
+            setErrorKind('not_registered')
           } else {
             setErrorKind('generic')
           }
@@ -159,42 +147,7 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
         },
       },
     )
-  }, [ticketCheckIn, eventId])
-
-  const handleInvalidQr = useCallback(() => {
-    setErrorKind('invalid_qr')
-    setStep('error')
-  }, [])
-
-  const handleCameraError = useCallback(() => {
-    // Camera unavailable - step back to checkin (user can use manual entry)
-    setStep('checkin')
-  }, [])
-
-  const handleScanCancel = useCallback(() => {
-    setStep('checkin')
-  }, [])
-
-  /* ---- Manual code handler ---- */
-  const handleManualSubmit = useCallback((code: string) => {
-    if (!eventId || !user) return
-    const expected = eventId.replace(/-/g, '').slice(0, 6).toUpperCase()
-    if (code !== expected) {
-      setErrorKind('invalid_qr')
-      setStep('error')
-      return
-    }
-    handleCheckIn(eventId)
-  }, [eventId, user, handleCheckIn])
-
-  /* ---- Auto-scan ---- */
-  useEffect(() => {
-    if (open && autoScan && step === 'checkin' && !autoScanTriggered.current) {
-      autoScanTriggered.current = true
-      const timer = setTimeout(() => setStep('scanning'), 350)
-      return () => clearTimeout(timer)
-    }
-  }, [open, autoScan, step])
+  }, [user, codeCheckIn])
 
   const handleClose = useCallback(() => {
     onClose()
@@ -204,7 +157,7 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
 
   return (
     <>
-      <BottomSheet open={open && !nativeScannerActive} onClose={handleClose} snapPoints={snapPoints}>
+      <BottomSheet open={open} onClose={handleClose} snapPoints={snapPoints}>
         <div className="h-[70vh] overflow-y-auto relative">
         <AnimatePresence mode="wait">
           {/* Profile details (blocks check-in) */}
@@ -212,46 +165,14 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
             <ProfileDetails onComplete={() => setStep('checkin')} />
           )}
 
-          {/* Check-in mode selector (idle / manual) */}
+          {/* 3-digit code entry */}
           {step === 'checkin' && (
             <CheckInModeView
               eventTitle={eventTitle}
               collectiveName={collectiveName}
-              isPending={checkInMutation.isPending}
-              onStartScan={handleStartScan}
-              onManualSubmit={handleManualSubmit}
+              isPending={checkInMutation.isPending || codeCheckIn.isPending}
+              onManualSubmit={handleCodeSubmit}
             />
-          )}
-
-          {/* QR scanning */}
-          {step === 'scanning' && (
-            <motion.div
-              key="scanning"
-              initial={rm ? undefined : { opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={rm ? { opacity: 0 } : { opacity: 0, y: -4 }}
-              transition={rm ? { duration: 0 } : { duration: 0.2, ease: 'easeOut' }}
-              className="flex flex-col items-center py-4 text-center"
-            >
-              <QrScanner
-                eventId={eventId}
-                isOffline={isOffline}
-                onScan={handleScanResult}
-                onInvalidQr={handleInvalidQr}
-                onCameraError={handleCameraError}
-                onCancel={handleScanCancel}
-                onNativeScannerActive={setNativeScannerActive}
-                onTicketScan={handleTicketScan}
-              />
-              <div className="w-full space-y-2 mt-4">
-                <Button variant="secondary" fullWidth onClick={() => setStep('checkin')}>
-                  Enter Code Instead
-                </Button>
-                <Button variant="ghost" fullWidth onClick={() => setStep('checkin')}>
-                  Cancel
-                </Button>
-              </div>
-            </motion.div>
           )}
 
           {/* Success */}

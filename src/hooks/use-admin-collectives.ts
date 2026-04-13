@@ -64,6 +64,7 @@ export function useAdminCollectives(filters: {
       let query = supabase
         .from('collectives')
         .select('*, profiles!collectives_leader_id_fkey(id, display_name, avatar_url)')
+        .neq('is_national', true)
         .order('name')
 
       if (filters.search) {

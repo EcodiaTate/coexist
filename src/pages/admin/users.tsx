@@ -141,7 +141,7 @@ const roleBadgeColors: Record<string, string> = {
 const collectiveRoleOptions: { value: CollectiveRole; label: string }[] = [
   { value: 'leader', label: 'Leader' },
   { value: 'co_leader', label: 'Co-Leader' },
-  { value: 'assist_leader', label: 'Assist Leader' },
+  { value: 'assist_leader', label: 'Assistant Leader' },
   { value: 'member', label: 'Member' },
 ]
 

@@ -2974,6 +2974,7 @@ export type Database = {
           activity_type: Database["public"]["Enums"]["activity_type"]
           address: string | null
           capacity: number | null
+          check_in_code: string | null
           collective_id: string
           cover_image_url: string | null
           created_at: string | null
@@ -2981,7 +2982,9 @@ export type Database = {
           date_end: string | null
           date_start: string
           description: string | null
+          external_registration_url: string | null
           id: string
+          is_external_collaboration: boolean | null
           is_public: boolean | null
           is_ticketed: boolean | null
           location_point: unknown
@@ -2994,6 +2997,7 @@ export type Database = {
           activity_type: Database["public"]["Enums"]["activity_type"]
           address?: string | null
           capacity?: number | null
+          check_in_code?: string | null
           collective_id: string
           cover_image_url?: string | null
           created_at?: string | null
@@ -3001,7 +3005,9 @@ export type Database = {
           date_end?: string | null
           date_start: string
           description?: string | null
+          external_registration_url?: string | null
           id?: string
+          is_external_collaboration?: boolean | null
           is_public?: boolean | null
           is_ticketed?: boolean | null
           location_point?: unknown
@@ -3014,6 +3020,7 @@ export type Database = {
           activity_type?: Database["public"]["Enums"]["activity_type"]
           address?: string | null
           capacity?: number | null
+          check_in_code?: string | null
           collective_id?: string
           cover_image_url?: string | null
           created_at?: string | null
@@ -3021,7 +3028,9 @@ export type Database = {
           date_end?: string | null
           date_start?: string
           description?: string | null
+          external_registration_url?: string | null
           id?: string
+          is_external_collaboration?: boolean | null
           is_public?: boolean | null
           is_ticketed?: boolean | null
           location_point?: unknown

@@ -4,7 +4,7 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { useQueryClient } from '@tanstack/react-query'
 import {
   Calendar, MapPin, Users, Leaf, Filter,
-  ArrowRight,
+  ArrowRight, ExternalLink,
 } from 'lucide-react'
 import {
   useMyEvents,
@@ -309,7 +309,15 @@ export default function ExplorePage() {
                                   </Card.Badge>
                                 </div>
                                 <Card.Content>
-                                  <Card.Title className="text-neutral-900">{event.title}</Card.Title>
+                                  <Card.Title className="text-neutral-900">
+                                    {event.title}
+                                    {event.is_external_collaboration && (
+                                      <span className="inline-flex items-center gap-1 ml-2 px-1.5 py-0.5 rounded-md bg-bark-100 text-bark-600 text-[10px] font-semibold align-middle">
+                                        <ExternalLink size={10} />
+                                        Collab
+                                      </span>
+                                    )}
+                                  </Card.Title>
                                   <Card.Meta className="text-neutral-500">
                                     <span className="flex items-center gap-1.5">
                                       <Calendar size={13} className="shrink-0 text-neutral-400" />

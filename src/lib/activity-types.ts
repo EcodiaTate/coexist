@@ -76,7 +76,7 @@ export const activityAccent: Record<string, ActivityAccent> = {
 /*  Display label                                                      */
 /* ------------------------------------------------------------------ */
 
-/** Converts a DB enum value to a human-readable label: "shore_cleanup" → "Shore Cleanup" */
+/** Converts a DB enum value to a human-readable label: "tree_planting" → "Tree Planting" */
 export function formatActivityType(type: string | null | undefined): string {
   if (!type) return 'Event'
   return type.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())

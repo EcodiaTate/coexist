@@ -438,27 +438,6 @@ export default function ChatRoomPage() {
   }, [isCollective, collectiveId, channelId, channel, pickFromGallery, chatUpload, collectiveSend, channelSend, toast])
 
   /* ---- Attach HTML ---- */
-  const handleAttachHtml = useCallback(async (htmlContent: string) => {
-    if (isCollective && collectiveId) {
-      try {
-        await collectiveSend.mutateAsync({
-          collectiveId,
-          content: htmlContent,
-          messageType: 'html',
-        })
-      } catch {
-        toast.error('Failed to send HTML content')
-      }
-    } else if (channelId) {
-      channelSend.mutate({
-        channelId,
-        collectiveId: channel?.collective_id ?? null,
-        content: htmlContent,
-        messageType: 'html',
-      })
-    }
-  }, [isCollective, collectiveId, channelId, channel, collectiveSend, channelSend, toast])
-
   /* ---- Message actions ---- */
   const handleMessageLongPress = useCallback((msg: AnyMessage) => {
     if (msg._optimistic || msg.is_deleted) return
@@ -915,11 +894,6 @@ export default function ChatRoomPage() {
         <MessageInput
           onSend={handleSend}
           onAttach={isOffline ? undefined : handleAttach}
-          onAttachHtml={
-            (isCollective ? (isOffline || !isLeaderOrAbove) : !isLeaderOrAbove)
-              ? undefined
-              : handleAttachHtml
-          }
           onTyping={isCollective ? sendTyping : undefined}
           placeholder={
             editingMessage

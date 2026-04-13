@@ -38,13 +38,6 @@ import {
 /*  Constants                                                          */
 /* ------------------------------------------------------------------ */
 
-const healthConfig = {
-  healthy: { color: 'bg-success-100 text-success-700', label: 'Healthy' },
-  moderate: { color: 'bg-warning-100 text-warning-700', label: 'Moderate' },
-  'needs-attention': { color: 'bg-error-100 text-error-700', label: 'Needs Attention' },
-} as const
-
-
 type StatusFilter = 'all' | 'active' | 'archived'
 
 /* ------------------------------------------------------------------ */
@@ -275,8 +268,6 @@ export default function AdminCollectivesPage() {
           ) : (
             <motion.div layout className="space-y-2">
               {collectives.map((c) => {
-                const healthCfg = healthConfig[c.health]
-
                 return (
                   <motion.div
                     key={c.id}
@@ -310,14 +301,6 @@ export default function AdminCollectivesPage() {
                           <p className="font-heading text-sm font-semibold text-neutral-900 truncate">
                             {c.name}
                           </p>
-                          <span
-                            className={cn(
-                              'text-[11px] font-semibold px-1.5 py-0.5 rounded-full shrink-0',
-                              healthCfg.color,
-                            )}
-                          >
-                            {healthCfg.label}
-                          </span>
                           {!c.is_active && (
                             <span className="text-[11px] font-semibold px-1.5 py-0.5 rounded-full bg-neutral-100 text-neutral-500 shrink-0">
                               Archived

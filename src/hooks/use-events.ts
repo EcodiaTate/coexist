@@ -64,7 +64,7 @@ export interface WaitlistEntry {
 /* ------------------------------------------------------------------ */
 
 export const ACTIVITY_TYPE_OPTIONS: { value: ActivityType; label: string }[] = [
-  { value: 'shore_cleanup', label: 'Shore Cleanup' },
+  { value: 'shore_cleanup', label: 'Cleanup' },
   { value: 'tree_planting', label: 'Tree Planting' },
   { value: 'land_regeneration', label: 'Land Regeneration' },
   { value: 'nature_walk', label: 'Nature Walks' },

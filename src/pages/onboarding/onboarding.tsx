@@ -7,15 +7,13 @@ import { useAuth } from '@/hooks/use-auth'
 import { cn } from '@/lib/cn'
 import { Button } from '@/components/button'
 
-import { StepProfilePhoto } from './steps/step-profile-photo'
 import { StepNameHandle } from './steps/step-name-handle'
 import { StepLocation } from './steps/step-location'
-import { StepInterests } from './steps/step-interests'
 import { StepCollective } from './steps/step-collective'
 import { StepFirstEvent } from './steps/step-first-event'
 import { StepCelebration } from './steps/step-celebration'
 
-const TOTAL_STEPS = 6
+const TOTAL_STEPS = 4
 
 const slideVariants = {
   enter: (direction: number) => ({
@@ -43,12 +41,9 @@ export default function OnboardingPage() {
 
   // Shared onboarding data
   const [data, setData] = useState({
-    avatarUrl: null as string | null,
     displayName: '',
-    instagramHandle: '',
     location: '',
     locationPoint: null as { lat: number; lng: number } | null,
-    interests: [] as string[],
     collectiveId: null as string | null,
   })
 
@@ -71,10 +66,7 @@ export default function OnboardingPage() {
       }
 
       if (data.displayName) profilePayload.display_name = data.displayName
-      if (data.instagramHandle) profilePayload.instagram_handle = data.instagramHandle
       if (data.location) profilePayload.location = data.location
-      if (data.interests.length > 0) profilePayload.interests = data.interests
-      if (data.avatarUrl) profilePayload.avatar_url = data.avatarUrl
 
       const { error: profileError } = await supabase
         .from('profiles')
@@ -165,18 +157,10 @@ export default function OnboardingPage() {
   }
 
   const steps = [
-    <StepProfilePhoto
-      key="photo"
-      avatarUrl={data.avatarUrl}
-      onUpload={(url) => updateData({ avatarUrl: url })}
-      onNext={goNext}
-      onSkip={goNext}
-    />,
     <StepNameHandle
       key="name"
       displayName={data.displayName}
-      instagramHandle={data.instagramHandle}
-      onChange={(name, handle) => updateData({ displayName: name, instagramHandle: handle })}
+      onChange={(name) => updateData({ displayName: name })}
       onNext={goNext}
       onSkip={goNext}
     />,
@@ -184,13 +168,6 @@ export default function OnboardingPage() {
       key="location"
       location={data.location}
       onChange={(loc, point) => updateData({ location: loc, locationPoint: point })}
-      onNext={goNext}
-      onSkip={goNext}
-    />,
-    <StepInterests
-      key="interests"
-      selected={data.interests}
-      onChange={(interests) => updateData({ interests })}
       onNext={goNext}
       onSkip={goNext}
     />,

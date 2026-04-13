@@ -385,7 +385,7 @@ const TYPE_META: Record<string, { icon: typeof Megaphone; label: string; iconBg:
 }
 
 const ACTIVITY_LABELS: Record<string, string> = {
-  shore_cleanup: 'Shore Cleanup',
+  shore_cleanup: 'Cleanup',
   tree_planting: 'Tree Planting',
   land_regeneration: 'Land Regeneration',
   nature_walk: 'Nature Walk',

@@ -21,6 +21,8 @@ export interface EventFormFields {
   capacity: string
   cover_image_url: string
   is_public: boolean
+  is_external_collaboration: boolean
+  external_registration_url: string
 }
 
 export const INITIAL_FORM_FIELDS: EventFormFields = {
@@ -35,6 +37,8 @@ export const INITIAL_FORM_FIELDS: EventFormFields = {
   capacity: '',
   cover_image_url: '',
   is_public: true,
+  is_external_collaboration: false,
+  external_registration_url: '',
 }
 
 /* ------------------------------------------------------------------ */

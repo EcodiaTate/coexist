@@ -13,7 +13,6 @@ import {
     Megaphone,
     Bell,
     X,
-    FileCode2,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { containsProfanity } from '@/lib/profanity'
@@ -21,8 +20,6 @@ import { containsProfanity } from '@/lib/profanity'
 interface MessageInputProps {
   onSend: (message: string) => void
   onAttach?: () => void
-  /** Called when user picks an .html file  receives the file's text content */
-  onAttachHtml?: (htmlContent: string) => void
   onTyping?: () => void
   placeholder?: string
   disabled?: boolean
@@ -43,7 +40,6 @@ interface MessageInputProps {
 export function MessageInput({
   onSend,
   onAttach,
-  onAttachHtml,
   onTyping,
   placeholder = 'Type a message...',
   disabled = false,
@@ -62,25 +58,6 @@ export function MessageInput({
   const [value, setValue] = useState(initialValue)
   const [showLeaderActions, setShowLeaderActions] = useState(false)
   const [profanityWarning, setProfanityWarning] = useState(false)
-  const htmlInputRef = useRef<HTMLInputElement>(null)
-
-  const handleHtmlFileChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0]
-      if (!file || !onAttachHtml) return
-      const reader = new FileReader()
-      reader.onload = () => {
-        if (typeof reader.result === 'string') {
-          onAttachHtml(reader.result)
-        }
-      }
-      reader.readAsText(file)
-      // Reset so the same file can be re-selected
-      e.target.value = ''
-    },
-    [onAttachHtml],
-  )
-
   // Sync when initialValue changes (e.g. entering edit mode)
   useEffect(() => {
     setValue(initialValue)
@@ -288,34 +265,6 @@ export function MessageInput({
             >
               <Paperclip size={20} aria-hidden="true" />
             </button>
-          )}
-
-          {/* HTML file attach button */}
-          {onAttachHtml && (
-            <>
-              <input
-                ref={htmlInputRef}
-                type="file"
-                accept=".html,.htm"
-                className="hidden"
-                onChange={handleHtmlFileChange}
-              />
-              <button
-                type="button"
-                onClick={() => htmlInputRef.current?.click()}
-                disabled={disabled}
-                aria-label="Attach HTML file"
-                className={cn(
-                  'flex-shrink-0 rounded-full min-w-11 min-h-11 flex items-center justify-center text-neutral-400',
-                  'transition-[colors,transform] duration-150 active:scale-[0.93]',
-                  'hover:bg-neutral-100 hover:text-neutral-600',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
-                  'disabled:pointer-events-none',
-                )}
-              >
-                <FileCode2 size={20} aria-hidden="true" />
-              </button>
-            </>
           )}
 
           {/* Textarea */}

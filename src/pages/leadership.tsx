@@ -1,21 +1,16 @@
 import { motion, useReducedMotion, type Variants } from 'framer-motion'
 import {
-    Users,
-    TreePine,
-    CalendarDays,
     Heart,
-    Star,
-
-    Megaphone,
-    CheckCircle2,
     Sparkles,
+    CheckCircle2,
+    FileText,
+    ArrowRight,
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
 import { Button } from '@/components/button'
 import { WaveTransition } from '@/components/wave-transition'
-import { cn } from '@/lib/cn'
 import { useParallaxLayers } from '@/hooks/use-parallax-scroll'
 
 /* ------------------------------------------------------------------ */
@@ -36,43 +31,24 @@ const fadeUp: Variants = {
 /*  Content                                                            */
 /* ------------------------------------------------------------------ */
 
-const WHAT_LEADERS_DO = [
-  {
-    icon: <CalendarDays size={22} />,
-    title: 'Organise Events',
-    description: 'Plan and run conservation activities like tree planting days, beach cleanups, and habitat restoration.',
-    gradient: 'from-primary-600 via-primary-700 to-secondary-800',
-    shadow: 'shadow-sm',
-  },
-  {
-    icon: <Users size={22} />,
-    title: 'Build Community',
-    description: 'Grow your local collective, welcome new members, and create a sense of belonging.',
-    gradient: 'from-sky-500 via-sky-600 to-sky-800',
-    shadow: 'shadow-sm',
-  },
-  {
-    icon: <TreePine size={22} />,
-    title: 'Track Impact',
-    description: 'Log conservation outcomes - trees planted, rubbish removed, species identified - to show real change.',
-    gradient: 'from-moss-500 via-moss-600 to-moss-800',
-    shadow: 'shadow-sm',
-  },
-  {
-    icon: <Megaphone size={22} />,
-    title: 'Spread the Word',
-    description: 'Share your collective\'s story, recruit new volunteers, and inspire your community.',
-    gradient: 'from-warning-500 via-bark-500 to-bark-700',
-    shadow: 'shadow-sm',
-  },
+const WHO_WERE_LOOKING_FOR = [
+  'Are passionate about connecting people with nature and driving social impact',
+  'Have skills or a keen interest in areas like social media, content creation, community engagement or event facilitation',
+  'Want to contribute regularly',
+  'Are keen to lead or support a Collective in their region',
 ]
 
-const REQUIREMENTS = [
-  'Be 18–30 years old and based in Australia',
-  'Passionate about conservation and the environment',
-  'Able to commit a few hours per month to organising',
-  'Great communicator who enjoys working with people',
-  'Willing to complete a brief leader onboarding',
+const PD_LINKS = [
+  {
+    title: 'Collective Leader',
+    description: 'Find the Collective Leader Position Description here',
+    url: 'https://xbwivnfmkpbgzqtfzidn.supabase.co/storage/v1/object/public/documents/coexist/collective-leader-pd.pdf',
+  },
+  {
+    title: 'Assistant Leader',
+    description: 'Find the Assistant Leader Position Description here',
+    url: 'https://xbwivnfmkpbgzqtfzidn.supabase.co/storage/v1/object/public/documents/coexist/assistant-leader-pd.pdf',
+  },
 ]
 
 /* ------------------------------------------------------------------ */
@@ -87,7 +63,7 @@ export default function LeadershipPage() {
 
   return (
     <Page swipeBack noBackground className="!px-0 bg-white" stickyOverlay={<Header title="" back transparent className="collapse-header" />}>
-      {/* Hero – layered image parallax (matches donate page pattern) */}
+      {/* Hero - layered image parallax */}
       <div className="relative">
         <div className="relative w-full h-[110vw] min-h-[480px] sm:h-auto overflow-hidden">
           {/* Background layer */}
@@ -142,70 +118,95 @@ export default function LeadershipPage() {
         animate="visible"
         variants={shouldReduceMotion ? undefined : stagger}
       >
-        <p className="text-sm text-neutral-500 text-center">
-          Bring together local volunteers, organise events, and drive real environmental change.
-        </p>
+        {/* Page heading */}
+        <motion.div variants={shouldReduceMotion ? undefined : fadeUp} className="text-center">
+          <h2 className="font-heading text-xl sm:text-2xl font-bold text-neutral-900">
+            Join the Movement Behind the Movement
+          </h2>
+        </motion.div>
 
-        {/* What leaders do - rich colored cards */}
+        {/* Intro paragraph */}
+        <motion.div variants={shouldReduceMotion ? undefined : fadeUp} className="space-y-4">
+          <p className="text-sm text-neutral-600 leading-relaxed">
+            Co-Exist is powered by passionate young people driving real impact. Whether it's social media, content creation, event facilitation, or community engagement, our core team is the engine behind everything we do.
+          </p>
+          <p className="text-sm text-neutral-600 leading-relaxed">
+            This is not a sign-up for one-off event volunteering - this is for those who want to play an ongoing role in growing Co-Exist, leading initiatives, and helping drive our mission forward.
+          </p>
+        </motion.div>
+
+        {/* Who We're Looking For */}
         <motion.section variants={shouldReduceMotion ? undefined : fadeUp}>
           <h3 className="text-[11px] font-bold uppercase tracking-widest text-neutral-400 mb-3 px-1">
-            What leaders do
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-            {WHAT_LEADERS_DO.map(({ icon, title, description, gradient, shadow }) => (
-              <div
-                key={title}
-                className={cn(
-                  'rounded-2xl p-5',
-                  'bg-gradient-to-br',
-                  gradient,
-                  shadow,
-                )}
-              >
-                <span className="flex items-center justify-center w-12 h-12 rounded-xl bg-white/20 text-white mb-3.5">
-                  {icon}
-                </span>
-                <span className="font-heading text-[15px] font-bold text-white block">
-                  {title}
-                </span>
-                <p className="text-[13px] text-white/75 mt-1.5 leading-relaxed">
-                  {description}
-                </p>
-              </div>
-            ))}
-          </div>
-        </motion.section>
-
-        {/* What we look for */}
-        <motion.section variants={shouldReduceMotion ? undefined : fadeUp}>
-          <h3 className="text-[11px] font-bold uppercase tracking-widest text-neutral-400 mb-3 px-1">
-            What we look for
+            Who We're Looking For
           </h3>
           <div className="rounded-2xl bg-gradient-to-br from-bark-500 via-bark-700 to-bark-800 shadow-sm p-6 space-y-3.5">
-            {REQUIREMENTS.map((req) => (
-              <div key={req} className="flex items-start gap-3">
+            <p className="text-[14px] text-white/90 leading-snug font-medium mb-1">
+              We're looking for young people who:
+            </p>
+            {WHO_WERE_LOOKING_FOR.map((item) => (
+              <div key={item} className="flex items-start gap-3">
                 <CheckCircle2 size={18} className="text-white/60 mt-0.5 shrink-0" />
-                <p className="text-[14px] text-white leading-snug">{req}</p>
+                <p className="text-[14px] text-white leading-snug">{item}</p>
               </div>
             ))}
           </div>
         </motion.section>
 
-        {/* How to apply */}
+        {/* Ready to Get Involved? */}
         <motion.section variants={shouldReduceMotion ? undefined : fadeUp}>
           <h3 className="text-[11px] font-bold uppercase tracking-widest text-neutral-400 mb-3 px-1">
-            How to apply
+            Ready to Get Involved?
           </h3>
+          <div className="space-y-4">
+            <div className="rounded-2xl bg-gradient-to-br from-primary-600 via-primary-700 to-secondary-800 shadow-sm p-6">
+              <p className="text-[14px] text-white/85 leading-relaxed">
+                Collectives are Co-Exist's local action teams - they are youth-led groups that deliver events and environmental initiatives on the ground.
+              </p>
+              <p className="text-[14px] text-white/85 leading-relaxed mt-3">
+                Each Collective is guided by a <span className="text-white font-semibold">Collective Leader</span>, who steers regional strategy and growth, and supported by <span className="text-white font-semibold">Assistant Leaders</span>, who help coordinate projects, events, and community engagement.
+              </p>
+            </div>
+
+            {/* PD download cards */}
+            <div className="grid grid-cols-1 gap-3">
+              {PD_LINKS.map(({ title, description, url }) => (
+                <a
+                  key={title}
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-4 rounded-2xl bg-white border border-neutral-150 shadow-sm p-5 hover:shadow-md active:scale-[0.98] transition-all"
+                >
+                  <span className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-moss-500 to-moss-600 shrink-0">
+                    <FileText size={20} className="text-white" />
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <span className="font-heading text-[15px] font-bold text-neutral-900 block">
+                      {title}
+                    </span>
+                    <p className="text-[13px] text-neutral-500 mt-0.5 leading-snug">
+                      {description}
+                    </p>
+                  </div>
+                  <ArrowRight size={18} className="text-neutral-300 shrink-0" />
+                </a>
+              ))}
+            </div>
+          </div>
+        </motion.section>
+
+        {/* Call to action */}
+        <motion.section variants={shouldReduceMotion ? undefined : fadeUp}>
           <div className="rounded-2xl bg-gradient-to-br from-sprout-500 via-sprout-600 to-primary-800 shadow-sm p-6 space-y-4">
             <div className="flex items-center gap-3 mb-1">
               <Sparkles size={20} className="text-white/70" />
               <span className="font-heading text-base font-bold text-white">
-                Ready to lead?
+                Sound like you?
               </span>
             </div>
             <p className="text-[14px] text-white/75 leading-relaxed">
-              Interested in starting or leading a collective in your area? We'd love to hear from you.
-              Reach out to our team and we'll guide you through the onboarding process.
+              If this sounds like you, fill out a quick form and we'll be in touch!
             </p>
             <Button
               variant="secondary"
@@ -214,7 +215,7 @@ export default function LeadershipPage() {
               icon={<Heart size={16} />}
               onClick={() => navigate('/lead-a-collective')}
             >
-              Get in Touch
+              Fill Out the Form
             </Button>
           </div>
         </motion.section>

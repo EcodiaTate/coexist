@@ -715,7 +715,7 @@ export function useCollectiveMemberRoles(collectiveId: string | undefined) {
       if (error) throw error
       const map = new Map<string, string>()
       for (const m of data ?? []) {
-        const label = m.role === 'leader' ? 'Leader' : m.role === 'co_leader' ? 'Co-Leader' : 'Assist Leader'
+        const label = m.role === 'leader' ? 'Leader' : m.role === 'co_leader' ? 'Co-Leader' : 'Assistant Leader'
         map.set(m.user_id, label)
       }
       return map

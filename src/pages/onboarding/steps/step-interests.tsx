@@ -5,7 +5,7 @@ import { Button } from '@/components/button'
 import { adminStagger as stagger, fadeUp } from '@/lib/admin-motion'
 
 const INTERESTS = [
-  { id: 'shore_cleanup', label: 'Shore Cleanup', icon: <Waves size={16} /> },
+  { id: 'shore_cleanup', label: 'Cleanup', icon: <Waves size={16} /> },
   { id: 'tree_planting', label: 'Tree Planting', icon: <Trees size={16} /> },
   { id: 'land_regeneration', label: 'Land Regeneration', icon: <Sprout size={16} /> },
   { id: 'nature_walk', label: 'Nature Walks', icon: <Leaf size={16} /> },

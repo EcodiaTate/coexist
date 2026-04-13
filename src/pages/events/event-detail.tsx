@@ -34,6 +34,7 @@ import {
     ClipboardList,
     Bell,
     Ticket,
+    ExternalLink,
 } from 'lucide-react'
 import { EventHero, EventHeroOverlay } from './event-hero'
 import { EventActions } from './event-actions'
@@ -548,7 +549,7 @@ export default function EventDetailPage() {
               variant="primary"
               size="lg"
               fullWidth
-              icon={<QrCode size={20} />}
+              icon={<CheckCircle2 size={20} />}
               onClick={() => setShowCheckInSheet(true)}
               className={cn('bg-gradient-to-r shadow-sm', accent.gradient, accent.glow)}
             >
@@ -797,6 +798,35 @@ export default function EventDetailPage() {
             {selectedTicketType
               ? `Get Ticket - $${((ticketTypes?.find((t) => t.id === selectedTicketType)?.price_cents ?? 0) / 100).toFixed(2)}`
               : 'Select a ticket'}
+          </Button>
+        </div>
+      )
+    }
+
+    // ── External collaboration: show external registration link ──
+    if (event.external_registration_url) {
+      const extUrl = event.external_registration_url
+      return (
+        <div className="space-y-2">
+          <Button
+            variant="primary"
+            size="lg"
+            fullWidth
+            onClick={() => window.open(extUrl, '_blank', 'noopener,noreferrer')}
+            icon={<ExternalLink size={18} />}
+            className={cn('bg-gradient-to-r shadow-sm', accent.gradient, accent.glow)}
+          >
+            Register on Partner Site
+          </Button>
+          {/* Also allow in-app registration */}
+          <Button
+            variant="secondary"
+            size="md"
+            fullWidth
+            loading={registerMutation.isPending}
+            onClick={handleRegister}
+          >
+            {isAtCapacity ? 'Join Waitlist' : 'Also Register In-App'}
           </Button>
         </div>
       )

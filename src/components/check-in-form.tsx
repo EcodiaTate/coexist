@@ -1,25 +1,15 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion, useReducedMotion, AnimatePresence as AnimatePresenceInner } from 'framer-motion'
 import {
-  Camera,
-  Keyboard,
   WifiOff,
   User,
   AlertTriangle,
-  QrCode,
-  ChevronLeft
+  Hash,
 } from 'lucide-react'
 import { useProfile, useUpdateProfile } from '@/hooks/use-profile'
-import { useCheckIn } from '@/hooks/use-events'
 import { useOffline } from '@/hooks/use-offline'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
-
-/* ------------------------------------------------------------------ */
-/*  Types                                                              */
-/* ------------------------------------------------------------------ */
-
-type CheckInMode = 'idle' | 'scanning' | 'manual'
 
 /* ------------------------------------------------------------------ */
 /*  Profile Details Form                                               */
@@ -215,14 +205,14 @@ export function ProfileDetails({ onComplete }: ProfileDetailsProps) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Check-in Mode Selector (idle + manual entry)                       */
+/*  3-Digit Code Entry View                                            */
 /* ------------------------------------------------------------------ */
 
 interface CheckInModeViewProps {
   eventTitle: string
   collectiveName?: string
   isPending: boolean
-  onStartScan: () => void
+  onStartScan?: () => void  // kept for API compat but unused
   onManualSubmit: (code: string) => void
 }
 
@@ -230,30 +220,67 @@ export function CheckInModeView({
   eventTitle,
   collectiveName,
   isPending,
-  onStartScan,
   onManualSubmit,
 }: CheckInModeViewProps) {
   const rm = useReducedMotion()
   const { isOffline } = useOffline()
-  const [mode, setMode] = useState<CheckInMode>('idle')
-  const [manualCode, setManualCode] = useState('')
-  const inputRef = useRef<HTMLInputElement>(null)
+  const [digits, setDigits] = useState(['', '', '', ''])
+  const inputRefs = [
+    useRef<HTMLInputElement>(null),
+    useRef<HTMLInputElement>(null),
+    useRef<HTMLInputElement>(null),
+    useRef<HTMLInputElement>(null),
+  ]
 
-  // Focus manual input
+  // Focus first input on mount
   useEffect(() => {
-    if (mode === 'manual') requestAnimationFrame(() => inputRef.current?.focus())
-  }, [mode])
+    requestAnimationFrame(() => inputRefs[0].current?.focus())
+  }, [])
 
-  const handleManualSubmit = useCallback(() => {
-    if (!manualCode.trim()) return
-    onManualSubmit(manualCode.trim().toUpperCase())
-  }, [manualCode, onManualSubmit])
+  const codeLength = 3 // default; supports up to 4 if extended codes exist
 
-  /** Reset to idle when parent triggers scan (mode managed externally via onStartScan) */
-  const handleStartScan = useCallback(() => {
-    setMode('idle')
-    onStartScan()
-  }, [onStartScan])
+  const handleDigitChange = useCallback((index: number, value: string) => {
+    // Only allow digits
+    const digit = value.replace(/\D/g, '').slice(-1)
+    setDigits(prev => {
+      const next = [...prev]
+      next[index] = digit
+      return next
+    })
+    // Auto-advance to next input
+    if (digit && index < 3) {
+      inputRefs[index + 1].current?.focus()
+    }
+  }, [])
+
+  const handleKeyDown = useCallback((index: number, e: React.KeyboardEvent) => {
+    if (e.key === 'Backspace' && !digits[index] && index > 0) {
+      inputRefs[index - 1].current?.focus()
+    }
+  }, [digits])
+
+  const handlePaste = useCallback((e: React.ClipboardEvent) => {
+    e.preventDefault()
+    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 4)
+    if (pasted.length >= 3) {
+      const newDigits = ['', '', '', '']
+      for (let i = 0; i < pasted.length && i < 4; i++) {
+        newDigits[i] = pasted[i]
+      }
+      setDigits(newDigits)
+      // Focus last filled input
+      const lastIdx = Math.min(pasted.length - 1, 3)
+      inputRefs[lastIdx].current?.focus()
+    }
+  }, [])
+
+  const code = digits.join('')
+  const isComplete = code.length >= codeLength && digits.slice(0, codeLength).every(d => d !== '')
+
+  const handleSubmit = useCallback(() => {
+    if (!isComplete) return
+    onManualSubmit(code.slice(0, digits[3] ? 4 : 3))
+  }, [code, isComplete, digits, onManualSubmit])
 
   return (
     <motion.div
@@ -265,110 +292,70 @@ export function CheckInModeView({
       className="pb-2"
     >
       <AnimatePresenceInner mode="wait" initial={false}>
-        {mode === 'manual' ? (
-          <motion.div
-            key="manual"
-            initial={rm ? undefined : { opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={rm ? { opacity: 0 } : { opacity: 0, y: -4 }}
-            transition={rm ? { duration: 0 } : { duration: 0.2, ease: 'easeOut' }}
-            className="h-[70vh] flex flex-col"
-          >
-            <button
-              type="button"
-              onClick={() => { setMode('idle'); setManualCode('') }}
-              className="flex items-center gap-1 text-caption font-semibold text-neutral-500 mb-4 min-h-11 cursor-pointer select-none active:scale-[0.97] transition-[colors,transform] duration-150"
-            >
-              <ChevronLeft size={16} />
-              Back
-            </button>
-            <div className="flex-1 flex flex-col items-center justify-center space-y-3 w-full px-4">
-              <Input
-                ref={inputRef as React.Ref<HTMLInputElement>}
-                label="Check-in Code"
-                placeholder="Enter the 6-character code"
-                value={manualCode}
-                onChange={(e) => setManualCode(e.target.value.toUpperCase())}
-                autoComplete="off"
-                maxLength={6}
-                className="text-center text-lg tracking-[0.3em] font-heading font-bold [&_input]:bg-surface-3"
-              />
-              <Button
-                variant="primary"
-                fullWidth
-                loading={isPending}
-                disabled={manualCode.trim().length < 6}
-                onClick={handleManualSubmit}
-              >
-                Check In
-              </Button>
+        <motion.div
+          key="code-entry"
+          initial={rm ? undefined : { opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={rm ? { opacity: 0 } : { opacity: 0, y: -4 }}
+          transition={rm ? { duration: 0 } : { duration: 0.2, ease: 'easeOut' }}
+          className="py-2"
+        >
+          <div className="text-center mb-6">
+            <div className="w-14 h-14 rounded-full bg-primary-100 flex items-center justify-center mx-auto mb-3">
+              <Hash size={26} className="text-primary-500" />
             </div>
-          </motion.div>
-        ) : (
-          /* ---- Idle: main check-in menu ---- */
-          <motion.div
-            key="idle"
-            initial={rm ? undefined : { opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={rm ? { opacity: 0 } : { opacity: 0, y: -4 }}
-            transition={rm ? { duration: 0 } : { duration: 0.2, ease: 'easeOut' }}
-            className="py-2"
-          >
-            <div className="text-center mb-5">
-              <div className="w-14 h-14 rounded-full bg-primary-100 flex items-center justify-center mx-auto mb-3">
-                <QrCode size={26} className="text-primary-500" />
-              </div>
-              <h3 className="font-heading text-lg font-bold text-neutral-900">
-                Check In
-              </h3>
-              <p className="text-sm text-neutral-500 mt-1">
-                {eventTitle}
-              </p>
-              {collectiveName && (
-                <p className="text-caption text-neutral-400 mt-0.5">{collectiveName}</p>
-              )}
-            </div>
-
-            {isOffline && (
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-warning-50 text-warning-700 text-sm font-medium mb-4">
-                <WifiOff size={16} />
-                You're offline. Check-in will be queued and synced later.
-              </div>
+            <h3 className="font-heading text-lg font-bold text-neutral-900">
+              Enter Check-In Code
+            </h3>
+            <p className="text-sm text-neutral-500 mt-1">
+              {eventTitle}
+            </p>
+            {collectiveName && (
+              <p className="text-caption text-neutral-400 mt-0.5">{collectiveName}</p>
             )}
+            <p className="text-caption text-neutral-400 mt-2">
+              Ask your leader for the 3-digit code
+            </p>
+          </div>
 
-            <Button
-              variant="primary"
-              size="lg"
-              fullWidth
-              icon={<Camera size={20} />}
-              onClick={handleStartScan}
-              className="mb-3"
-              loading={isPending}
-            >
-              Scan QR Code
-            </Button>
-
-            <div className="flex items-center gap-3 my-4">
-              <div className="flex-1 h-px bg-primary-100" />
-              <span className="text-caption text-neutral-400 uppercase tracking-wider">or</span>
-              <div className="flex-1 h-px bg-primary-100" />
+          {isOffline && (
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-warning-50 text-warning-700 text-sm font-medium mb-4">
+              <WifiOff size={16} />
+              You're offline. Check-in will be queued and synced later.
             </div>
+          )}
 
-            <Button
-              variant="secondary"
-              size="lg"
-              fullWidth
-              icon={<Keyboard size={20} />}
-              onClick={() => setMode('manual')}
-            >
-              Enter Code Manually
-            </Button>
-          </motion.div>
-        )}
+          {/* 3-digit PIN entry */}
+          <div className="flex justify-center gap-3 mb-6" onPaste={handlePaste}>
+            {[0, 1, 2].map((i) => (
+              <input
+                key={i}
+                ref={inputRefs[i]}
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={1}
+                value={digits[i]}
+                onChange={(e) => handleDigitChange(i, e.target.value)}
+                onKeyDown={(e) => handleKeyDown(i, e)}
+                className="w-16 h-20 text-center text-3xl font-heading font-bold rounded-xl border-2 border-neutral-200 bg-white focus:border-primary-400 focus:ring-2 focus:ring-primary-100 outline-none transition-colors"
+                autoComplete="off"
+              />
+            ))}
+          </div>
+
+          <Button
+            variant="primary"
+            size="lg"
+            fullWidth
+            loading={isPending}
+            disabled={!isComplete}
+            onClick={handleSubmit}
+          >
+            Check In
+          </Button>
+        </motion.div>
       </AnimatePresenceInner>
     </motion.div>
   )
 }
-
-// Re-export AnimatePresence under a different name to avoid import collision
-import { AnimatePresence as AnimatePresenceInner } from 'framer-motion'

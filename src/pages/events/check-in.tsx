@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import {
     Camera,
-    Keyboard,
+    Hash,
     CheckCircle2,
     AlertCircle,
     Sparkles,
@@ -12,10 +12,10 @@ import {
     Clock,
     UserCheck,
 } from 'lucide-react'
-import { Capacitor } from '@capacitor/core'
 import { useAuth } from '@/hooks/use-auth'
 import { useProfile } from '@/hooks/use-profile'
 import { useEventDetail, useCheckIn } from '@/hooks/use-events'
+import { useCodeCheckIn } from '@/hooks/use-event-tickets'
 import { useCollectiveRole } from '@/hooks/use-collective-role'
 import { useOffline } from '@/hooks/use-offline'
 import { useCheckInValidation } from '@/hooks/use-check-in-validation'
@@ -26,13 +26,11 @@ import {
     Page,
     Header,
     Button,
-    Input,
     Skeleton,
     EmptyState,
     Celebration,
     WhatsNext,
 } from '@/components'
-import { QrScanner } from '@/components/qr-scanner'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { cn } from '@/lib/cn'
 
@@ -98,7 +96,7 @@ function Confetti() {
 /*  Check-in states                                                    */
 /* ------------------------------------------------------------------ */
 
-type CheckInState = 'idle' | 'scanning' | 'manual' | 'success' | 'error' | 'waitlisted'
+type CheckInState = 'idle' | 'success' | 'error' | 'waitlisted'
 
 type ErrorKind = CheckInErrorKind
 
@@ -117,86 +115,72 @@ export default function CheckInPage() {
   const { data: event, isLoading } = useEventDetail(eventId)
   const showLoading = useDelayedLoading(isLoading)
   const checkInMutation = useCheckIn()
+  const codeCheckIn = useCodeCheckIn()
   const { validateRegistration } = useCheckInValidation()
   const collectiveRole = useCollectiveRole(event?.collective_id)
   const isLeaderOrAbove = collectiveRole.isCoLeader || collectiveRole.isLeader || isGlobalStaff
 
   const [state, setState] = useState<CheckInState>('idle')
-  const [manualCode, setManualCode] = useState('')
+  const [digits, setDigits] = useState(['', '', '', ''])
   const [errorKind, setErrorKind] = useState<ErrorKind>('generic')
   const [showCelebration, setShowCelebration] = useState(false)
   const [checkedInOffline, setCheckedInOffline] = useState(false)
   const [promotingFromWaitlist, setPromotingFromWaitlist] = useState(false)
-  const inputRef = useRef<HTMLInputElement>(null)
 
-  // Focus manual input when switching to manual mode
+  const inputRefs = [
+    useRef<HTMLInputElement>(null),
+    useRef<HTMLInputElement>(null),
+    useRef<HTMLInputElement>(null),
+    useRef<HTMLInputElement>(null),
+  ]
+
+  // Focus first input on mount
   useEffect(() => {
-    if (state === 'manual') {
-      requestAnimationFrame(() => {
-        inputRef.current?.focus()
-      })
+    if (state === 'idle') {
+      requestAnimationFrame(() => inputRefs[0].current?.focus())
     }
   }, [state])
 
-  /* ---- Validate registration before check-in ---- */
-  const validateAndCheckIn = useCallback(
-    async (targetEventId: string) => {
-      if (!user) return
+  const handleDigitChange = useCallback((index: number, value: string) => {
+    const digit = value.replace(/\D/g, '').slice(-1)
+    setDigits(prev => {
+      const next = [...prev]
+      next[index] = digit
+      return next
+    })
+    if (digit && index < 3) {
+      inputRefs[index + 1].current?.focus()
+    }
+  }, [])
 
-      // Block check-in for cancelled or completed events
-      if (event) {
-        if (event.status === 'cancelled') {
-          setErrorKind('event_cancelled')
-          setState('error')
-          return
-        }
-        if (event.status === 'draft') {
-          setErrorKind('event_not_active')
-          setState('error')
-          return
-        }
+  const handleKeyDown = useCallback((index: number, e: React.KeyboardEvent) => {
+    if (e.key === 'Backspace' && !digits[index] && index > 0) {
+      inputRefs[index - 1].current?.focus()
+    }
+  }, [digits])
+
+  const handlePaste = useCallback((e: React.ClipboardEvent) => {
+    e.preventDefault()
+    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 4)
+    if (pasted.length >= 3) {
+      const newDigits = ['', '', '', '']
+      for (let i = 0; i < pasted.length && i < 4; i++) {
+        newDigits[i] = pasted[i]
       }
+      setDigits(newDigits)
+      const lastIdx = Math.min(pasted.length - 1, 3)
+      inputRefs[lastIdx].current?.focus()
+    }
+  }, [])
 
-      // Check registration status first
-      const validation = await validateRegistration(targetEventId, user.id)
-
-      if (validation.status === 'waitlisted') {
-        setState('waitlisted')
-        return
-      }
-
-      if (validation.status === 'error') {
-        setErrorKind(validation.kind)
-        setState('error')
-        return
-      }
-
-      // Proceed with check-in
-      checkInMutation.mutate(
-        { eventId: targetEventId, userId: user.id },
-        {
-          onSuccess: async () => {
-            setState('success')
-
-            // Show celebration after a brief delay
-            setTimeout(() => setShowCelebration(true), 600)
-          },
-          onError: () => {
-            setErrorKind('generic')
-            setState('error')
-          },
-        },
-      )
-    },
-    [user, checkInMutation, event],
-  )
+  const code = digits.join('')
+  const codeLength = 3
+  const isComplete = code.length >= codeLength && digits.slice(0, codeLength).every(d => d !== '')
 
   /* ---- Offline check-in ---- */
   const handleOfflineCheckIn = useCallback(async () => {
     if (!eventId || !user) return
 
-    // Even offline, attempt a cached registration check.
-    // If we have no cached data, trust the user (the sync will validate server-side).
     try {
       const cached = await supabase
         .from('event_registrations')
@@ -222,7 +206,7 @@ export default function CheckInPage() {
         }
       }
     } catch {
-      // Query failed (truly offline / no cache)  proceed with queue
+      // Query failed (truly offline / no cache) - proceed with queue
     }
 
     queueOfflineCheckIn(eventId, user.id)
@@ -231,53 +215,45 @@ export default function CheckInPage() {
     setTimeout(() => setShowCelebration(true), 600)
   }, [eventId, user])
 
-  /* ---- QR scan start ---- */
-  const isNative = Capacitor.isNativePlatform()
-  const handleScanStart = useCallback(() => {
-    setState('scanning')
-  }, [])
+  /* ---- Code submit ---- */
+  const handleCodeSubmit = useCallback(() => {
+    if (!user || !isComplete) return
 
-  const handleQrScan = useCallback((scannedEventId: string) => {
     if (isOffline) {
       handleOfflineCheckIn()
-    } else {
-      validateAndCheckIn(scannedEventId)
-    }
-  }, [isOffline, handleOfflineCheckIn, validateAndCheckIn])
-
-  const handleQrInvalid = useCallback(() => {
-    setErrorKind('invalid_qr')
-    setState('error')
-  }, [])
-
-  const handleCameraError = useCallback(() => {
-    setState('manual')
-  }, [])
-
-  const handleScanCancel = useCallback(() => {
-    setState('idle')
-  }, [])
-
-  /* ---- Manual code submit ---- */
-  const handleManualSubmit = useCallback(() => {
-    if (!eventId || !user || !manualCode.trim()) return
-
-    // Validate: the manual code is the first 6 chars of the event ID (no dashes, uppercase)
-    const expectedCode = eventId.replace(/-/g, '').slice(0, 6).toUpperCase()
-    const enteredCode = manualCode.trim().toUpperCase()
-
-    if (enteredCode !== expectedCode) {
-      setErrorKind('invalid_qr')
-      setState('error')
       return
     }
 
-    if (isOffline) {
-      handleOfflineCheckIn()
-    } else {
-      validateAndCheckIn(eventId)
-    }
-  }, [eventId, user, manualCode, isOffline, validateAndCheckIn, handleOfflineCheckIn])
+    const submittedCode = code.slice(0, digits[3] ? 4 : 3)
+
+    codeCheckIn.mutate(
+      { checkInCode: submittedCode },
+      {
+        onSuccess: () => {
+          setState('success')
+          setTimeout(() => setShowCelebration(true), 600)
+        },
+        onError: (err) => {
+          const msg = err instanceof Error ? err.message : ''
+          if (msg.includes('Already checked in') || msg.includes('already checked in')) {
+            setErrorKind('already_checked_in')
+          } else if (msg.includes('not found') || msg.includes('No event')) {
+            setErrorKind('invalid_qr')
+          } else if (msg.includes('not registered')) {
+            setErrorKind('not_registered')
+          } else if (msg.includes('waitlist')) {
+            setState('waitlisted')
+            return
+          } else if (msg.includes('cancelled')) {
+            setErrorKind('event_cancelled')
+          } else {
+            setErrorKind('generic')
+          }
+          setState('error')
+        },
+      },
+    )
+  }, [user, isComplete, code, digits, isOffline, codeCheckIn, handleOfflineCheckIn])
 
   /* ---- Promote from waitlist (leader action) ---- */
   const handlePromoteFromWaitlist = useCallback(async () => {
@@ -291,15 +267,27 @@ export default function CheckInPage() {
         .eq('user_id', user.id)
         .eq('status', 'waitlisted')
       if (error) throw error
-      // Now proceed with check-in
-      await validateAndCheckIn(eventId)
+      // Now check in
+      checkInMutation.mutate(
+        { eventId, userId: user.id },
+        {
+          onSuccess: () => {
+            setState('success')
+            setTimeout(() => setShowCelebration(true), 600)
+          },
+          onError: () => {
+            setErrorKind('generic')
+            setState('error')
+          },
+        },
+      )
     } catch {
       setErrorKind('generic')
       setState('error')
     } finally {
       setPromotingFromWaitlist(false)
     }
-  }, [eventId, user, validateAndCheckIn])
+  }, [eventId, user, checkInMutation])
 
   if (showLoading) {
     return (
@@ -376,7 +364,6 @@ export default function CheckInPage() {
                 Queued offline - will sync when you reconnect
               </motion.div>
             )}
-
 
             {/* Profile survey prompt for first-time check-ins */}
             {profileData && !profileData.profile_details_completed && (
@@ -488,7 +475,7 @@ export default function CheckInPage() {
                   View Event
                 </Button>
               ) : (
-                <Button variant="primary" fullWidth onClick={() => { setState('idle'); setManualCode('') }}>
+                <Button variant="primary" fullWidth onClick={() => { setState('idle'); setDigits(['', '', '', '']) }}>
                   Try Again
                 </Button>
               )}
@@ -497,33 +484,8 @@ export default function CheckInPage() {
               </Button>
             </div>
           </motion.div>
-        ) : state === 'scanning' ? (
-          <motion.div
-            key="scanning"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex flex-col items-center py-6 px-6 text-center"
-          >
-            {eventId && (
-              <QrScanner
-                eventId={eventId}
-                isOffline={isOffline}
-                onScan={handleQrScan}
-                onInvalidQr={handleQrInvalid}
-                onCameraError={handleCameraError}
-                onCancel={handleScanCancel}
-              />
-            )}
-            <div className="w-full max-w-xs space-y-2 mt-4">
-              <Button variant="secondary" fullWidth onClick={() => setState('manual')}>
-                Enter Code Instead
-              </Button>
-              <Button variant="ghost" fullWidth onClick={() => setState('idle')}>
-                Cancel
-              </Button>
-            </div>
-          </motion.div>
-        ) : (state === 'idle' || state === 'manual') ? (
+        ) : (
+          /* ---- Idle: 3-digit code entry ---- */
           <motion.div
             key="idle"
             initial={{ opacity: 0 }}
@@ -531,11 +493,14 @@ export default function CheckInPage() {
             className="pt-6 pb-8"
           >
             <div className="text-center mb-8">
+              <div className="w-16 h-16 rounded-full bg-primary-100 flex items-center justify-center mx-auto mb-4">
+                <Hash size={28} className="text-primary-500" />
+              </div>
               <h2 className="font-heading text-xl font-bold text-neutral-900">
-                Check In to Event
+                Enter Check-In Code
               </h2>
               <p className="text-sm text-neutral-500 mt-1 max-w-xs mx-auto">
-                Scan the event QR code shown by your leader, or enter the check-in code manually.
+                Ask your leader for the 3-digit code
               </p>
             </div>
 
@@ -555,102 +520,35 @@ export default function CheckInPage() {
               </div>
             )}
 
-            {/* Manual entry (expanded) */}
-            {state === 'manual' ? (
-              <motion.div
-                initial={shouldReduceMotion ? undefined : { opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="space-y-3"
-              >
-                <Input
-                  ref={inputRef as React.Ref<HTMLInputElement>}
-                  label="Check-in Code"
-                  placeholder="Enter the 6-character code"
-                  value={manualCode}
-                  onChange={(e) => setManualCode(e.target.value.toUpperCase())}
+            {/* 3-digit PIN entry */}
+            <div className="flex justify-center gap-3 mb-6" onPaste={handlePaste}>
+              {[0, 1, 2].map((i) => (
+                <input
+                  key={i}
+                  ref={inputRefs[i]}
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={1}
+                  value={digits[i]}
+                  onChange={(e) => handleDigitChange(i, e.target.value)}
+                  onKeyDown={(e) => handleKeyDown(i, e)}
+                  className="w-18 h-22 text-center text-3xl font-heading font-bold rounded-xl border-2 border-neutral-200 bg-white focus:border-primary-400 focus:ring-2 focus:ring-primary-100 outline-none transition-colors"
                   autoComplete="off"
-                  maxLength={6}
-                  className="text-center text-lg tracking-[0.3em] font-heading font-bold"
                 />
-                <Button
-                  variant="primary"
-                  fullWidth
-                  loading={checkInMutation.isPending}
-                  disabled={manualCode.trim().length < 6}
-                  onClick={handleManualSubmit}
-                >
-                  Check In
-                </Button>
-                <Button
-                  variant="ghost"
-                  fullWidth
-                  onClick={() => {
-                    setState('idle')
-                    setManualCode('')
-                  }}
-                >
-                  Cancel
-                </Button>
-              </motion.div>
-            ) : isNative ? (
-              /* ---- Native: camera scan primary ---- */
-              <>
-                <Button
-                  variant="primary"
-                  size="lg"
-                  fullWidth
-                  icon={<Camera size={20} />}
-                  onClick={handleScanStart}
-                  className="mb-4"
-                  loading={checkInMutation.isPending}
-                >
-                  Scan QR Code
-                </Button>
-                <div className="flex items-center gap-3 my-6">
-                  <div className="flex-1 h-px bg-white" />
-                  <span className="text-caption text-neutral-500 uppercase tracking-wider">or</span>
-                  <div className="flex-1 h-px bg-white" />
-                </div>
-                <Button
-                  variant="secondary"
-                  size="lg"
-                  fullWidth
-                  icon={<Keyboard size={20} />}
-                  onClick={() => setState('manual')}
-                >
-                  Enter Code Manually
-                </Button>
-              </>
-            ) : (
-              /* ---- Web: camera scan + manual code ---- */
-              <>
-                <Button
-                  variant="primary"
-                  size="lg"
-                  fullWidth
-                  icon={<Camera size={20} />}
-                  onClick={handleScanStart}
-                  className="mb-4"
-                  loading={checkInMutation.isPending}
-                >
-                  Scan QR Code
-                </Button>
-                <div className="flex items-center gap-3 my-6">
-                  <div className="flex-1 h-px bg-white" />
-                  <span className="text-caption text-neutral-500 uppercase tracking-wider">or</span>
-                  <div className="flex-1 h-px bg-white" />
-                </div>
-                <Button
-                  variant="secondary"
-                  size="lg"
-                  fullWidth
-                  icon={<Keyboard size={20} />}
-                  onClick={() => setState('manual')}
-                >
-                  Enter Code Manually
-                </Button>
-              </>
-            )}
+              ))}
+            </div>
+
+            <Button
+              variant="primary"
+              size="lg"
+              fullWidth
+              loading={codeCheckIn.isPending}
+              disabled={!isComplete}
+              onClick={handleCodeSubmit}
+            >
+              Check In
+            </Button>
 
             {/* Offline notice */}
             {!isOffline && (
@@ -662,7 +560,7 @@ export default function CheckInPage() {
               </div>
             )}
           </motion.div>
-        ) : null}
+        )}
       </AnimatePresence>
 
       {/* Celebration overlay */}

@@ -490,7 +490,7 @@ export function useRecentUpdates() {
 
 /** Activity type labels for chips */
 export const ACTIVITY_TYPE_LABELS: Record<ActivityType, string> = {
-  shore_cleanup: 'Shore Cleanup',
+  shore_cleanup: 'Cleanup',
   tree_planting: 'Tree Planting',
   land_regeneration: 'Land Regeneration',
   nature_walk: 'Nature Walks',

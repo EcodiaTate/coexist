@@ -60,7 +60,7 @@ async function fetchAdminOverview(dateRange: DateRange): Promise<AdminOverviewDa
       }),
       isAllTime ? fetchBaselineSettings() : Promise.resolve(null),
       supabase.from('profiles').select('id', { count: 'exact', head: true }),
-      supabase.from('collectives').select('id', { count: 'exact', head: true }),
+      supabase.from('collectives').select('id', { count: 'exact', head: true }).neq('is_national', true),
       rangeStart
         ? supabase.from('profiles').select('id', { count: 'exact', head: true }).gte('created_at', rangeStart)
         : Promise.resolve({ count: 0, error: null }),

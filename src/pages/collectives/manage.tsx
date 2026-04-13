@@ -53,7 +53,7 @@ type CollectiveRole = Database['public']['Enums']['collective_role']
 const ROLE_LABELS: Record<CollectiveRole, string> = {
   leader: 'Leader',
   co_leader: 'Co-Leader',
-  assist_leader: 'Assist Leader',
+  assist_leader: 'Assistant Leader',
   member: 'Member',
 }
 

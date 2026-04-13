@@ -15,7 +15,7 @@ export type DevTargetRole = 'leader' | 'co_leader' | 'assist_leader' | 'national
 export const TARGET_ROLE_OPTIONS: { value: DevTargetRole; label: string }[] = [
   { value: 'leader', label: 'Leaders' },
   { value: 'co_leader', label: 'Co-Leaders' },
-  { value: 'assist_leader', label: 'Assist Leaders' },
+  { value: 'assist_leader', label: 'Assistant Leaders' },
   { value: 'national_leader', label: 'National Leader' },
 ]
 

@@ -18,7 +18,7 @@ import {
   Clock,
   Sparkles,
 } from 'lucide-react'
-import { QRCodeSVG } from 'qrcode.react'
+// QRCodeSVG removed - replaced with 3-digit code display
 import {
   useEventDetail,
   useEventAttendees,
@@ -51,30 +51,19 @@ import { cn } from '@/lib/cn'
 /*  QR Code Display Component                                          */
 /* ------------------------------------------------------------------ */
 
-function QrCodeDisplay({ eventId, title }: { eventId: string; title: string }) {
-  const checkInCode = eventId.replace(/-/g, '').slice(0, 6).toUpperCase()
-
+function CheckInCodeDisplay({ checkInCode, title }: { checkInCode: string | null; title: string }) {
   return (
     <div className="flex flex-col items-center py-6">
-      <div className="w-56 h-56 rounded-2xl bg-white shadow-md flex items-center justify-center p-4">
-        <QRCodeSVG
-          value={`coexist://event/${eventId}`}
-          size={192}
-          level="M"
-          bgColor="#ffffff"
-          fgColor="#1a1a1a"
-        />
-      </div>
-      <p className="text-sm font-medium text-neutral-900 mt-4 text-center">
+      <p className="text-sm font-medium text-neutral-900 mb-2 text-center">
         {title}
       </p>
-      <p className="text-caption text-neutral-500 mt-1">
-        Show this to participants to scan
+      <p className="text-caption text-neutral-500 mb-4">
+        Tell your attendees this code to check in
       </p>
-      <div className="mt-3 px-4 py-2 rounded-lg bg-white">
-        <p className="text-[11px] uppercase tracking-wider text-neutral-500 text-center">Manual code</p>
-        <p className="text-lg font-heading font-bold text-neutral-900 tracking-[0.3em] text-center">
-          {checkInCode}
+      <div className="px-8 py-6 rounded-2xl bg-white shadow-md">
+        <p className="text-[11px] uppercase tracking-wider text-neutral-500 text-center mb-2">Check-in code</p>
+        <p className="text-5xl font-heading font-bold text-neutral-900 tracking-[0.4em] text-center">
+          {checkInCode ?? '---'}
         </p>
       </div>
     </div>
@@ -423,7 +412,7 @@ export default function EventDayPage() {
             onClick={() => setShowQr(true)}
             className="flex-1 ring-1 ring-primary-200/60"
           >
-            Show QR
+            Show Code
           </Button>
           <Button
             variant="primary"
@@ -447,6 +436,16 @@ export default function EventDayPage() {
             {formatEventDate(event.date_start)}
           </p>
         </motion.div>
+
+        {/* Check-in code banner */}
+        {event.check_in_code && (
+          <motion.div variants={fadeUp} className="mb-5 rounded-xl bg-gradient-to-br from-primary-50 to-primary-100/80 ring-1 ring-primary-200/60 p-4 text-center shadow-sm">
+            <p className="text-[11px] uppercase tracking-wider text-primary-600 font-semibold mb-1">Today's check-in code</p>
+            <p className="text-4xl font-heading font-bold text-primary-700 tracking-[0.3em]">
+              {event.check_in_code}
+            </p>
+          </motion.div>
+        )}
 
         {/* Stats row */}
         <motion.div variants={fadeUp} className="grid grid-cols-3 gap-3 mb-5">
@@ -573,7 +572,7 @@ export default function EventDayPage() {
         onClose={() => setShowQr(false)}
         snapPoints={[0.6]}
       >
-        <QrCodeDisplay eventId={event.id} title={event.title} />
+        <CheckInCodeDisplay checkInCode={event.check_in_code} title={event.title} />
       </BottomSheet>
 
       {/* Bulk check-in confirmation */}

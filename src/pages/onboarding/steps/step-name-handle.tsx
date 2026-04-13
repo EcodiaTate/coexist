@@ -5,8 +5,8 @@ import { adminStagger as stagger, fadeUp } from '@/lib/admin-motion'
 
 interface StepNameHandleProps {
   displayName: string
-  instagramHandle: string
-  onChange: (name: string, handle: string) => void
+  instagramHandle?: string
+  onChange: (name: string, handle?: string) => void
   onNext: () => void
   onSkip: () => void
 }
@@ -33,15 +33,8 @@ export function StepNameHandle({ displayName, instagramHandle, onChange, onNext,
           <Input
             label="Display name"
             value={displayName}
-            onChange={(e) => onChange(e.target.value, instagramHandle)}
+            onChange={(e) => onChange(e.target.value)}
             autoComplete="name"
-          />
-
-          <Input
-            label="Instagram handle (optional)"
-            value={instagramHandle}
-            onChange={(e) => onChange(displayName, e.target.value.replace(/^@+/, ''))}
-            placeholder="@yourhandle"
           />
         </motion.div>
       </motion.div>

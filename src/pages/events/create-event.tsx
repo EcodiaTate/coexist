@@ -1182,12 +1182,58 @@ function StepInvite({
 function StepPartner({
   extra,
   onExtraChange,
+  fields,
+  onFieldsChange,
 }: {
   extra: CreateExtraFields
   onExtraChange: (updates: Partial<CreateExtraFields>) => void
+  fields: EventFormFields
+  onFieldsChange: (updates: Partial<EventFormFields>) => void
 }) {
   return (
     <div className="space-y-4">
+      <StepCard>
+        <SectionLabel icon={<Building2 size={14} />}>
+          Event Type
+        </SectionLabel>
+        <p className="text-sm text-neutral-500 mb-4">
+          Is this a regular Co-Exist event, or an external collaboration managed by a partner?
+        </p>
+
+        <div className="flex gap-2 mb-4">
+          <button
+            type="button"
+            onClick={() => onFieldsChange({ is_external_collaboration: false, external_registration_url: '' })}
+            className={cn(
+              'flex-1 px-4 py-3 rounded-xl border text-sm font-semibold transition-all cursor-pointer select-none',
+              !fields.is_external_collaboration
+                ? 'border-primary-400 bg-primary-50 text-primary-700'
+                : 'border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-50',
+            )}
+          >
+            <div className="flex items-center justify-center gap-2">
+              <Leaf size={16} />
+              Co-Exist Event
+            </div>
+          </button>
+          <button
+            type="button"
+            onClick={() => onFieldsChange({ is_external_collaboration: true })}
+            className={cn(
+              'flex-1 px-4 py-3 rounded-xl border text-sm font-semibold transition-all cursor-pointer select-none',
+              fields.is_external_collaboration
+                ? 'border-bark-400 bg-bark-50 text-bark-700'
+                : 'border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-50',
+            )}
+          >
+            <div className="flex items-center justify-center gap-2">
+              <Building2 size={16} />
+              External Collab
+            </div>
+          </button>
+        </div>
+      </StepCard>
+
       <StepCard>
         <SectionLabel icon={<Building2 size={14} />}>
           Partner Organisation
@@ -1205,7 +1251,26 @@ function StepPartner({
         />
       </StepCard>
 
-      {!extra.partner_name && (
+      {fields.is_external_collaboration && (
+        <StepCard>
+          <SectionLabel icon={<Send size={14} />}>
+            External Registration
+          </SectionLabel>
+          <p className="text-sm text-neutral-500 mb-4">
+            If participants need to register on the partner's website, add the link here.
+            This will show a "Register on Partner Site" button on the event page.
+          </p>
+
+          <Input
+            label="External Registration URL (optional)"
+            placeholder="https://partner-org.com/register"
+            value={fields.external_registration_url}
+            onChange={(e) => onFieldsChange({ external_registration_url: e.target.value })}
+          />
+        </StepCard>
+      )}
+
+      {!extra.partner_name && !fields.is_external_collaboration && (
         <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-surface-2/60 text-neutral-500">
           <HelpCircle size={16} className="shrink-0 text-neutral-400" />
           <p className="text-caption italic">
@@ -1351,6 +1416,20 @@ function StepReview({ fields, extra }: { fields: EventFormFields; extra: CreateE
               icon={<Building2 size={15} />}
               label="Partner"
               value={extra.partner_name}
+            />
+          )}
+          {fields.is_external_collaboration && (
+            <SummaryRow
+              icon={<Building2 size={15} />}
+              label="Event Type"
+              value="External Collaboration"
+            />
+          )}
+          {fields.external_registration_url && (
+            <SummaryRow
+              icon={<Send size={15} />}
+              label="External Rego"
+              value={fields.external_registration_url}
             />
           )}
         </div>
@@ -1555,6 +1634,8 @@ export default function CreateEventPage() {
           cover_image_url: form.fields.cover_image_url || null,
           is_public: form.fields.is_public,
           is_ticketed: extra.is_ticketed,
+          is_external_collaboration: form.fields.is_external_collaboration,
+          external_registration_url: form.fields.external_registration_url || null,
           status: isDraft ? 'draft' : 'published',
           ...(extra.is_recurring && {
             is_recurring: true,
@@ -1711,7 +1792,7 @@ export default function CreateEventPage() {
     <StepVisibility fields={form.fields} onChange={form.updateFields} />,
     <StepTicketing extra={extra} onExtraChange={updateExtra} />,
     <StepInvite extra={extra} onExtraChange={updateExtra} />,
-    <StepPartner extra={extra} onExtraChange={updateExtra} />,
+    <StepPartner extra={extra} onExtraChange={updateExtra} fields={form.fields} onFieldsChange={form.updateFields} />,
     <StepReview fields={form.fields} extra={extra} />,
   ]
 

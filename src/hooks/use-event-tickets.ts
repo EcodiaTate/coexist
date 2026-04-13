@@ -309,6 +309,84 @@ export function useTicketCheckIn() {
 }
 
 /* ------------------------------------------------------------------ */
+/*  3-digit code check-in (replaces QR scanning)                       */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Check in a user by the event's 3-digit check_in_code.
+ * Flow: user enters code -> look up event by check_in_code -> check in user.
+ */
+export function useCodeCheckIn() {
+  const queryClient = useQueryClient()
+  const { user } = useAuth()
+
+  return useMutation({
+    mutationFn: async ({ checkInCode }: { checkInCode: string }) => {
+      if (!user) throw new Error('Not authenticated')
+
+      const code = checkInCode.trim()
+
+      // Look up the event by its check_in_code
+      const { data: event, error: lookupErr } = await supabase
+        .from('events')
+        .select('id, title, status')
+        .eq('check_in_code', code)
+        .maybeSingle()
+
+      if (lookupErr) throw lookupErr
+      if (!event) throw new Error('No event found with that code. Check the code and try again.')
+
+      // Check event status
+      if (event.status === 'cancelled') throw new Error('This event has been cancelled.')
+      if (event.status === 'draft') throw new Error('This event is not active yet.')
+
+      // Check if user is registered
+      const { data: registration, error: regErr } = await supabase
+        .from('event_registrations')
+        .select('status, checked_in_at')
+        .eq('event_id', event.id)
+        .eq('user_id', user.id)
+        .maybeSingle()
+
+      if (regErr) throw regErr
+
+      if (!registration) throw new Error('You are not registered for this event.')
+      if (registration.status === 'attended' && registration.checked_in_at) {
+        throw new Error('Already checked in.')
+      }
+      if (registration.status === 'waitlisted') {
+        throw new Error('You are on the waitlist for this event.')
+      }
+      if (registration.status !== 'registered' && registration.status !== 'invited') {
+        throw new Error('You are not registered for this event.')
+      }
+
+      // Perform check-in: update registration to attended
+      const { error: updateErr } = await supabase
+        .from('event_registrations')
+        .update({
+          status: 'attended',
+          checked_in_at: new Date().toISOString(),
+        })
+        .eq('event_id', event.id)
+        .eq('user_id', user.id)
+        .in('status', ['registered', 'invited'])
+
+      if (updateErr) throw updateErr
+
+      return { eventId: event.id, userId: user.id }
+    },
+    onSuccess: (result) => {
+      if (result) {
+        queryClient.invalidateQueries({ queryKey: ['event-attendees', result.eventId] })
+        queryClient.invalidateQueries({ queryKey: ['event', result.eventId] })
+        queryClient.invalidateQueries({ queryKey: ['my-events'] })
+      }
+    },
+  })
+}
+
+/* ------------------------------------------------------------------ */
 /*  Admin: save ticket types (upsert existing + insert new + deactive) */
 /* ------------------------------------------------------------------ */
 
