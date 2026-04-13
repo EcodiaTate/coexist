@@ -18,6 +18,7 @@ interface UpcomingEvent {
   date_start: string
   address: string | null
   cover_image_url: string | null
+  check_in_code: string | null
 }
 
 interface RecentMember {
@@ -66,7 +67,7 @@ async function fetchLeaderDashboard(collectiveId: string): Promise<LeaderDashboa
       .eq('status', 'active'),
     supabase
       .from('events')
-      .select('id, title, date_start, address, cover_image_url')
+      .select('id, title, date_start, address, cover_image_url, check_in_code')
       .eq('collective_id', collectiveId)
       .gte('date_start', now.toISOString())
       .neq('status', 'cancelled')

@@ -38,6 +38,7 @@ import {
     Calendar,
     ArrowRight,
     Waves,
+    Hash,
 } from 'lucide-react'
 import { useQueryClient, useMutation } from '@tanstack/react-query'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
@@ -977,7 +978,7 @@ export default function LeaderDashboardPage() {
     if (!data?.upcomingEvents) return null
     const THREE_HOURS = 3 * 60 * 60 * 1000
     const now = mountTimeRef.current
-    return (data.upcomingEvents as { date_start: string; id: string }[]).find((e) => {
+    return (data.upcomingEvents as { date_start: string; id: string; check_in_code: string | null }[]).find((e) => {
       const start = new Date(e.date_start).getTime()
       return now >= start - THREE_HOURS && now <= start + THREE_HOURS
     }) ?? null
@@ -986,7 +987,7 @@ export default function LeaderDashboardPage() {
   // Next upcoming event for "Edit Event" quick action (must be before early returns)
   const nextUpcomingEvent = useMemo(() => {
     if (!data?.upcomingEvents?.length) return null
-    return (data.upcomingEvents as { date_start: string; id: string }[])[0] ?? null
+    return (data.upcomingEvents as { date_start: string; id: string; check_in_code: string | null }[])[0] ?? null
   }, [data])
 
   if (showLoading) {
@@ -1039,7 +1040,7 @@ export default function LeaderDashboardPage() {
     )
   }
 
-  const quickActions: { label: string; icon: React.ReactNode; to: string; iconBg: string; iconText: string; badge: number; pulse?: boolean }[] = [
+  const quickActions: { label: string; icon: React.ReactNode; to: string; iconBg: string; iconText: string; badge: number; pulse?: boolean; isCode?: boolean }[] = [
     ...(currentEvent ? [{
       label: 'Current Event',
       icon: <Flame size={18} />,
@@ -1048,6 +1049,15 @@ export default function LeaderDashboardPage() {
       iconText: 'text-amber-600',
       badge: 0,
       pulse: true,
+    }] : []),
+    ...((currentEvent?.check_in_code ?? nextUpcomingEvent?.check_in_code) ? [{
+      label: (currentEvent?.check_in_code ?? nextUpcomingEvent?.check_in_code) as string,
+      icon: <Hash size={18} />,
+      to: `/events/${(currentEvent ?? nextUpcomingEvent)!.id}/day`,
+      iconBg: 'bg-primary-100',
+      iconText: 'text-primary-700',
+      badge: 0,
+      isCode: true,
     }] : []),
     ...(nextUpcomingEvent ? [{
       label: 'Edit Event',
@@ -1155,27 +1165,39 @@ export default function LeaderDashboardPage() {
                   key={action.label}
                   to={action.to}
                   className={cn(
-                    'group relative flex flex-col items-center gap-1.5 rounded-xl bg-white shadow-sm border border-neutral-100 p-3 hover:shadow-md active:scale-[0.96] transition-transform duration-150',
+                    'group relative flex flex-col items-center gap-1.5 rounded-xl shadow-sm border p-3 hover:shadow-md active:scale-[0.96] transition-transform duration-150',
+                    action.isCode
+                      ? 'bg-gradient-to-br from-primary-50 to-primary-100/80 border-primary-200/60'
+                      : 'bg-white border-neutral-100',
                     action.pulse && 'ring-2 ring-amber-400/50',
                   )}
                 >
-                  <div className={cn(
-                    'relative flex items-center justify-center w-9 h-9 rounded-lg transition-transform group-hover:scale-105',
-                    action.iconBg, action.iconText,
-                  )}>
-                    {action.icon}
-                    {action.pulse && (
-                      <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-amber-400 animate-pulse ring-2 ring-white" />
-                    )}
-                    {action.badge > 0 && (
-                      <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-white text-[9px] font-bold leading-none">
-                        {action.badge > 99 ? '99+' : action.badge}
+                  {action.isCode ? (
+                    <>
+                      <span className="text-[9px] font-semibold text-primary-500 uppercase tracking-wider">Check-in Code</span>
+                      <span className="text-2xl font-heading font-bold text-primary-700 tracking-[0.2em] leading-none">{action.label}</span>
+                    </>
+                  ) : (
+                    <>
+                      <div className={cn(
+                        'relative flex items-center justify-center w-9 h-9 rounded-lg transition-transform group-hover:scale-105',
+                        action.iconBg, action.iconText,
+                      )}>
+                        {action.icon}
+                        {action.pulse && (
+                          <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-amber-400 animate-pulse ring-2 ring-white" />
+                        )}
+                        {action.badge > 0 && (
+                          <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-white text-[9px] font-bold leading-none">
+                            {action.badge > 99 ? '99+' : action.badge}
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-[10px] font-semibold text-neutral-600 text-center leading-tight">
+                        {action.label}
                       </span>
-                    )}
-                  </div>
-                  <span className="text-[10px] font-semibold text-neutral-600 text-center leading-tight">
-                    {action.label}
-                  </span>
+                    </>
+                  )}
                 </Link>
               ))}
             </div>
