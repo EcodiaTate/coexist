@@ -3,6 +3,7 @@ import { Users, UserMinus, X } from 'lucide-react'
 import { Avatar } from '@/components/avatar'
 import { BottomSheet } from '@/components/bottom-sheet'
 import { ConfirmationSheet } from '@/components/confirmation-sheet'
+import { formatRole } from '@/lib/labels-and-enums'
 import { useToast } from '@/components/toast'
 import { CreatePollSheet } from '@/components/create-poll-sheet'
 import { CreateAnnouncementSheet } from '@/components/create-announcement-sheet'
@@ -81,8 +82,8 @@ function ManageMembersSheet({
                       {m.profiles?.display_name ?? 'Member'}
                     </span>
                     {m.role !== 'participant' && (
-                      <span className="text-[11px] font-semibold text-neutral-500 capitalize">
-                        {m.role!.replace('_', ' ')}
+                      <span className="text-[11px] font-semibold text-neutral-500">
+                        {formatRole(m.role!)}
                       </span>
                     )}
                   </div>

@@ -1,5 +1,6 @@
 import { useState, useMemo, useRef, useEffect, startTransition } from 'react'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
+import { formatRole } from '@/lib/labels-and-enums'
 import { useQuery } from '@tanstack/react-query'
 import { motion, useReducedMotion } from 'framer-motion'
 import { adminVariants } from '@/lib/admin-motion'
@@ -566,7 +567,7 @@ function TemplateModal({
               <Dropdown
                 options={staffUsers.map((u) => ({
                   value: u.id,
-                  label: `${u.display_name ?? 'Unknown'} (${(u.role ?? 'staff').replace('_', ' ')})`,
+                  label: `${u.display_name ?? 'Unknown'} (${formatRole(u.role ?? 'leader')})`,
                 }))}
                 value={assignedToUserId}
                 onChange={setAssignedToUserId}
@@ -1088,7 +1089,7 @@ export default function AdminWorkflowsPage() {
                                 : <><User size={10} /> Individual</>}
                             </span>
                             <span className="text-primary-200">·</span>
-                            <span>{template.assignee_role.replace('_', ' ')}+</span>
+                            <span>{formatRole(template.assignee_role)}+</span>
                             {template.attachment_url && (
                               <>
                                 <span className="text-primary-200">·</span>
