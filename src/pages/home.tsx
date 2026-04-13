@@ -977,10 +977,10 @@ function HomeImpactSection({
                 icon={<TreePine size={20} />}
                 description="Every tree planted by Co-Exist volunteers across the country."
               />
-              <BentoStatCard value={data?.eventsAttended ?? 0} label="Volunteers" icon={<Users size={18} />} />
+              <BentoStatCard value={data?.eventsAttended ?? 0} label="Attendees" icon={<Users size={18} />} />
               <BentoStatCard value={totalEvents} label="Events" icon={<Calendar size={18} />} />
               <BentoStatCard value={data?.volunteerHours ?? 0} label="Vol. Hours" icon={<Clock size={18} />} unit="hrs" />
-              <BentoStatCard value={data?.rubbishCollectedKg ?? 0} label="Rubbish" icon={<Trash2 size={18} />} unit="kg" />
+              <BentoStatCard value={data?.rubbishCollectedKg ?? 0} label="Litter Removed" icon={<Trash2 size={18} />} unit="kg" />
               <BentoStatCard value={data?.collectivesCount ?? 0} label="Collectives" icon={<Users size={18} />} />
             </BentoStatGrid>
           )}
