@@ -199,11 +199,11 @@ function buildExcelRow(e: EventData): (string | number | null)[] {
     e.collective_name,                                       // 3: Collective
     e.address ?? '',                                         // 4: Location
     extractPostcode(e.address ?? ''),                        // 5: Postcode
-    e.creator_name ?? '',                                    // 6: Primary Organiser
+    e.collective_name ?? '',                                 // 6: Primary Organiser (collective name, not person)
     (e.answers?.q1 as string) ?? '',                         // 7: Other Group Attended
     (e.answers?.q2 as string) ?? '',                         // 8: Which Landcare Group
     (e.answers?.q3 as string) ?? '',                         // 9: Which OzFish group
-    e.leader_name ?? e.creator_name ?? '',                   // 10: Co-Exist Leader
+    (e.answers?.leader_name as string) ?? e.leader_name ?? '', // 10: Co-Exist Leader (from survey dropdown)
     e.attendees ?? '',                                       // 11: Number of Attendees
     isConservation ? 'Conservation' : isRecreation ? 'Recreation' : label, // 12: Type of Event
     isConservation ? label : '',                             // 13: Conservation type

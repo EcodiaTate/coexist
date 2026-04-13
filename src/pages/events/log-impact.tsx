@@ -613,7 +613,36 @@ export default function LogImpactPage() {
 
   // Load admin-created survey for this event's activity type
   const { data: surveyData, isLoading: surveyLoading } = useEventSurvey(eventId, event?.activity_type)
-  const surveyQuestions = surveyData?.questions ?? []
+
+  // Fetch collective leaders for the "Co-Exist Leader" dropdown
+  const { data: collectiveLeaders } = useQuery({
+    queryKey: ['collective-leaders', event?.collective_id],
+    queryFn: async () => {
+      if (!event?.collective_id) return []
+      const { data } = await supabase
+        .from('collective_members')
+        .select('profiles(display_name)')
+        .eq('collective_id', event.collective_id)
+        .in('role', ['leader', 'co_leader', 'assist_leader'])
+      return (data ?? []).map((m: any) => m.profiles?.display_name).filter(Boolean) as string[]
+    },
+    enabled: !!event?.collective_id,
+    staleTime: 10 * 60 * 1000,
+  })
+
+  // Inject "Co-Exist Leader" dropdown before other survey questions
+  const surveyQuestions = useMemo(() => {
+    const leaderQ = collectiveLeaders && collectiveLeaders.length > 0
+      ? [{
+          id: 'leader_name',
+          text: 'Co-Exist Leader',
+          type: 'dropdown' as const,
+          required: true,
+          options: collectiveLeaders,
+        }]
+      : []
+    return [...leaderQ, ...(surveyData?.questions ?? [])]
+  }, [surveyData?.questions, collectiveLeaders])
 
   // Load existing survey response (for edit pre-fill)
   const { data: existingSurveyResponse } = useQuery({

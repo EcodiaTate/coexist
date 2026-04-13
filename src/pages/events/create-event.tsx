@@ -1578,12 +1578,11 @@ export default function CreateEventPage() {
       case 2:
         return form.isDateValid && !form.isDateInPast
       case 3:
-        // Location is soft-required: allow proceed but the review step will flag it
-        return true
+        return form.hasLocation
       default:
         return true
     }
-  }, [step, extra.selected_collective_ids.length, form.isBasicsValid, form.isDateValid, form.isDateInPast])
+  }, [step, extra.selected_collective_ids.length, form.isBasicsValid, form.isDateValid, form.isDateInPast, form.hasLocation])
 
   // We need the user's collective - use the first one they're a leader of
   const handlePublish = useCallback(
