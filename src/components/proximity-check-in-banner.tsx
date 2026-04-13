@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
-import { MapPin, QrCode, X } from 'lucide-react'
+import { MapPin, Hash, X } from 'lucide-react'
 import { useState } from 'react'
 import { useEventProximity } from '@/hooks/use-event-proximity'
 import { ACTIVITY_TYPE_LABELS } from '@/hooks/use-events'
@@ -73,7 +73,7 @@ export function ProximityCheckInBanner() {
               variant="secondary"
               size="md"
               fullWidth
-              icon={<QrCode size={16} />}
+              icon={<Hash size={16} />}
               className="mt-3 bg-white text-primary-700 hover:bg-white/90"
               onClick={() => navigate(`/events/${nearbyEvent.id}/check-in`)}
             >

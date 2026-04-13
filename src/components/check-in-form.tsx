@@ -212,7 +212,6 @@ interface CheckInModeViewProps {
   eventTitle: string
   collectiveName?: string
   isPending: boolean
-  onStartScan?: () => void  // kept for API compat but unused
   onManualSubmit: (code: string) => void
 }
 

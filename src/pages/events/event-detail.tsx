@@ -1,5 +1,4 @@
 import { useState, useMemo, useCallback, useEffect } from 'react'
-import { QRCodeSVG } from 'qrcode.react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
@@ -19,7 +18,7 @@ import {
     AlertCircle,
     XCircle,
     Mail,
-    QrCode,
+    Hash,
     Copy,
     Ban,
     Send,
@@ -588,7 +587,7 @@ export default function EventDetailPage() {
             <Button
               variant="secondary"
               fullWidth
-              icon={<QrCode size={18} />}
+              icon={<Hash size={18} />}
               onClick={() => setCheckInForcedOpen(true)}
             >
               Open Check-in Now
@@ -1081,7 +1080,7 @@ export default function EventDetailPage() {
                 className="group flex flex-col items-center gap-1.5 rounded-xl bg-white shadow-sm border border-neutral-100 p-3 active:scale-[0.96] transition-transform duration-150 cursor-pointer select-none"
               >
                 <div className="w-9 h-9 rounded-lg bg-primary-50 flex items-center justify-center group-hover:scale-105 transition-transform">
-                  <QrCode size={16} className="text-primary-600" />
+                  <Hash size={16} className="text-primary-600" />
                 </div>
                 <span className="text-[10px] font-semibold text-neutral-700 leading-tight text-center">QR Code</span>
               </button>
@@ -1317,34 +1316,27 @@ export default function EventDetailPage() {
         variant="warning"
       />
 
-      {/* QR Code sheet */}
+      {/* Check-in code sheet */}
       <BottomSheet
         open={showQrSheet}
         onClose={() => setShowQrSheet(false)}
-        snapPoints={[0.6]}
+        snapPoints={[0.4]}
       >
         <div className="flex flex-col items-center py-6">
-          <div className="w-56 h-56 rounded-2xl bg-white shadow-sm flex items-center justify-center p-4">
-            <QRCodeSVG
-              value={`coexist://event/${event.id}`}
-              size={192}
-              level="M"
-              bgColor="#ffffff"
-              fgColor="#1a1a1a"
-            />
-          </div>
+          <p className="text-[11px] uppercase tracking-wider text-primary-600 font-semibold mb-2">Check-in Code</p>
+          {event.check_in_code ? (
+            <p className="text-5xl font-heading font-bold text-primary-700 tracking-[0.3em]">
+              {event.check_in_code}
+            </p>
+          ) : (
+            <p className="text-sm text-neutral-500">No check-in code generated for this event</p>
+          )}
           <p className="text-sm font-medium text-neutral-900 mt-4 text-center">
             {event.title}
           </p>
           <p className="text-caption text-neutral-500 mt-1">
-            Show this to participants to scan
+            Share this code with participants to check in
           </p>
-          <div className="mt-3 px-4 py-2 rounded-lg bg-white">
-            <p className="text-[11px] uppercase tracking-wider text-neutral-500 text-center">Manual code</p>
-            <p className="text-lg font-heading font-bold text-neutral-900 tracking-[0.3em] text-center">
-              {event.id.replace(/-/g, '').slice(0, 6).toUpperCase()}
-            </p>
-          </div>
         </div>
       </BottomSheet>
 

@@ -7,7 +7,7 @@ import {
     Bug,
     Bell,
     Calendar,
-    QrCode,
+    Hash,
     ClipboardCheck,
     TreePine,
     MapPin, Users,
@@ -1208,7 +1208,7 @@ export default function DevToolsPage() {
             Jump directly to any day-of page. Use a test event ID from above.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <Button variant="secondary" size="sm" icon={<QrCode size={14} />}
+            <Button variant="secondary" size="sm" icon={<Hash size={14} />}
               onClick={() => { const first = testEvents?.[0]; if (first) navigate(`/events/${first.id}/check-in`); else alert('Create a test event first') }}>
               Check-In (QR)
             </Button>
@@ -1289,7 +1289,7 @@ function TestEventCard({
         </button>
         <button type="button" onClick={() => navigate(`/events/${event.id}/check-in`)}
           className="flex flex-col items-center justify-center gap-1 p-3 min-h-14 rounded-lg bg-white hover:bg-neutral-50 transition-colors cursor-pointer">
-          <QrCode size={16} className="text-success-500" />
+          <Hash size={16} className="text-success-500" />
           <span className="text-[11px] font-medium text-neutral-600">Check-In</span>
         </button>
         <button type="button" onClick={() => navigate(`/events/${event.id}/impact`)}

@@ -366,7 +366,7 @@ function PrivacySheet({ open, onClose }: { open: boolean; onClose: () => void })
 function HelpSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   const faqs = [
     { q: 'How do I join a Collective?', a: 'Go to the Explore tab, find a Collective near you, and tap "Join". Leaders will approve your request.' },
-    { q: 'How does check-in work?', a: 'At events, the leader will show a QR code. Tap the check-in button on the event page and scan it to earn your points.' },
+    { q: 'How does check-in work?', a: 'At events, the leader will share a 3-digit code. Tap the check-in button on the event page and enter the code to earn your points.' },
     { q: 'Can I cancel an event registration?', a: 'Yes! Go to the event page and tap "Cancel Registration" before the event starts.' },
     { q: 'How do I become a Collective leader?', a: 'Contact Co-Exist national team via the app or email. Leaders are selected based on commitment and location.' },
     { q: 'Is my donation tax-deductible?', a: 'This depends on current DGR status. Check with Co-Exist or your tax advisor.' },

@@ -39,8 +39,6 @@ interface CheckInSheetProps {
   eventId: string
   eventTitle: string
   collectiveName?: string
-  /** @deprecated QR scanning removed - this prop is ignored */
-  autoScan?: boolean
 }
 
 /* ------------------------------------------------------------------ */

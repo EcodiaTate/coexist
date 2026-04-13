@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useToast } from '@/components/toast'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
-  QrCode,
+  Hash,
   Check,
   CheckCheck,
   Users,
@@ -48,7 +48,7 @@ import { SearchBar } from '@/components/search-bar'
 import { cn } from '@/lib/cn'
 
 /* ------------------------------------------------------------------ */
-/*  QR Code Display Component                                          */
+/*  Check-in Code Display Component                                    */
 /* ------------------------------------------------------------------ */
 
 function CheckInCodeDisplay({ checkInCode, title }: { checkInCode: string | null; title: string }) {
@@ -408,7 +408,7 @@ export default function EventDayPage() {
         <div className="flex gap-3">
           <Button
             variant="secondary"
-            icon={<QrCode size={18} />}
+            icon={<Hash size={18} />}
             onClick={() => setShowQr(true)}
             className="flex-1 ring-1 ring-primary-200/60"
           >

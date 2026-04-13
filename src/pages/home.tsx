@@ -15,7 +15,7 @@ import {
     MapPin,
     Heart,
     ShoppingBag,
-    QrCode,
+    Hash,
     Search,
     Camera,
     CheckCircle2,
@@ -390,7 +390,7 @@ function NextEventCard({
             variant="primary"
             size="lg"
             fullWidth
-            icon={<QrCode size={20} />}
+            icon={<Hash size={20} />}
             className="relative bg-white text-primary-700 hover:bg-white/90 font-bold text-base shadow-sm"
             onClick={(e: React.MouseEvent) => {
               e.stopPropagation()
@@ -467,7 +467,6 @@ function NextEventCard({
         eventId={checkIn?.eventId ?? ''}
         eventTitle={checkIn?.eventTitle ?? ''}
         collectiveName={checkIn?.collectiveName ?? ''}
-        autoScan
       />
     </motion.div>
   )
