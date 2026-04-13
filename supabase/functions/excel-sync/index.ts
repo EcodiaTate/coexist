@@ -4,14 +4,17 @@
  * Sync between Co-Exist Supabase database and the
  * "Master Impact Data Sheet.xlsx" on SharePoint (OneDrive for Business).
  *
- * CRITICAL RULE: Excel is the source of truth. Never overwrite existing
- * Excel data with DB values. Only APPEND new 2026+ events to Excel.
+ * CRITICAL RULES:
+ * - Pre-2026 data in Excel is UNTOUCHABLE. Never written to by the app.
+ * - 2026+ events sync both ways: app changes update the sheet, sheet
+ *   changes update the DB. Both directions run for 2026+ UUID events.
+ * - from-excel is the PRIORITY direction. Run it first in full sync.
  *
  * Directions:
- *   POST /excel-sync?direction=to-excel      -> append NEW 2026+ events only
+ *   POST /excel-sync?direction=to-excel      -> append/update 2026+ events in Excel
  *   POST /excel-sync?direction=from-excel    -> pull Excel data into Supabase (Excel wins)
- *   POST /excel-sync?direction=full          -> from-excel first, then to-excel append
- *   POST /excel-sync?event_id=xxx            -> append single event IF not already in sheet
+ *   POST /excel-sync?direction=full          -> from-excel first, then to-excel
+ *   POST /excel-sync?event_id=xxx            -> sync single 2026+ event to Excel
  *
  * Column mapping (28 columns, A-AB on "Post Event Review" sheet):
  *   0:  ID                    <- event.id (or legacy ID from sheet)
@@ -305,15 +308,16 @@ async function fetchEventData(
   }
 }
 
-// ---- Sync: Supabase -> Excel (APPEND ONLY, 2026+ only) ----
+// ---- Sync: Supabase -> Excel (2026+ only, append new + update existing) ----
 
 async function syncToExcel(
   supabase: ReturnType<typeof createClient>,
   graphToken: string,
   eventId?: string,
-): Promise<{ appended: number; skipped: number; errors: string[] }> {
+): Promise<{ appended: number; updated: number; skipped: number; errors: string[] }> {
   const errors: string[] = []
   let appended = 0
+  let updated = 0
   let skipped = 0
 
   // Read existing Excel data
@@ -322,20 +326,22 @@ async function syncToExcel(
     excelState = await readExcelState(graphToken)
   } catch (err) {
     errors.push(`Failed to read Excel: ${(err as Error).message}`)
-    return { appended, skipped, errors }
+    return { appended, updated, skipped, errors }
   }
 
-  // Determine which events to check
+  // Build a map of existing event IDs to their row index (1-based)
+  const idToRowIndex = new Map<string, number>()
+  for (let i = 1; i < excelState.rows.length; i++) {
+    const id = String(excelState.rows[i][0] ?? '')
+    if (id) idToRowIndex.set(id, i + 1) // +1 because Excel rows are 1-based
+  }
+
+  // Determine which events to sync
   let eventIds: string[] = []
   if (eventId) {
-    // Single event mode (from trigger)
-    if (excelState.existingIds.has(eventId)) {
-      // Already in sheet - do NOT overwrite
-      return { appended: 0, skipped: 1, errors: [] }
-    }
     eventIds = [eventId]
   } else {
-    // Batch mode: only 2026+ completed events NOT already in the sheet
+    // Batch mode: all 2026+ completed events
     const { data: events } = await supabase
       .from('events')
       .select('id')
@@ -344,14 +350,13 @@ async function syncToExcel(
       .order('date_start', { ascending: true })
 
     if (events) {
-      eventIds = events
-        .map((e: { id: string }) => e.id)
-        .filter((id: string) => !excelState.existingIds.has(id))
+      eventIds = events.map((e: { id: string }) => e.id)
     }
   }
 
-  // Build rows for new events (append only)
+  // Sort into append vs update
   const newRows: (string | number | null)[][] = []
+  const updateRows: { rowIndex: number; row: (string | number | null)[] }[] = []
 
   for (const eid of eventIds) {
     try {
@@ -360,8 +365,19 @@ async function syncToExcel(
         skipped++
         continue
       }
-      newRows.push(buildExcelRow(data))
-      appended++
+
+      const row = buildExcelRow(data)
+      const existingRowIndex = idToRowIndex.get(eid)
+
+      if (existingRowIndex) {
+        // 2026+ event already in sheet - UPDATE the row
+        updateRows.push({ rowIndex: existingRowIndex, row })
+        updated++
+      } else {
+        // New event - APPEND
+        newRows.push(row)
+        appended++
+      }
     } catch (err) {
       errors.push(`Event ${eid}: ${(err as Error).message}`)
     }
@@ -386,7 +402,21 @@ async function syncToExcel(
     }
   }
 
-  return { appended, skipped, errors }
+  // Update existing rows
+  for (const { rowIndex, row } of updateRows) {
+    try {
+      await graphRequest(
+        graphToken,
+        `/range(address='A${rowIndex}:AB${rowIndex}')`,
+        'PATCH',
+        { values: [row] },
+      )
+    } catch (err) {
+      errors.push(`Failed to update row ${rowIndex}: ${(err as Error).message}`)
+    }
+  }
+
+  return { appended, updated, skipped, errors }
 }
 
 // ---- Sync: Excel -> Supabase (Excel is source of truth) ----
