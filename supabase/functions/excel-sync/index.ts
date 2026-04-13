@@ -488,6 +488,54 @@ async function syncFromExcel(
   return { synced, skippedLegacy, errors }
 }
 
+// ---- Delete: Remove event row from Excel (dev/test only, no auto-trigger) ----
+
+async function deleteFromExcel(
+  graphToken: string,
+  eventId: string,
+): Promise<{ deleted: boolean; error?: string }> {
+  // Read sheet to find the row
+  let excelState: ExcelState
+  try {
+    excelState = await readExcelState(graphToken)
+  } catch (err) {
+    return { deleted: false, error: `Failed to read Excel: ${(err as Error).message}` }
+  }
+
+  // Find the row index for this event ID
+  let targetRowIndex = -1
+  for (let i = 1; i < excelState.rows.length; i++) {
+    if (String(excelState.rows[i][0]) === eventId) {
+      targetRowIndex = i + 1 // 1-based Excel row
+      break
+    }
+  }
+
+  if (targetRowIndex === -1) {
+    return { deleted: false, error: `Event ${eventId} not found in sheet` }
+  }
+
+  // Delete the row using Graph API
+  try {
+    const url = `https://graph.microsoft.com/v1.0/drives/${DRIVE_ID}/items/${ITEM_ID}/workbook/worksheets/${encodeURIComponent(SHEET_NAME)}/range(address='A${targetRowIndex}:AB${targetRowIndex}')/delete`
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${graphToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ shift: 'Up' }),
+    })
+    if (!res.ok) {
+      const errText = await res.text()
+      return { deleted: false, error: `Graph API delete failed (${res.status}): ${errText}` }
+    }
+    return { deleted: true }
+  } catch (err) {
+    return { deleted: false, error: (err as Error).message }
+  }
+}
+
 // ---- Main handler ----
 
 Deno.serve(async (req: Request) => {
@@ -517,7 +565,21 @@ Deno.serve(async (req: Request) => {
     const graphToken = await getGraphToken()
     const results: Record<string, unknown> = {}
 
-    // For 'full' sync: from-excel FIRST (Excel is truth), then append new
+    // Delete: manual only, for dev/test cleanup
+    if (direction === 'delete') {
+      if (!eventId) {
+        return new Response(
+          JSON.stringify({ error: 'event_id required for delete' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        )
+      }
+      results.delete = await deleteFromExcel(graphToken, eventId)
+      return new Response(JSON.stringify({ ok: true, direction, ...results }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    // For 'full' sync: from-excel FIRST (Excel is truth), then to-excel
     if (direction === 'from-excel' || direction === 'full') {
       results.fromExcel = await syncFromExcel(supabase, graphToken)
     }
