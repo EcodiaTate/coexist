@@ -188,7 +188,7 @@ export default function ViewProfilePage() {
             <BentoStatCard value={stats?.hoursVolunteered ?? 0} label="Hours" icon={<Clock size={16} />} unit="hrs" theme="primary" />
             <BentoStatCard value={stats?.treesPlanted ?? 0} label="Trees" icon={<TreePine size={16} />} theme="sprout" />
             {(stats?.rubbishCollectedKg ?? 0) > 0 && (
-              <BentoStatCard value={stats?.rubbishCollectedKg ?? 0} label="Rubbish" icon={<Trash2 size={16} />} unit="kg" theme="sky" />
+              <BentoStatCard value={stats?.rubbishCollectedKg ?? 0} label="Litter Removed" icon={<Trash2 size={16} />} unit="kg" theme="sky" />
             )}
           </BentoStatGrid>
         </motion.div>

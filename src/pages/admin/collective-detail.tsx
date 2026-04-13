@@ -241,7 +241,7 @@ function OverviewTab({ collectiveId, reducedMotion }: { collectiveId: string; re
   const impactItems: { value: number; label: string; icon: React.ReactNode; color: string }[] = stats
     ? [
         { value: stats.trees_planted, label: 'Trees Planted', icon: <TreePine size={20} className="text-success-700" />, color: 'bg-success-50' },
-        { value: Math.round(stats.rubbish_kg), label: 'Rubbish (kg)', icon: <span className="text-lg text-primary-700" aria-hidden="true">&#9851;</span>, color: 'bg-primary-50' },
+        { value: Math.round(stats.rubbish_kg), label: 'Litter Removed (kg)', icon: <span className="text-lg text-primary-700" aria-hidden="true">&#9851;</span>, color: 'bg-primary-50' },
       ].filter((i) => i.value > 0)
     : []
 

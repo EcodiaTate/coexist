@@ -375,7 +375,7 @@ export default function CollectiveDetailPage() {
                 <BentoStatCard label="Trees" value={stats.totalTreesPlanted} icon={<TreePine size={16} />} theme="sprout" />
               )}
               {stats.totalRubbishKg > 0 && (
-                <BentoStatCard label="Rubbish" value={stats.totalRubbishKg} icon={<Trash2 size={16} />} unit="kg" theme="sky" />
+                <BentoStatCard label="Litter Removed" value={stats.totalRubbishKg} icon={<Trash2 size={16} />} unit="kg" theme="sky" />
               )}
               {stats.attendanceRate > 0 && (
                 <BentoStatCard label="Attendance" value={`${Math.round(stats.attendanceRate * 100)}%`} icon={<UserCheck size={16} />} theme="coral" />

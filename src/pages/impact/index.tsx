@@ -350,7 +350,7 @@ export default function ImpactDashboardPage() {
     if (stats.eventsAttended > 0) parts.push(`${stats.eventsAttended} events attended`)
     if (stats.volunteerHours > 0) parts.push(`${stats.volunteerHours} est. volunteer hours`)
     if (stats.treesPlanted > 0) parts.push(`${stats.treesPlanted} trees planted`)
-    if (stats.rubbishCollectedKg > 0) parts.push(`${stats.rubbishCollectedKg}kg rubbish collected`)
+    if (stats.rubbishCollectedKg > 0) parts.push(`${stats.rubbishCollectedKg}kg litter removed`)
     if (stats.cleanupSites > 0) parts.push(`${stats.cleanupSites} cleanup sites`)
     if (stats.leadersEmpowered > 0) parts.push(`${stats.leadersEmpowered} leaders empowered`)
     const text = `My Co-Exist Impact: ${parts.join(', ')}! Join at coexistaus.org`
@@ -422,7 +422,7 @@ export default function ImpactDashboardPage() {
               />
               <BigStat
                 value={stats.rubbishCollectedKg}
-                label="Rubbish (kg)"
+                label="Litter Removed (kg)"
                 icon={<Trash2 size={20} strokeWidth={2.5} />}
                 config="rubbish"
                 suffix="kg"

@@ -40,9 +40,7 @@ export interface AdminOverviewData {
   totalTrees: number
   totalHours: number
   totalRubbish: number
-  totalArea: number
-  totalNativePlants: number
-  totalWildlife: number
+  totalLeadersEmpowered: number
   periodMembers: number
   periodEvents: number
 }
@@ -52,7 +50,7 @@ async function fetchAdminOverview(dateRange: DateRange): Promise<AdminOverviewDa
   const isAllTime = dateRange === 'all'
   const now = new Date().toISOString()
 
-  const [{ rows, eventCount }, baseline, membersRes, collectivesRes, periodMembersRes, periodEventsRes] =
+  const [{ rows, eventCount }, baseline, membersRes, collectivesRes, leadersRes, periodMembersRes, periodEventsRes] =
     await Promise.all([
       fetchImpactRows({
         timeRange: isAllTime ? 'all-time' : 'custom',
@@ -61,6 +59,7 @@ async function fetchAdminOverview(dateRange: DateRange): Promise<AdminOverviewDa
       isAllTime ? fetchBaselineSettings() : Promise.resolve(null),
       supabase.from('profiles').select('id', { count: 'exact', head: true }),
       supabase.from('collectives').select('id', { count: 'exact', head: true }).eq('is_active', true).neq('is_national', true),
+      supabase.from('app_settings').select('value').eq('key', 'leaders_empowered_total').single(),
       rangeStart
         ? supabase.from('profiles').select('id', { count: 'exact', head: true }).gte('created_at', rangeStart)
         : Promise.resolve({ count: 0, error: null }),
@@ -83,9 +82,7 @@ async function fetchAdminOverview(dateRange: DateRange): Promise<AdminOverviewDa
     totalTrees:        sumMetric(rows, 'trees_planted')                  + (isAllTime ? b.trees     : 0),
     totalHours:        Math.round(sumMetric(rows, 'hours_total'))        + (isAllTime ? b.hours     : 0),
     totalRubbish:      Math.round(sumMetric(rows, 'rubbish_kg')          + (isAllTime ? b.rubbishKg : 0)),
-    totalArea:         Math.round(sumMetric(rows, 'area_restored_sqm')),
-    totalNativePlants: sumMetric(rows, 'native_plants'),
-    totalWildlife:     sumMetric(rows, 'wildlife_sightings'),
+    totalLeadersEmpowered: (leadersRes.data?.value as { count?: number })?.count ?? 0,
     periodMembers:     periodMembersRes.count ?? 0,
     periodEvents:      periodEventsRes.count ?? 0,
   }

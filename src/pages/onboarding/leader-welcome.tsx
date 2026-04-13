@@ -26,7 +26,7 @@ const LEADER_TOOLS = [
   {
     icon: <BarChart3 size={20} />,
     title: 'Log Impact',
-    description: 'Track trees planted, rubbish collected, and more.',
+    description: 'Track trees planted, litter removed, and more.',
   },
 ]
 

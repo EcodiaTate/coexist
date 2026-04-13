@@ -183,7 +183,7 @@ export default function ProfilePage() {
     { value: stats?.eventsAttended ?? 0, label: 'Events', icon: <Calendar size={18} />, show: true },
     { value: stats?.hoursVolunteered ?? 0, label: 'Hours', icon: <Clock size={18} />, show: true },
     { value: stats?.treesPlanted ?? 0, label: 'Trees', icon: <TreePine size={18} />, show: true },
-    { value: stats?.rubbishCollectedKg ?? 0, label: 'kg Rubbish', icon: <Trash2 size={18} />, show: true },
+    { value: stats?.rubbishCollectedKg ?? 0, label: 'Litter Removed', icon: <Trash2 size={18} />, show: true },
   ].filter(s => s.show)
 
   return (

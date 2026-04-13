@@ -19,6 +19,7 @@ import {
     Search,
     Camera,
     CheckCircle2,
+    GraduationCap,
 } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/hooks/use-auth'
@@ -980,6 +981,7 @@ function HomeImpactSection({
               <BentoStatCard value={totalEvents} label="Events" icon={<Calendar size={18} />} />
               <BentoStatCard value={data?.volunteerHours ?? 0} label="Vol. Hours" icon={<Clock size={18} />} unit="hrs" />
               <BentoStatCard value={data?.rubbishCollectedKg ?? 0} label="Litter Removed" icon={<Trash2 size={18} />} unit="kg" />
+              <BentoStatCard value={data?.leadersEmpowered ?? 0} label="Leaders Empowered" icon={<GraduationCap size={18} />} />
               <BentoStatCard value={data?.collectivesCount ?? 0} label="Collectives" icon={<Users size={18} />} />
             </BentoStatGrid>
           )}

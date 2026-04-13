@@ -180,7 +180,7 @@ export function ProfileModal({ userId, open, onClose }: ProfileModalProps) {
             <StatCard value={stats?.hoursVolunteered ?? 0} label="Hours" icon={<Clock size={20} />} />
             <StatCard value={stats?.treesPlanted ?? 0} label="Trees" icon={<TreePine size={20} />} />
             {(stats?.rubbishCollectedKg ?? 0) > 0 && (
-              <StatCard value={stats?.rubbishCollectedKg ?? 0} label="kg Rubbish" icon={<Trash2 size={20} />} />
+              <StatCard value={stats?.rubbishCollectedKg ?? 0} label="Litter Removed (kg)" icon={<Trash2 size={20} />} />
             )}
             {(stats?.areaRestoredSqm ?? 0) > 0 && (
               <StatCard value={stats?.areaRestoredSqm ?? 0} label="Area (sqm)" icon={<Ruler size={20} />} />

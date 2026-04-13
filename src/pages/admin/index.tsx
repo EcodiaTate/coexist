@@ -15,6 +15,7 @@ import {
     BarChart3,
     Sparkles,
     ArrowUpRight,
+    GraduationCap,
 } from 'lucide-react'
 import { useAdminHeader } from '@/components/admin-layout'
 import { Dropdown } from '@/components/dropdown'
@@ -363,7 +364,8 @@ export default function AdminDashboardPage() {
     unit?: string
   }[] = [
     { value: data?.totalTrees ?? 0,         label: 'Trees Planted',     icon: <TreePine size={16} />, theme: 'sprout' },
-    { value: data?.totalRubbish ?? 0,       label: 'Rubbish',           icon: <Trash2 size={16} />,   theme: 'sky',     unit: 'kg' },
+    { value: data?.totalRubbish ?? 0,       label: 'Litter Removed',    icon: <Trash2 size={16} />,   theme: 'sky',     unit: 'kg' },
+    { value: data?.totalLeadersEmpowered ?? 0, label: 'Leaders Empowered', icon: <GraduationCap size={16} />, theme: 'bark' },
   ]
 
   return (

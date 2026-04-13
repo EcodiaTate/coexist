@@ -1094,7 +1094,7 @@ export default function LeaderDashboardPage() {
     { value: impactStats.eventsAttended, label: 'Attendances', icon: <Users size={16} />, theme: 'primary' as const },
     { value: impactStats.volunteerHours, label: 'Vol. Hours', unit: 'hrs', icon: <Clock size={16} />, theme: 'moss' as const },
     { value: impactStats.treesPlanted, label: 'Trees Planted', icon: <TreePine size={16} />, theme: 'sprout' as const },
-    { value: impactStats.rubbishKg, label: 'Rubbish', unit: 'kg', icon: <Trash2 size={16} />, theme: 'sky' as const },
+    { value: impactStats.rubbishKg, label: 'Litter Removed', unit: 'kg', icon: <Trash2 size={16} />, theme: 'sky' as const },
     { value: impactStats.leadersEmpowered, label: 'Leaders Empowered', icon: <GraduationCap size={16} />, theme: 'bark' as const },
     { value: impactStats.cleanupSites, label: 'Cleanup Sites', icon: <Trash2 size={16} />, theme: 'coral' as const },
   ].filter((c) => c.value > 0) : []

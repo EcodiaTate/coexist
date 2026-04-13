@@ -1179,7 +1179,7 @@ export default function EventDetailPage() {
               )}
               {(event.impact.rubbish_kg ?? 0) > 0 && (
                 <StatCard
-                  label="Rubbish (kg)"
+                  label="Litter Removed (kg)"
                   value={event.impact.rubbish_kg ?? 0}
                   icon={<Trash2 size={18} />}
                 />
