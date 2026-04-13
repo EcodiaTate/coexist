@@ -6,11 +6,14 @@ import type { Database } from '@/types/database.types'
 type UserRole = Database['public']['Enums']['user_role']
 type CollectiveRole = Database['public']['Enums']['collective_role']
 
-const GLOBAL_RANK: Record<UserRole, number> = {
+const GLOBAL_RANK: Record<string, number> = {
   participant: 0,
-  national_leader: 1,
-  manager: 2,
-  admin: 3,
+  assist_leader: 1,
+  co_leader: 2,
+  leader: 3,
+  national_leader: 3,
+  manager: 4,
+  admin: 5,
 }
 
 interface RoleGateProps {
@@ -25,7 +28,7 @@ interface RoleGateProps {
   children: ReactNode
 }
 
-const COLLECTIVE_ROLES: CollectiveRole[] = ['member', 'assist_leader', 'co_leader', 'leader']
+const COLLECTIVE_ROLES: string[] = ['participant', 'member', 'assist_leader', 'co_leader', 'leader']
 
 function isCollectiveRole(role: string): role is CollectiveRole {
   return COLLECTIVE_ROLES.includes(role as CollectiveRole)
@@ -51,7 +54,7 @@ export function RoleGate({ minRole, collectiveId, capability, fallback = null, c
 
   // Collective-level check  national_leader+ always passes
   if (collectiveId && isCollectiveRole(minRole)) {
-    const isStaffPlus = GLOBAL_RANK[globalRole] >= GLOBAL_RANK.national_leader
+    const isStaffPlus = (GLOBAL_RANK[globalRole] ?? 0) >= GLOBAL_RANK.leader
     return (isStaffPlus || hasMinRole(minRole)) ? <>{children}</> : <>{fallback}</>
   }
 

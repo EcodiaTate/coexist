@@ -337,7 +337,7 @@ export function useJoinCollective() {
           {
             collective_id: collectiveId,
             user_id: user.id,
-            role: 'member',
+            role: 'participant',
             status: 'active',
           },
           { onConflict: 'collective_id,user_id' },
@@ -349,7 +349,7 @@ export function useJoinCollective() {
       const previous = queryClient.getQueryData(['collective-membership', collectiveId, user?.id])
       queryClient.setQueryData(['collective-membership', collectiveId, user?.id], {
         id: `temp-${Date.now()}`,
-        role: 'member',
+        role: 'participant',
         status: 'active',
         joined_at: new Date().toISOString(),
       })

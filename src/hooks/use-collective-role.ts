@@ -6,7 +6,7 @@ import type { Database } from '@/types/database.types'
 
 type CollectiveRole = Database['public']['Enums']['collective_role']
 
-const ROLE_RANK = COLLECTIVE_ROLE_RANK as Record<CollectiveRole, number>
+const ROLE_RANK = COLLECTIVE_ROLE_RANK as Record<string, number>
 
 interface UseCollectiveRoleReturn {
   role: CollectiveRole | null
@@ -43,7 +43,7 @@ export function useCollectiveRole(collectiveId: string | undefined): UseCollecti
   return {
     role,
     isLoading,
-    isMember: rank >= ROLE_RANK.member,
+    isMember: rank >= (ROLE_RANK.participant ?? 0),
     isAssistLeader: rank >= ROLE_RANK.assist_leader,
     isCoLeader: rank >= ROLE_RANK.co_leader,
     isLeader: rank >= ROLE_RANK.leader,
