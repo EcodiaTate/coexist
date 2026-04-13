@@ -299,7 +299,7 @@ async function syncToExcel(
   let existingIds: Set<string> = new Set()
   let existingRowCount = 1 // header row
   try {
-    const usedRange = await graphRequest(graphToken, '/usedRange(select=values)')
+    const usedRange = await graphRequest(graphToken, '/usedRange')
     const rows = usedRange.values ?? []
     existingRowCount = rows.length
     for (let i = 1; i < rows.length; i++) {
@@ -353,7 +353,7 @@ async function syncToExcel(
         // Updates handled per-event via eventId param
         if (eventId) {
           // Find row index
-          const usedRange = await graphRequest(graphToken, '/usedRange(select=values)')
+          const usedRange = await graphRequest(graphToken, '/usedRange')
           const rows = usedRange.values ?? []
           for (let i = 1; i < rows.length; i++) {
             if (String(rows[i][0]) === eid) {
@@ -418,7 +418,7 @@ async function syncFromExcel(
   // Read all Excel data
   let rows: unknown[][]
   try {
-    const usedRange = await graphRequest(graphToken, '/usedRange(select=values)')
+    const usedRange = await graphRequest(graphToken, '/usedRange')
     rows = usedRange.values ?? []
   } catch (err) {
     return { synced, errors: [`Failed to read Excel: ${(err as Error).message}`] }
