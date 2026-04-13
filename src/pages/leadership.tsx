@@ -176,20 +176,24 @@ export default function LeadershipPage() {
                   href={url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-4 rounded-2xl bg-white border border-neutral-150 shadow-sm p-5 hover:shadow-md active:scale-[0.98] transition-all"
+                  className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-bark-50 to-bark-100 border border-bark-200/60 p-5 hover:shadow-lg active:scale-[0.98] transition-all"
                 >
-                  <span className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-moss-500 to-moss-600 shrink-0">
-                    <FileText size={20} className="text-white" />
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <span className="font-heading text-[15px] font-bold text-neutral-900 block">
-                      {title}
+                  <div className="flex items-center gap-4">
+                    <span className="flex items-center justify-center w-11 h-11 rounded-xl bg-bark-700 shadow-sm shrink-0 group-hover:bg-bark-800 transition-colors">
+                      <FileText size={18} className="text-white" />
                     </span>
-                    <p className="text-[13px] text-neutral-500 mt-0.5 leading-snug">
-                      {description}
-                    </p>
+                    <div className="flex-1 min-w-0">
+                      <span className="font-heading text-[15px] font-bold text-bark-900 block">
+                        {title} Position Description
+                      </span>
+                      <p className="text-[12px] text-bark-500 mt-0.5 leading-snug">
+                        View PDF
+                      </p>
+                    </div>
+                    <span className="flex items-center justify-center w-8 h-8 rounded-full bg-bark-200/60 group-hover:bg-bark-300/70 transition-colors shrink-0">
+                      <ArrowRight size={14} className="text-bark-600" />
+                    </span>
                   </div>
-                  <ArrowRight size={18} className="text-neutral-300 shrink-0" />
                 </a>
               ))}
             </div>
