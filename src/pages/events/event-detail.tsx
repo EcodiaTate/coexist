@@ -1082,7 +1082,7 @@ export default function EventDetailPage() {
                 <div className="w-9 h-9 rounded-lg bg-primary-50 flex items-center justify-center group-hover:scale-105 transition-transform">
                   <Hash size={16} className="text-primary-600" />
                 </div>
-                <span className="text-[10px] font-semibold text-neutral-700 leading-tight text-center">QR Code</span>
+                <span className="text-[10px] font-semibold text-neutral-700 leading-tight text-center">Check-in Code</span>
               </button>
               {isLeaderOrAbove && (
                 <button

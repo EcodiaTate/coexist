@@ -1073,7 +1073,7 @@ export default function DevToolsPage() {
             </div>
           </div>
           <p className="text-xs text-neutral-400">
-            Create test events happening right now, then jump into any day-of flow to test check-in, QR codes, impact logging, and surveys.
+            Create test events happening right now, then jump into any day-of flow to test check-in codes, impact logging, and surveys.
           </p>
         </div>
       </motion.div>
@@ -1210,7 +1210,7 @@ export default function DevToolsPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <Button variant="secondary" size="sm" icon={<Hash size={14} />}
               onClick={() => { const first = testEvents?.[0]; if (first) navigate(`/events/${first.id}/check-in`); else alert('Create a test event first') }}>
-              Check-In (QR)
+              Check-In (Code)
             </Button>
             <Button variant="secondary" size="sm" icon={<ClipboardCheck size={14} />}
               onClick={() => { const first = testEvents?.[0]; if (first) navigate(`/events/${first.id}/day`); else alert('Create a test event first') }}>
