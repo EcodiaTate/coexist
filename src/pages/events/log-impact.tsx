@@ -847,17 +847,30 @@ export default function LogImpactPage() {
       }
 
       if (surveyData?.surveyId && surveyQuestions.length > 0) {
-        await supabase
+        // Check for existing response first (unique index uses COALESCE so standard upsert onConflict won't work)
+        const { data: existingResp } = await supabase
           .from('survey_responses')
-          .upsert(
-            {
+          .select('id')
+          .eq('survey_id', surveyData.surveyId)
+          .eq('event_id', eventId)
+          .eq('user_id', user.id)
+          .maybeSingle()
+
+        if (existingResp) {
+          await supabase
+            .from('survey_responses')
+            .update({ answers: surveyAnswers as unknown as Json, updated_at: new Date().toISOString() })
+            .eq('id', existingResp.id)
+        } else {
+          await supabase
+            .from('survey_responses')
+            .insert({
               survey_id: surveyData.surveyId,
               event_id: eventId,
               user_id: user.id,
               answers: surveyAnswers as unknown as Json,
-            },
-            { onConflict: 'survey_responses_unique_response' },
-          )
+            })
+        }
 
         await syncSurveyImpact(eventId, surveyQuestions, surveyAnswers as Record<string, Json>, user.id, metricDefsPlaceholder ? undefined : validKeys)
       }
