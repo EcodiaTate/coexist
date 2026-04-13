@@ -87,7 +87,7 @@ export default function EditEventPage() {
         external_registration_url: event.external_registration_url ?? '',
       })
       setIsTicketed(event.is_ticketed ?? false)
-      setCheckinWindowMinutes((event as Record<string, unknown>).checkin_window_minutes as number ?? 30)
+      setCheckinWindowMinutes((event as unknown as Record<string, unknown>).checkin_window_minutes as number ?? 30)
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [event])
