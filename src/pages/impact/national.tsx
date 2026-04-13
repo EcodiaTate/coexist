@@ -399,40 +399,22 @@ export default function NationalImpactPage() {
             style="events"
             delay={0.05}
           />
-          <NationalStat
-            icon={<Sprout size={20} strokeWidth={2.5} />}
-            value={data?.invasiveWeedsPulled ?? 0}
-            label="Weeds Pulled"
-            style="weeds"
-            delay={0.1}
-          />
-
-          {/* Cleanup Sites */}
+          {/* Cleanup Stats */}
           <NationalStat
             icon={<Trash2 size={20} strokeWidth={2.5} />}
             value={data?.rubbishCollectedKg ?? 0}
             suffix="kg"
             label="Rubbish (kg)"
             style="rubbish"
-            delay={0.15}
+            delay={0.1}
           />
           <NationalStat
             icon={<CalendarDays size={20} strokeWidth={2.5} />}
             value={data?.cleanupSites ?? 0}
             label="Cleanup Sites"
             style="cleanups"
-            delay={0.2}
+            delay={0.15}
           />
-          {(data?.coastlineCleanedM ?? 0) > 0 && (
-            <NationalStat
-              icon={<Waves size={20} strokeWidth={2.5} />}
-              value={data?.coastlineCleanedM ?? 0}
-              suffix="m"
-              label="Coastline Cleaned"
-              style="coastline"
-              delay={0.22}
-            />
-          )}
 
           {/* Organisational */}
           <NationalStat

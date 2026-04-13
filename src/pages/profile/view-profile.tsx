@@ -190,18 +190,6 @@ export default function ViewProfilePage() {
             {(stats?.rubbishCollectedKg ?? 0) > 0 && (
               <BentoStatCard value={stats?.rubbishCollectedKg ?? 0} label="Rubbish" icon={<Trash2 size={16} />} unit="kg" theme="sky" />
             )}
-            {(stats?.areaRestoredSqm ?? 0) > 0 && (
-              <BentoStatCard value={stats?.areaRestoredSqm ?? 0} label="Area" icon={<Ruler size={16} />} unit="sqm" theme="bark" />
-            )}
-            {(stats?.nativePlants ?? 0) > 0 && (
-              <BentoStatCard value={stats?.nativePlants ?? 0} label="Native Plants" icon={<Sprout size={16} />} theme="moss" />
-            )}
-            {(stats?.wildlifeSightings ?? 0) > 0 && (
-              <BentoStatCard value={stats?.wildlifeSightings ?? 0} label="Wildlife" icon={<Bird size={16} />} theme="plum" />
-            )}
-            {(stats?.coastlineCleanedM ?? 0) > 0 && (
-              <BentoStatCard value={stats?.coastlineCleanedM ?? 0} label="Coastline" icon={<Waves size={16} />} unit="m" theme="info" />
-            )}
           </BentoStatGrid>
         </motion.div>
 

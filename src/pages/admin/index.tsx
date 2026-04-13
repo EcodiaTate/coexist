@@ -364,15 +364,6 @@ export default function AdminDashboardPage() {
   }[] = [
     { value: data?.totalTrees ?? 0,         label: 'Trees Planted',     icon: <TreePine size={16} />, theme: 'sprout' },
     { value: data?.totalRubbish ?? 0,       label: 'Rubbish',           icon: <Trash2 size={16} />,   theme: 'sky',     unit: 'kg' },
-    ...(data?.totalArea ?? 0) > 0
-      ? [{ value: data?.totalArea ?? 0,     label: 'Area',              icon: <Globe size={16} />,    theme: 'primary' as BentoTheme, unit: 'sqm' }]
-      : [],
-    ...(data?.totalNativePlants ?? 0) > 0
-      ? [{ value: data?.totalNativePlants ?? 0, label: 'Native Plants', icon: <Leaf size={16} />,     theme: 'moss' as BentoTheme }]
-      : [],
-    ...(data?.totalWildlife ?? 0) > 0
-      ? [{ value: data?.totalWildlife ?? 0, label: 'Wildlife',          icon: <Eye size={16} />,      theme: 'warning' as BentoTheme }]
-      : [],
   ]
 
   return (

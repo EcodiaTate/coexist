@@ -377,15 +377,6 @@ export default function CollectiveDetailPage() {
               {stats.totalRubbishKg > 0 && (
                 <BentoStatCard label="Rubbish" value={stats.totalRubbishKg} icon={<Trash2 size={16} />} unit="kg" theme="sky" />
               )}
-              {stats.totalAreaRestored > 0 && (
-                <BentoStatCard label="Area" value={stats.totalAreaRestored} icon={<Ruler size={16} />} unit="sqm" theme="bark" />
-              )}
-              {stats.totalNativePlants > 0 && (
-                <BentoStatCard label="Native Plants" value={stats.totalNativePlants} icon={<Leaf size={16} />} theme="moss" />
-              )}
-              {stats.totalWildlifeSightings > 0 && (
-                <BentoStatCard label="Wildlife" value={stats.totalWildlifeSightings} icon={<Eye size={16} />} theme="plum" />
-              )}
               {stats.attendanceRate > 0 && (
                 <BentoStatCard label="Attendance" value={`${Math.round(stats.attendanceRate * 100)}%`} icon={<UserCheck size={16} />} theme="coral" />
               )}

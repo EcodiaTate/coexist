@@ -350,10 +350,8 @@ export default function ImpactDashboardPage() {
     if (stats.eventsAttended > 0) parts.push(`${stats.eventsAttended} events attended`)
     if (stats.volunteerHours > 0) parts.push(`${stats.volunteerHours} est. volunteer hours`)
     if (stats.treesPlanted > 0) parts.push(`${stats.treesPlanted} trees planted`)
-    if (stats.invasiveWeedsPulled > 0) parts.push(`${stats.invasiveWeedsPulled} invasive weeds pulled`)
     if (stats.rubbishCollectedKg > 0) parts.push(`${stats.rubbishCollectedKg}kg rubbish collected`)
     if (stats.cleanupSites > 0) parts.push(`${stats.cleanupSites} cleanup sites`)
-    if (stats.coastlineCleanedM > 0) parts.push(`${stats.coastlineCleanedM}m coastline cleaned`)
     if (stats.leadersEmpowered > 0) parts.push(`${stats.leadersEmpowered} leaders empowered`)
     const text = `My Co-Exist Impact: ${parts.join(', ')}! Join at coexistaus.org`
     if (navigator.share) {
@@ -423,14 +421,6 @@ export default function ImpactDashboardPage() {
                 hero
               />
               <BigStat
-                value={stats.invasiveWeedsPulled}
-                label="Weeds Pulled"
-                icon={<Sprout size={20} strokeWidth={2.5} />}
-                config="weeds"
-              />
-
-              {/* Cleanup Sites */}
-              <BigStat
                 value={stats.rubbishCollectedKg}
                 label="Rubbish (kg)"
                 icon={<Trash2 size={20} strokeWidth={2.5} />}
@@ -443,20 +433,6 @@ export default function ImpactDashboardPage() {
                 icon={<Trash2 size={20} strokeWidth={2.5} />}
                 config="cleanups"
               />
-
-              {/* Coastline - always render to prevent grid reflow; hidden when zero */}
-              <div
-                className={cn(stats.coastlineCleanedM === 0 && 'invisible pointer-events-none')}
-                aria-hidden={stats.coastlineCleanedM === 0}
-              >
-                <BigStat
-                  value={stats.coastlineCleanedM}
-                  label="Coastline (m)"
-                  icon={<Waves size={20} strokeWidth={2.5} />}
-                  config="coastline"
-                  suffix="m"
-                />
-              </div>
 
               {/* Organisational */}
               <BigStat

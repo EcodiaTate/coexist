@@ -184,12 +184,6 @@ export default function ProfilePage() {
     { value: stats?.hoursVolunteered ?? 0, label: 'Hours', icon: <Clock size={18} />, show: true },
     { value: stats?.treesPlanted ?? 0, label: 'Trees', icon: <TreePine size={18} />, show: true },
     { value: stats?.rubbishCollectedKg ?? 0, label: 'kg Rubbish', icon: <Trash2 size={18} />, show: true },
-    { value: stats?.invasiveWeedsPulled ?? 0, label: 'Weeds Pulled', icon: <Leaf size={18} />, show: true },
-    { value: stats?.coastlineCleanedM ?? 0, label: 'Coastline (m)', icon: <Waves size={18} />, show: true },
-    // Secondary metrics - show if non-zero or attended relevant activity type
-    { value: stats?.areaRestoredSqm ?? 0, label: 'Area (sqm)', icon: <Ruler size={18} />, show: (stats?.areaRestoredSqm ?? 0) > 0 || didLand },
-    { value: stats?.nativePlants ?? 0, label: 'Native Plants', icon: <Sprout size={18} />, show: (stats?.nativePlants ?? 0) > 0 || didLand },
-    { value: stats?.wildlifeSightings ?? 0, label: 'Wildlife', icon: <Bird size={18} />, show: (stats?.wildlifeSightings ?? 0) > 0 || didWild },
   ].filter(s => s.show)
 
   return (

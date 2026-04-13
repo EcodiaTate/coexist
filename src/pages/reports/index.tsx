@@ -51,7 +51,6 @@ const METRIC_MAP: Record<string, { key: string; label: string; transform?: (v: n
   'Event attendances':        { key: '__attendance', label: 'Event Attendances' },
   'Est. volunteer hours':     { key: 'hours_total', label: 'Est. Volunteer Hours' },
   'Trees planted':            { key: 'trees_planted', label: 'Trees Planted' },
-  'Invasive weeds pulled':    { key: 'invasive_weeds_pulled', label: 'Invasive Weeds Pulled' },
   'Rubbish collected (tonnes)': { key: 'rubbish_kg', label: 'Rubbish Collected (tonnes)', transform: (v) => String(Math.round((v / 1000) * 100) / 100) },
   'Cleanup events held':      { key: '__cleanup_events', label: 'Cleanup Events Held' },
   'Number of collectives':    { key: '__collectives', label: 'Number of Collectives' },
