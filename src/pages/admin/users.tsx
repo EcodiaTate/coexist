@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo, useEffect } from 'react'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
+import { formatRole } from '@/lib/labels-and-enums'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { adminVariants, expandCollapse as expandCollapseVariants } from '@/lib/admin-motion'
 import {
@@ -430,7 +431,7 @@ function UserSettingsSheet({
               <p className="text-sm text-neutral-500 truncate">{user.email}</p>
               <div className="flex items-center gap-2 mt-1.5">
                 <span className={cn('text-[11px] font-semibold px-2 py-0.5 rounded-full', roleBadgeColors[user.role])}>
-                  {user.role?.replace(/_/g, ' ')}
+                  {formatRole(user.role ?? 'participant')}
                 </span>
                 {user.is_suspended && (
                   <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-error-200 text-error-800">
@@ -1049,7 +1050,7 @@ export default function AdminUsersPage() {
                       {user.display_name ?? 'Unknown'}
                     </p>
                     <span className={cn('text-[11px] font-semibold px-1.5 py-0.5 rounded-full shrink-0', roleBadgeColors[user.role] ?? roleBadgeColors.participant)}>
-                      {user.role?.replace(/_/g, ' ')}
+                      {formatRole(user.role ?? 'participant')}
                     </span>
                     {user.is_suspended && (
                       <span className="text-[11px] font-semibold px-1.5 py-0.5 rounded-full bg-error-200 text-error-800 shrink-0">
