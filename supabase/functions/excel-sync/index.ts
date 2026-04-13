@@ -1,14 +1,17 @@
 /**
  * excel-sync - Supabase Edge Function
  *
- * Bidirectional sync between Co-Exist Supabase database and the
+ * Sync between Co-Exist Supabase database and the
  * "Master Impact Data Sheet.xlsx" on SharePoint (OneDrive for Business).
  *
+ * CRITICAL RULE: Excel is the source of truth. Never overwrite existing
+ * Excel data with DB values. Only APPEND new 2026+ events to Excel.
+ *
  * Directions:
- *   POST /excel-sync?direction=to-excel    -> push survey responses to Excel
- *   POST /excel-sync?direction=from-excel  -> pull Excel changes into Supabase
- *   POST /excel-sync?direction=full        -> both directions
- *   POST /excel-sync?event_id=xxx          -> sync a single event to Excel
+ *   POST /excel-sync?direction=to-excel      -> append NEW 2026+ events only
+ *   POST /excel-sync?direction=from-excel    -> pull Excel data into Supabase (Excel wins)
+ *   POST /excel-sync?direction=full          -> from-excel first, then to-excel append
+ *   POST /excel-sync?event_id=xxx            -> append single event IF not already in sheet
  *
  * Column mapping (28 columns, A-AB on "Post Event Review" sheet):
  *   0:  ID                    <- event.id (or legacy ID from sheet)
@@ -50,6 +53,9 @@ const GRAPH_CLIENT_SECRET = Deno.env.get('GRAPH_CLIENT_SECRET') ?? ''
 const DRIVE_ID = 'b!jB_eUPJMbUWf3eip_Me-34G0StMYwYdHtdf4sTNow-uVV9nof_IvQprzswNpaD8y'
 const ITEM_ID = '01RJHFBL37QUUGOQUVL5DJ67A53VKNDAGE'
 const SHEET_NAME = 'Post Event Review'
+
+// Only sync events from 2026 onwards - historical data is Excel-only
+const SYNC_CUTOFF_DATE = '2026-01-01'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -112,8 +118,7 @@ async function graphRequest(token: string, path: string, method = 'GET', body?: 
 /** Convert ISO date to Excel serial number */
 function dateToExcelSerial(isoDate: string): number {
   const date = new Date(isoDate)
-  // Excel epoch is 1900-01-01, but has a leap year bug (day 60 = Feb 29 1900 which doesn't exist)
-  const excelEpoch = new Date(1899, 11, 30) // Dec 30, 1899
+  const excelEpoch = new Date(1899, 11, 30)
   const diffMs = date.getTime() - excelEpoch.getTime()
   return Math.floor(diffMs / (24 * 60 * 60 * 1000))
 }
@@ -142,6 +147,24 @@ function yesNo(val: unknown): string {
   if (val === true || val === 'yes' || val === 'Yes') return 'Yes'
   if (val === false || val === 'no' || val === 'No') return 'No'
   return ''
+}
+
+// ---- Read existing Excel data ----
+
+interface ExcelState {
+  rows: unknown[][]
+  existingIds: Set<string>
+  rowCount: number
+}
+
+async function readExcelState(graphToken: string): Promise<ExcelState> {
+  const usedRange = await graphRequest(graphToken, '/usedRange')
+  const rows = usedRange.values ?? []
+  const existingIds = new Set<string>()
+  for (let i = 1; i < rows.length; i++) {
+    if (rows[i][0]) existingIds.add(String(rows[i][0]))
+  }
+  return { rows, existingIds, rowCount: rows.length }
 }
 
 // ---- Build Excel row from Supabase data ----
@@ -204,7 +227,6 @@ async function fetchEventData(
   supabase: ReturnType<typeof createClient>,
   eventId: string,
 ): Promise<EventData | null> {
-  // Get event
   const { data: event } = await supabase
     .from('events')
     .select('id, title, date_start, activity_type, address, collective_id, created_by')
@@ -213,28 +235,27 @@ async function fetchEventData(
 
   if (!event) return null
 
-  // Get collective name
+  // Enforce 2026+ cutoff
+  if (event.date_start < SYNC_CUTOFF_DATE) return null
+
   const { data: collective } = await supabase
     .from('collectives')
     .select('name')
     .eq('id', event.collective_id)
     .single()
 
-  // Get creator profile
   const { data: creator } = await supabase
     .from('profiles')
     .select('display_name')
     .eq('id', event.created_by)
     .single()
 
-  // Get event impact
   const { data: impact } = await supabase
     .from('event_impact')
     .select('attendees, rubbish_kg, trees_planted, logged_by')
     .eq('event_id', eventId)
     .single()
 
-  // Get leader name if different from creator
   let leaderName = creator?.display_name ?? ''
   if (impact?.logged_by && impact.logged_by !== event.created_by) {
     const { data: leader } = await supabase
@@ -245,7 +266,6 @@ async function fetchEventData(
     if (leader) leaderName = leader.display_name
   }
 
-  // Get survey response (latest for this event from any impact survey)
   const { data: surveys } = await supabase
     .from('surveys')
     .select('id')
@@ -285,96 +305,72 @@ async function fetchEventData(
   }
 }
 
-// ---- Sync: Supabase -> Excel ----
+// ---- Sync: Supabase -> Excel (APPEND ONLY, 2026+ only) ----
 
 async function syncToExcel(
   supabase: ReturnType<typeof createClient>,
   graphToken: string,
   eventId?: string,
-): Promise<{ synced: number; errors: string[] }> {
+): Promise<{ appended: number; skipped: number; errors: string[] }> {
   const errors: string[] = []
-  let synced = 0
+  let appended = 0
+  let skipped = 0
 
-  // Read existing Excel data to find which events are already there
-  let existingIds: Set<string> = new Set()
-  let existingRowCount = 1 // header row
+  // Read existing Excel data
+  let excelState: ExcelState
   try {
-    const usedRange = await graphRequest(graphToken, '/usedRange')
-    const rows = usedRange.values ?? []
-    existingRowCount = rows.length
-    for (let i = 1; i < rows.length; i++) {
-      if (rows[i][0]) existingIds.add(String(rows[i][0]))
-    }
+    excelState = await readExcelState(graphToken)
   } catch (err) {
-    errors.push(`Failed to read existing Excel data: ${(err as Error).message}`)
-    return { synced, errors }
+    errors.push(`Failed to read Excel: ${(err as Error).message}`)
+    return { appended, skipped, errors }
   }
 
-  // Determine which events to sync
+  // Determine which events to check
   let eventIds: string[] = []
   if (eventId) {
+    // Single event mode (from trigger)
+    if (excelState.existingIds.has(eventId)) {
+      // Already in sheet - do NOT overwrite
+      return { appended: 0, skipped: 1, errors: [] }
+    }
     eventIds = [eventId]
   } else {
-    // Get all events with impact data that aren't in the sheet yet
+    // Batch mode: only 2026+ completed events NOT already in the sheet
     const { data: events } = await supabase
       .from('events')
       .select('id')
       .eq('status', 'completed')
-      .not('id', 'in', `(${Array.from(existingIds).join(',')})`)
+      .gte('date_start', SYNC_CUTOFF_DATE)
       .order('date_start', { ascending: true })
 
-    // Also re-sync events that DO exist (for updates)
-    const { data: impactEvents } = await supabase
-      .from('event_impact')
-      .select('event_id')
-      .order('logged_at', { ascending: false })
-
-    const allIds = new Set<string>()
-    events?.forEach((e: { id: string }) => allIds.add(e.id))
-    impactEvents?.forEach((e: { event_id: string }) => allIds.add(e.event_id))
-    eventIds = Array.from(allIds)
+    if (events) {
+      eventIds = events
+        .map((e: { id: string }) => e.id)
+        .filter((id: string) => !excelState.existingIds.has(id))
+    }
   }
 
-  // Build rows for new events (append) and updated rows (patch)
+  // Build rows for new events (append only)
   const newRows: (string | number | null)[][] = []
-  const updateRows: { rowIndex: number; row: (string | number | null)[] }[] = []
 
   for (const eid of eventIds) {
     try {
       const data = await fetchEventData(supabase, eid)
-      if (!data) continue
-
-      const row = buildExcelRow(data)
-
-      if (existingIds.has(eid)) {
-        // Find the row index in Excel (1-based, +1 for header)
-        // We need to find it from the existing data
-        // For now, skip updates in batch mode - only append new
-        // Updates handled per-event via eventId param
-        if (eventId) {
-          // Find row index
-          const usedRange = await graphRequest(graphToken, '/usedRange')
-          const rows = usedRange.values ?? []
-          for (let i = 1; i < rows.length; i++) {
-            if (String(rows[i][0]) === eid) {
-              updateRows.push({ rowIndex: i + 1, row }) // 1-based
-              break
-            }
-          }
-        }
-      } else {
-        newRows.push(row)
+      if (!data) {
+        skipped++
+        continue
       }
-      synced++
+      newRows.push(buildExcelRow(data))
+      appended++
     } catch (err) {
       errors.push(`Event ${eid}: ${(err as Error).message}`)
     }
   }
 
-  // Append new rows
+  // Append new rows to the end of the sheet
   if (newRows.length > 0) {
     try {
-      const startRow = existingRowCount + 1
+      const startRow = excelState.rowCount + 1
       const endRow = startRow + newRows.length - 1
       const range = `A${startRow}:AB${endRow}`
 
@@ -386,34 +382,22 @@ async function syncToExcel(
       )
     } catch (err) {
       errors.push(`Failed to append rows: ${(err as Error).message}`)
+      appended = 0
     }
   }
 
-  // Update existing rows
-  for (const { rowIndex, row } of updateRows) {
-    try {
-      await graphRequest(
-        graphToken,
-        `/range(address='A${rowIndex}:AB${rowIndex}')`,
-        'PATCH',
-        { values: [row] },
-      )
-    } catch (err) {
-      errors.push(`Failed to update row ${rowIndex}: ${(err as Error).message}`)
-    }
-  }
-
-  return { synced, errors }
+  return { appended, skipped, errors }
 }
 
-// ---- Sync: Excel -> Supabase ----
+// ---- Sync: Excel -> Supabase (Excel is source of truth) ----
 
 async function syncFromExcel(
   supabase: ReturnType<typeof createClient>,
   graphToken: string,
-): Promise<{ synced: number; errors: string[] }> {
+): Promise<{ synced: number; skippedLegacy: number; errors: string[] }> {
   const errors: string[] = []
   let synced = 0
+  let skippedLegacy = 0
 
   // Read all Excel data
   let rows: unknown[][]
@@ -421,10 +405,10 @@ async function syncFromExcel(
     const usedRange = await graphRequest(graphToken, '/usedRange')
     rows = usedRange.values ?? []
   } catch (err) {
-    return { synced, errors: [`Failed to read Excel: ${(err as Error).message}`] }
+    return { synced, skippedLegacy, errors: [`Failed to read Excel: ${(err as Error).message}`] }
   }
 
-  if (rows.length < 2) return { synced, errors: ['No data rows in Excel'] }
+  if (rows.length < 2) return { synced, skippedLegacy, errors: ['No data rows in Excel'] }
 
   // Process each data row (skip header)
   for (let i = 1; i < rows.length; i++) {
@@ -433,15 +417,15 @@ async function syncFromExcel(
     if (!excelId) continue
 
     try {
-      // Check if this ID is a Supabase UUID (new app events) or legacy ID
+      // Check if this ID is a Supabase UUID (app events) or legacy ID
       const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-/.test(excelId)
 
       if (!isUuid) {
-        // Legacy row - skip, we don't write these back to Supabase
+        skippedLegacy++
         continue
       }
 
-      // Update event_impact with Excel values
+      // Excel values take priority - update Supabase with what Excel says
       const attendees = row[11] ? Number(row[11]) : null
       const rubbishKg = row[15] ? Number(row[15]) : null
       const treesPlanted = row[16] ? Number(row[16]) : null
@@ -471,7 +455,7 @@ async function syncFromExcel(
     }
   }
 
-  return { synced, errors }
+  return { synced, skippedLegacy, errors }
 }
 
 // ---- Main handler ----
@@ -500,17 +484,16 @@ Deno.serve(async (req: Request) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     )
 
-    // Get Graph API token
     const graphToken = await getGraphToken()
-
     const results: Record<string, unknown> = {}
+
+    // For 'full' sync: from-excel FIRST (Excel is truth), then append new
+    if (direction === 'from-excel' || direction === 'full') {
+      results.fromExcel = await syncFromExcel(supabase, graphToken)
+    }
 
     if (direction === 'to-excel' || direction === 'full') {
       results.toExcel = await syncToExcel(supabase, graphToken, eventId)
-    }
-
-    if (direction === 'from-excel' || direction === 'full') {
-      results.fromExcel = await syncFromExcel(supabase, graphToken)
     }
 
     return new Response(JSON.stringify({ ok: true, direction, ...results }), {
