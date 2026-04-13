@@ -23,6 +23,7 @@ FUNCTIONS=(
   event-reminders
   notify-application
   notify-report
+  excel-sync
 )
 
 echo "Deploying ${#FUNCTIONS[@]} functions to $PROJECT_REF..."
