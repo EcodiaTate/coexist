@@ -35,7 +35,7 @@ function filterByAudience(
   const isLeaderRole = ['leader', 'co_leader', 'assist_leader'].includes(
     userRole ?? '',
   )
-  const isStaffOrAdmin = ['national_leader', 'manager', 'admin'].includes(
+  const isStaffOrAdmin = ['leader', 'national_leader', 'manager', 'admin'].includes(
     userRole ?? '',
   )
 
@@ -175,7 +175,7 @@ export function useUnreadUpdateCount() {
       // Apply audience filtering
       const effectiveRole = profile?.role ?? highestCollectiveRole
       const isLeaderRole = ['leader', 'co_leader', 'assist_leader'].includes(effectiveRole ?? '')
-      const isStaffOrAdmin = ['national_leader', 'manager', 'admin'].includes(effectiveRole ?? '')
+      const isStaffOrAdmin = ['leader', 'national_leader', 'manager', 'admin'].includes(effectiveRole ?? '')
 
       const visibleIds = new Set(
         announcements

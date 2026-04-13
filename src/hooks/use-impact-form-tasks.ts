@@ -72,7 +72,7 @@ export function usePendingImpactFormTasks() {
   const { user, profile } = useAuth()
   const { data: surveyMap } = useImpactFormSurveys()
   const isAdmin = profile?.role === 'admin'
-  const isNationalLeader = profile?.role === 'national_leader'
+  const isNationalLeader = profile?.role === 'leader' || profile?.role === 'national_leader'
   const isManager = profile?.role === 'manager'
   const isGlobalStaff = isAdmin || isNationalLeader
 

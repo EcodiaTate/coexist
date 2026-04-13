@@ -80,13 +80,15 @@ const ROLE_LABELS: Record<CollectiveRole, string> = {
   leader: 'Leader',
   co_leader: 'Co-Leader',
   assist_leader: 'Assistant Leader',
-  member: 'Member',
+  participant: 'Participant',
+  member: 'Participant',
 }
 
 const ROLE_ICONS: Record<CollectiveRole, typeof Crown> = {
   leader: Crown,
   co_leader: ShieldCheck,
   assist_leader: ShieldAlert,
+  participant: Users,
   member: Users,
 }
 
@@ -94,6 +96,7 @@ const ROLE_COLORS: Record<CollectiveRole, string> = {
   leader: 'bg-warning-100 text-warning-700',
   co_leader: 'bg-primary-100 text-primary-700',
   assist_leader: 'bg-info-100 text-info-700',
+  participant: 'bg-neutral-100 text-neutral-600',
   member: 'bg-neutral-100 text-neutral-600',
 }
 
@@ -101,10 +104,11 @@ const ROLE_CARD_ACCENTS: Record<CollectiveRole, { bg: string; border: string; ic
   leader: { bg: 'bg-gradient-to-br from-warning-50 to-warning-100/60', border: 'border-warning-200/60', icon: 'bg-warning-100 text-warning-600' },
   co_leader: { bg: 'bg-gradient-to-br from-primary-50 to-primary-100/60', border: 'border-primary-200/60', icon: 'bg-primary-100 text-primary-600' },
   assist_leader: { bg: 'bg-gradient-to-br from-info-50 to-info-100/60', border: 'border-info-200/60', icon: 'bg-info-100 text-info-600' },
+  participant: { bg: 'bg-gradient-to-br from-neutral-50 to-neutral-100/60', border: 'border-neutral-200/60', icon: 'bg-neutral-100 text-neutral-500' },
   member: { bg: 'bg-gradient-to-br from-neutral-50 to-neutral-100/60', border: 'border-neutral-200/60', icon: 'bg-neutral-100 text-neutral-500' },
 }
 
-const ALL_ROLES: CollectiveRole[] = ['leader', 'co_leader', 'assist_leader', 'member']
+const ALL_ROLES: CollectiveRole[] = ['leader', 'co_leader', 'assist_leader', 'participant']
 
 const AUSTRALIAN_STATES = ['NSW', 'VIC', 'QLD', 'WA', 'SA', 'TAS', 'ACT', 'NT'] as const
 

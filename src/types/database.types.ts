@@ -6456,7 +6456,7 @@ export type Database = {
         | "camp_out"
         | "spotlighting"
         | "other"
-      collective_role: "member" | "assist_leader" | "co_leader" | "leader"
+      collective_role: "participant" | "assist_leader" | "co_leader" | "leader" | "manager" | "admin"
       dev_assignment_scope: "collective" | "individual"
       dev_category: "learning" | "leadership_development" | "onboarding"
       dev_content_type: "text" | "video" | "file" | "slideshow" | "quiz"
@@ -6486,7 +6486,7 @@ export type Database = {
       timeline_anchor: "next_event" | "next_event_of_type" | "event_series"
       update_priority: "normal" | "urgent"
       update_target: "all" | "leaders" | "collective_specific"
-      user_role: "participant" | "national_leader" | "manager" | "admin"
+      user_role: "participant" | "assist_leader" | "co_leader" | "leader" | "manager" | "admin"
     }
     CompositeTypes: {
       geometry_dump: {
@@ -6634,7 +6634,7 @@ export const Constants = {
         "spotlighting",
         "other",
       ],
-      collective_role: ["member", "assist_leader", "co_leader", "leader"],
+      collective_role: ["participant", "assist_leader", "co_leader", "leader", "manager", "admin"],
       dev_assignment_scope: ["collective", "individual"],
       dev_category: ["learning", "leadership_development", "onboarding"],
       dev_content_type: ["text", "video", "file", "slideshow", "quiz"],
@@ -6667,7 +6667,7 @@ export const Constants = {
       timeline_anchor: ["next_event", "next_event_of_type", "event_series"],
       update_priority: ["normal", "urgent"],
       update_target: ["all", "leaders", "collective_specific"],
-      user_role: ["participant", "national_leader", "manager", "admin"],
+      user_role: ["participant", "assist_leader", "co_leader", "leader", "manager", "admin"],
     },
   },
 } as const

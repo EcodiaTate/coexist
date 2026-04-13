@@ -126,14 +126,18 @@ function useAllCollectives() {
 const roleOptions = [
   { value: 'all', label: 'All Roles' },
   { value: 'participant', label: 'Participant' },
-  { value: 'national_leader', label: 'National Leader' },
+  { value: 'assist_leader', label: 'Assistant Leader' },
+  { value: 'co_leader', label: 'Co-Leader' },
+  { value: 'leader', label: 'Leader' },
   { value: 'manager', label: 'Manager' },
   { value: 'admin', label: 'Admin' },
 ]
 
 const roleBadgeColors: Record<string, string> = {
   participant: 'bg-primary-100 text-primary-500',
-  national_leader: 'bg-info-200 text-info-800',
+  assist_leader: 'bg-moss-100 text-moss-700',
+  co_leader: 'bg-sprout-200 text-sprout-800',
+  leader: 'bg-info-200 text-info-800',
   manager: 'bg-plum-200 text-plum-800',
   admin: 'bg-error-200 text-error-800',
 }
@@ -208,7 +212,7 @@ function UserSettingsSheet({
     return allCollectives.filter((c) => !existing.has(c.id))
   }, [allCollectives, collectiveRoles])
 
-  const isStaffRole = user?.role === 'national_leader' || user?.role === 'manager' || user?.role === 'admin'
+  const isStaffRole = user?.role === 'leader' || user?.role === 'national_leader' || user?.role === 'manager' || user?.role === 'admin'
   const userRole = (user?.role ?? 'participant') as UserRole
 
   const capsByCategory = useMemo(() => {

@@ -260,7 +260,7 @@ function RoleAssignSheet({
   if (!member) return null
   const myRank = myRole ? ROLE_RANK[myRole] : -1
   // Leaders can assign up to co_leader; co-leaders can assign up to assist_leader
-  const assignableRoles = (['member', 'assist_leader', 'co_leader'] as CollectiveRole[]).filter(
+  const assignableRoles = (['participant', 'assist_leader', 'co_leader'] as CollectiveRole[]).filter(
     (r) => myRole === 'leader' ? ROLE_RANK[r] <= ROLE_RANK.co_leader : ROLE_RANK[r] < myRank,
   )
 
@@ -514,7 +514,7 @@ export default function CollectiveManagePage() {
 
           {/* Role filter pills */}
           <div className="flex gap-1.5 mb-3 overflow-x-auto scrollbar-none">
-            {(['all', 'leader', 'co_leader', 'assist_leader', 'member'] as const).map((r) => (
+            {(['all', 'leader', 'co_leader', 'assist_leader', 'participant'] as const).map((r) => (
               <button
                 key={r}
                 type="button"

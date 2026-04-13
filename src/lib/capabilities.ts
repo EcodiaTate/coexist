@@ -1,6 +1,5 @@
-import type { Database } from '@/types/database.types'
-
-type UserRole = Database['public']['Enums']['user_role']
+/** Unified role type - same values for profiles.role and collective_members.role */
+type UnifiedRole = 'participant' | 'assist_leader' | 'co_leader' | 'leader' | 'manager' | 'admin'
 
 /* ------------------------------------------------------------------ */
 /*  Capability definitions                                             */
@@ -58,10 +57,12 @@ export const CATEGORY_LABELS: Record<CapabilityDef['category'], string> = {
 /*  Role → default capabilities mapping                                */
 /* ------------------------------------------------------------------ */
 
-/** Which capabilities each global role gets by default */
-export const ROLE_DEFAULT_CAPS: Record<UserRole, readonly string[]> = {
+/** Which capabilities each role gets by default */
+export const ROLE_DEFAULT_CAPS: Record<UnifiedRole, readonly string[]> = {
   participant: [],
-  national_leader: [
+  assist_leader: [],
+  co_leader: [],
+  leader: [
     'manage_content',
     'manage_events',
     'view_reports',
@@ -100,10 +101,15 @@ export const ROLE_DEFAULT_CAPS: Record<UserRole, readonly string[]> = {
  *   absent → use role default
  */
 export function resolveCapabilities(
-  role: UserRole,
+  role: string,
   overrides?: Record<string, boolean> | null,
 ): Set<string> {
-  const defaults = new Set(ROLE_DEFAULT_CAPS[role])
+  const normalizedRole = (role === 'national_leader' || role === 'national_staff') ? 'leader'
+    : (role === 'national_admin') ? 'manager'
+    : (role === 'super_admin') ? 'admin'
+    : (role === 'member') ? 'participant'
+    : role
+  const defaults = new Set(ROLE_DEFAULT_CAPS[normalizedRole as UnifiedRole] ?? [])
 
   if (!overrides) return defaults
 

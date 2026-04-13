@@ -144,7 +144,7 @@ export const promoCodeSchema = z.object({
 /*  Admin: Roles                                                       */
 /* ------------------------------------------------------------------ */
 
-export const VALID_ROLES = ['participant', 'national_leader', 'manager', 'admin'] as const
+export const VALID_ROLES = ['participant', 'assist_leader', 'co_leader', 'leader', 'manager', 'admin'] as const
 export const roleChangeSchema = z.object({
   role: z.enum(VALID_ROLES),
 })

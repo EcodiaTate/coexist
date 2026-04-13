@@ -33,24 +33,28 @@ export type Tier = (typeof TIERS)[number]
 /*  Role hierarchy ranks                                               */
 /* ------------------------------------------------------------------ */
 
-/** Collective-scoped role hierarchy (collective_members.role). */
-export const COLLECTIVE_ROLE_RANK: Record<string, number> = {
-  member: 0,
+/**
+ * Unified role hierarchy - used by BOTH profiles.role and collective_members.role.
+ * participant < assist_leader < co_leader < leader < manager < admin
+ */
+export const ROLE_RANK: Record<string, number> = {
+  participant: 0,
+  member: 0,           // legacy alias for participant
   assist_leader: 1,
   co_leader: 2,
   leader: 3,
+  national_leader: 3,  // legacy alias for leader
+  national_staff: 3,   // legacy alias for leader
+  manager: 4,
+  national_admin: 4,   // legacy alias for manager
+  admin: 5,
+  super_admin: 5,      // legacy alias for admin
 } as const
 
-/** Global role hierarchy (profiles.role). */
-export const GLOBAL_ROLE_RANK: Record<string, number> = {
-  participant: 0,
-  national_leader: 1,
-  national_staff: 1,   // legacy alias
-  manager: 2,
-  national_admin: 2,   // legacy alias
-  admin: 3,
-  super_admin: 3,      // legacy alias
-} as const
+/** @deprecated Use ROLE_RANK instead */
+export const COLLECTIVE_ROLE_RANK = ROLE_RANK
+/** @deprecated Use ROLE_RANK instead */
+export const GLOBAL_ROLE_RANK = ROLE_RANK
 
 /* ------------------------------------------------------------------ */
 /*  Chat role badge styling                                            */
