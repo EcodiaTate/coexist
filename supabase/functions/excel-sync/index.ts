@@ -199,7 +199,7 @@ function buildExcelRow(e: EventData): (string | number | null)[] {
     dateToExcelSerial(e.date_start),                         // 2: Date of Event
     e.collective_name,                                       // 3: Collective
     e.address ?? '',                                         // 4: Location
-    extractPostcode(e.address ?? ''),                        // 5: Postcode
+    (e.answers?.postcode as string) ?? extractPostcode(e.address ?? ''), // 5: Postcode (survey answer, fallback to address extraction)
     e.collective_name ?? '',                                 // 6: Primary Organiser (collective name, not person)
     (e.answers?.q1 as string) ?? '',                         // 7: Other Group Attended
     (e.answers?.q2 as string) ?? '',                         // 8: Which Landcare Group

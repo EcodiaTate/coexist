@@ -641,7 +641,13 @@ export default function LogImpactPage() {
           options: collectiveLeaders,
         }]
       : []
-    return [...leaderQ, ...(surveyData?.questions ?? [])]
+    const postcodeQ = [{
+      id: 'postcode',
+      text: 'Postcode',
+      type: 'number' as const,
+      required: true,
+    }]
+    return [...leaderQ, ...postcodeQ, ...(surveyData?.questions ?? [])]
   }, [surveyData?.questions, collectiveLeaders])
 
   // Load existing survey response (for edit pre-fill)
