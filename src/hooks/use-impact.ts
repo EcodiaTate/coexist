@@ -46,7 +46,7 @@ export function useNationalImpact(timeRange: TimeRange = 'all-time') {
           fetchImpactRows({ timeRange: timeRange as ImpactTimeRange }),
           isAllTime ? fetchBaselineSettings() : Promise.resolve(null),
           supabase.from('profiles').select('id', { count: 'exact', head: true }),
-          supabase.from('collectives').select('id', { count: 'exact', head: true }).neq('is_national', true),
+          supabase.from('collectives').select('id', { count: 'exact', head: true }).eq('is_active', true).neq('is_national', true),
           supabase.from('app_settings').select('value').eq('key', 'leaders_empowered_total').single(),
         ])
 
