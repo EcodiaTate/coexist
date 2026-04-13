@@ -39,6 +39,7 @@ const SLUG_COORDS: Record<string, { lat: number; lng: number }> = {
   'sunshine-coast': { lat: -26.65, lng: 153.0667 },
   townsville: { lat: -19.259, lng: 146.8169 },
   cairns: { lat: -16.9186, lng: 145.7781 },
+  tamworth: { lat: -31.0927, lng: 150.932 },
 }
 
 /* ------------------------------------------------------------------ */
@@ -54,6 +55,7 @@ export function useCollectiveMapData() {
         .from('collectives')
         .select('id, slug, name, cover_image_url, region, state, member_count, description, location_point')
         .eq('is_active', true)
+        .or('is_national.is.null,is_national.eq.false')
         .order('member_count', { ascending: false })
 
       if (error) throw error
