@@ -33,7 +33,7 @@ describe('RoleGate', () => {
     it('renders children when user meets minimum global role', () => {
       mockAuth.role = 'manager'
       render(
-        <RoleGate minRole="national_leader">
+        <RoleGate minRole="leader">
           <p>Admin content</p>
         </RoleGate>,
       )
@@ -74,7 +74,7 @@ describe('RoleGate', () => {
     it('exact role match works', () => {
       mockAuth.role = 'national_leader'
       render(
-        <RoleGate minRole="national_leader">
+        <RoleGate minRole="leader">
           <p>Staff content</p>
         </RoleGate>,
       )

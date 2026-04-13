@@ -146,28 +146,28 @@ const collectiveRoleOptions: { value: CollectiveRole; label: string }[] = [
   { value: 'leader', label: 'Leader' },
   { value: 'co_leader', label: 'Co-Leader' },
   { value: 'assist_leader', label: 'Assistant Leader' },
-  { value: 'member', label: 'Member' },
+  { value: 'participant', label: 'Participant' },
 ]
 
-const COLLECTIVE_ROLE_ICONS: Record<CollectiveRole, typeof Crown> = {
+const COLLECTIVE_ROLE_ICONS: Record<string, typeof Crown> = {
   leader: Crown,
   co_leader: ShieldCheck,
   assist_leader: ShieldAlert,
-  member: Users,
+  participant: Users,
 }
 
-const COLLECTIVE_ROLE_COLORS: Record<CollectiveRole, string> = {
+const COLLECTIVE_ROLE_COLORS: Record<string, string> = {
   leader: 'bg-warning-200 text-warning-800',
   co_leader: 'bg-neutral-200 text-neutral-800',
   assist_leader: 'bg-info-200 text-info-800',
-  member: 'bg-neutral-200 text-neutral-700',
+  participant: 'bg-neutral-200 text-neutral-700',
 }
 
-const COLLECTIVE_ROLE_SURFACE: Record<CollectiveRole, string> = {
+const COLLECTIVE_ROLE_SURFACE: Record<string, string> = {
   leader: 'bg-warning-50 ring-1 ring-warning-200/60',
   co_leader: 'bg-neutral-50 ring-1 ring-neutral-200/60',
   assist_leader: 'bg-info-50 ring-1 ring-info-200/60',
-  member: 'bg-white ring-1 ring-primary-100/50',
+  participant: 'bg-white ring-1 ring-primary-100/50',
 }
 
 /* ------------------------------------------------------------------ */
@@ -198,7 +198,7 @@ function UserSettingsSheet({
 
   const [showAddCollective, setShowAddCollective] = useState(false)
   const [addCollectiveId, setAddCollectiveId] = useState('')
-  const [addCollectiveRole, setAddCollectiveRole] = useState<CollectiveRole>('member')
+  const [addCollectiveRole, setAddCollectiveRole] = useState<CollectiveRole>('participant')
   const [capsExpanded, setCapsExpanded] = useState(false)
   const [showSuspendForm, setShowSuspendForm] = useState(false)
   const [suspendReason, setSuspendReason] = useState('')
@@ -212,7 +212,7 @@ function UserSettingsSheet({
     return allCollectives.filter((c) => !existing.has(c.id))
   }, [allCollectives, collectiveRoles])
 
-  const isStaffRole = user?.role === 'leader' || user?.role === 'national_leader' || user?.role === 'manager' || user?.role === 'admin'
+  const isStaffRole = user?.role === 'leader' || user?.role === 'manager' || user?.role === 'admin'
   const userRole = (user?.role ?? 'participant') as UserRole
 
   const capsByCategory = useMemo(() => {

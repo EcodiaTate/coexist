@@ -279,7 +279,7 @@ export default function EventDayPage() {
   const { data: event, isLoading: eventLoading } = useEventDetail(eventId)
   const { data: attendees, isLoading: attendeesLoading } = useEventAttendees(eventId)
   const { isAssistLeader, isLoading: roleLoading } = useCollectiveRole(event?.collective_id)
-  const isStaff = profile?.role === 'leader' || profile?.role === 'national_leader' || profile?.role === 'manager' || profile?.role === 'admin'
+  const isStaff = profile?.role === 'leader' || profile?.role === 'manager' || profile?.role === 'admin'
 
   const checkIn = useCheckIn()
   const bulkCheckIn = useBulkCheckIn()

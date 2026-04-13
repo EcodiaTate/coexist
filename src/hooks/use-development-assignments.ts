@@ -42,9 +42,10 @@ export function useMyTargetedContent() {
     for (const cm of collectiveRoles) {
       roles.add(cm.role)
     }
-    // Any staff-level global role counts as 'national_leader' for targeting
-    if (role === 'national_leader' || role === 'manager' || role === 'admin') {
-      roles.add('national_leader')
+    // Any staff-level global role counts as 'leader' for dev content targeting
+    if (role === 'leader' || role === 'manager' || role === 'admin') {
+      roles.add('leader')
+      roles.add('national_leader') // legacy compat for existing dev content
     }
     return Array.from(roles)
   }, [collectiveRoles, role])

@@ -80,7 +80,7 @@ function ManageMembersSheet({
                     <span className="text-sm font-medium text-neutral-800 truncate block">
                       {m.profiles?.display_name ?? 'Member'}
                     </span>
-                    {m.role !== 'member' && (
+                    {m.role !== 'participant' && m.role !== 'member' && (
                       <span className="text-[11px] font-semibold text-neutral-500 capitalize">
                         {m.role!.replace('_', ' ')}
                       </span>

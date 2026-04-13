@@ -50,24 +50,27 @@ type CollectiveRole = Database['public']['Enums']['collective_role']
 /*  Role config                                                        */
 /* ------------------------------------------------------------------ */
 
-const ROLE_LABELS: Record<CollectiveRole, string> = {
+const ROLE_LABELS: Record<string, string> = {
   leader: 'Leader',
   co_leader: 'Co-Leader',
   assist_leader: 'Assistant Leader',
-  member: 'Member',
+  participant: 'Participant',
+  member: 'Participant',
 }
 
-const ROLE_ICONS: Record<CollectiveRole, typeof Crown> = {
+const ROLE_ICONS: Record<string, typeof Crown> = {
   leader: Crown,
   co_leader: ShieldCheck,
   assist_leader: ShieldAlert,
+  participant: Users,
   member: Users,
 }
 
-const ROLE_COLORS: Record<CollectiveRole, string> = {
+const ROLE_COLORS: Record<string, string> = {
   leader: 'text-warning-600 bg-warning-50',
   co_leader: 'text-primary-400 bg-white',
   assist_leader: 'text-info-600 bg-info-50',
+  participant: 'text-primary-400 bg-white',
   member: 'text-primary-400 bg-white',
 }
 

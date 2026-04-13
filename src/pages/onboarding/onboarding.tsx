@@ -102,7 +102,7 @@ export default function OnboardingPage() {
             {
               collective_id: cId,
               user_id: user.id,
-              role: 'member',
+              role: 'participant',
               status: 'active',
             },
             { onConflict: 'collective_id,user_id' },

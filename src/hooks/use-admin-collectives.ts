@@ -550,7 +550,7 @@ export function useAdminAddMember() {
     mutationFn: async ({
       collectiveId,
       userId,
-      role = 'member',
+      role = 'participant',
     }: {
       collectiveId: string
       userId: string
