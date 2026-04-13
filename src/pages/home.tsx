@@ -982,7 +982,7 @@ function HomeImpactSection({
               <BentoStatCard value={data?.volunteerHours ?? 0} label="Vol. Hours" icon={<Clock size={18} />} unit="hrs" />
               <BentoStatCard value={data?.rubbishCollectedKg ?? 0} label="Litter Removed" icon={<Trash2 size={18} />} unit="kg" />
               <BentoStatCard value={data?.leadersEmpowered ?? 0} label="Leaders Empowered" icon={<GraduationCap size={18} />} />
-              <BentoStatCard value={data?.collectivesCount ?? 0} label="Collectives" icon={<Users size={18} />} />
+              <BentoStatCard value={data?.collectivesCount ?? 0} label="Collectives" icon={<MapPin size={18} />} />
             </BentoStatGrid>
           )}
         </div>

@@ -76,7 +76,7 @@ type CollectiveRole = Database['public']['Enums']['collective_role']
 /*  Role helpers                                                       */
 /* ------------------------------------------------------------------ */
 
-const ROLE_LABELS: Record<CollectiveRole, string> = {
+const ROLE_LABELS: Record<string, string> = {
   leader: 'Leader',
   co_leader: 'Co-Leader',
   assist_leader: 'Assistant Leader',
@@ -84,7 +84,7 @@ const ROLE_LABELS: Record<CollectiveRole, string> = {
   member: 'Participant',
 }
 
-const ROLE_ICONS: Record<CollectiveRole, typeof Crown> = {
+const ROLE_ICONS: Record<string, typeof Crown> = {
   leader: Crown,
   co_leader: ShieldCheck,
   assist_leader: ShieldAlert,
@@ -92,7 +92,7 @@ const ROLE_ICONS: Record<CollectiveRole, typeof Crown> = {
   member: Users,
 }
 
-const ROLE_COLORS: Record<CollectiveRole, string> = {
+const ROLE_COLORS: Record<string, string> = {
   leader: 'bg-warning-100 text-warning-700',
   co_leader: 'bg-primary-100 text-primary-700',
   assist_leader: 'bg-info-100 text-info-700',
@@ -100,7 +100,7 @@ const ROLE_COLORS: Record<CollectiveRole, string> = {
   member: 'bg-neutral-100 text-neutral-600',
 }
 
-const ROLE_CARD_ACCENTS: Record<CollectiveRole, { bg: string; border: string; icon: string }> = {
+const ROLE_CARD_ACCENTS: Record<string, { bg: string; border: string; icon: string }> = {
   leader: { bg: 'bg-gradient-to-br from-warning-50 to-warning-100/60', border: 'border-warning-200/60', icon: 'bg-warning-100 text-warning-600' },
   co_leader: { bg: 'bg-gradient-to-br from-primary-50 to-primary-100/60', border: 'border-primary-200/60', icon: 'bg-primary-100 text-primary-600' },
   assist_leader: { bg: 'bg-gradient-to-br from-info-50 to-info-100/60', border: 'border-info-200/60', icon: 'bg-info-100 text-info-600' },
@@ -341,8 +341,8 @@ function OverviewTab({ collectiveId, reducedMotion }: { collectiveId: string; re
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {leaders.map((m, i) => {
-              const Icon = ROLE_ICONS[m.role ?? 'member']
-              const accent = ROLE_CARD_ACCENTS[m.role ?? 'member']
+              const Icon = ROLE_ICONS[m.role ?? 'participant']
+              const accent = ROLE_CARD_ACCENTS[m.role ?? 'participant']
               return (
                 <motion.div
                   key={m.id}
@@ -374,11 +374,11 @@ function OverviewTab({ collectiveId, reducedMotion }: { collectiveId: string; re
                       <span
                         className={cn(
                           'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold mt-1.5',
-                          ROLE_COLORS[m.role ?? 'member'],
+                          ROLE_COLORS[m.role ?? 'participant'],
                         )}
                       >
                         <Icon size={10} />
-                        {ROLE_LABELS[m.role ?? 'member']}
+                        {ROLE_LABELS[m.role ?? 'participant']}
                       </span>
                     </div>
                   </div>
@@ -610,7 +610,7 @@ function MembersTab({ collectiveId }: { collectiveId: string }) {
       ) : (
         <div className="space-y-1.5">
           {filteredMembers.map((member) => {
-            const Icon = ROLE_ICONS[member.role ?? 'member']
+            const Icon = ROLE_ICONS[member.role ?? 'participant']
             const isInactive = member.status !== 'active'
 
             return (
@@ -637,11 +637,11 @@ function MembersTab({ collectiveId }: { collectiveId: string }) {
                     <span
                       className={cn(
                         'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold',
-                        ROLE_COLORS[member.role ?? 'member'],
+                        ROLE_COLORS[member.role ?? 'participant'],
                       )}
                     >
                       <Icon size={10} />
-                      {ROLE_LABELS[member.role ?? 'member']}
+                      {ROLE_LABELS[member.role ?? 'participant']}
                     </span>
                     {member.profiles?.instagram_handle && (
                       <span className="text-[11px] text-neutral-400 truncate">
@@ -704,7 +704,7 @@ function MembersTab({ collectiveId }: { collectiveId: string }) {
               </h3>
               <p className="text-sm text-neutral-500 mt-1">
                 {roleAssignMember.profiles?.display_name ?? 'Member'} is currently{' '}
-                <strong className="text-neutral-700">{ROLE_LABELS[roleAssignMember.role ?? 'member']}</strong>
+                <strong className="text-neutral-700">{ROLE_LABELS[roleAssignMember.role ?? 'participant']}</strong>
               </p>
             </div>
 
@@ -783,7 +783,7 @@ function AddMemberModal({
 }) {
   const { toast } = useToast()
   const [query, setQuery] = useState('')
-  const [selectedRole, setSelectedRole] = useState<CollectiveRole>('member')
+  const [selectedRole, setSelectedRole] = useState<CollectiveRole>('participant')
   const { data: results = [], isLoading } = useSearchUsers(query)
   const showLoading = useDelayedLoading(isLoading)
   const addMember = useAdminAddMember()

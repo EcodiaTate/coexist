@@ -645,7 +645,7 @@ function UserSettingsSheet({
                               toast.success('Added to collective')
                               setShowAddCollective(false)
                               setAddCollectiveId('')
-                              setAddCollectiveRole('member')
+                              setAddCollectiveRole('participant')
                             },
                             onError: () => toast.error('Failed to add to collective'),
                           },
