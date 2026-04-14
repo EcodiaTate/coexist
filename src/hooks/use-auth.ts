@@ -115,6 +115,7 @@ interface AuthContextValue {
   role: UserRole
   collectiveRoles: CollectiveMembership[]
   isLoading: boolean
+  authError: string | null
   isSuspended: boolean
   suspendedReason: string | null
   suspendedUntil: string | null
@@ -162,6 +163,7 @@ export function useAuthProvider(): AuthContextValue {
   const [permissionOverrides, setPermissionOverrides] = useState<Record<string, boolean> | null>(null)
   const [managedCollectiveIds, setManagedCollectiveIds] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [authError, setAuthError] = useState<string | null>(null)
   const [onboardingDone, setOnboardingDone] = useState(getOnboardingDoneSync)
 
   /* ---- fetch profile ---- */
@@ -262,13 +264,16 @@ export function useAuthProvider(): AuthContextValue {
           .single()
         if (createErr) {
           console.error('[auth] Profile create/upsert error:', createErr.message, createErr.code)
+          setAuthError('Failed to set up your profile. Please try again.')
         }
         if (created) {
+          setAuthError(null)
           applyState(created)
           return created
         }
       } catch (err) {
         console.error('[auth] Failed to create profile:', err)
+        setAuthError('Failed to set up your profile. Please try again.')
       }
     }
 
@@ -304,6 +309,7 @@ export function useAuthProvider(): AuthContextValue {
   /* ---- refresh profile (public) ---- */
   const refreshProfile = useCallback(async () => {
     if (!user) return
+    setAuthError(null)
     await loadUserData(user.id)
   }, [user, loadUserData])
 
@@ -634,6 +640,7 @@ export function useAuthProvider(): AuthContextValue {
       capabilities,
       hasCapability,
       isLoading,
+      authError,
       isSuspended,
       suspendedReason,
       suspendedUntil,
@@ -661,7 +668,7 @@ export function useAuthProvider(): AuthContextValue {
     }),
     [
       user, profile, session, role, collectiveRoles, capabilities, hasCapability,
-      isLoading, isSuspended, suspendedReason, suspendedUntil, needsTosAcceptance,
+      isLoading, authError, isSuspended, suspendedReason, suspendedUntil, needsTosAcceptance,
       isLeader, isAssistLeader, isCoLeader, isStaff, isManager, isAdmin, isSuperAdmin, managedCollectiveIds,
       signUp, signIn, signInWithGoogle, signInWithApple, signInWithMagicLink,
       signOut, resetPassword, updatePassword, refreshProfile, acceptTos,
