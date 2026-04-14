@@ -1,10 +1,12 @@
-import { type ReactNode } from 'react'
+import { type ReactNode, useState, useEffect } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
+import { AlertCircle } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
 import { useCollectiveRole } from '@/hooks/use-collective-role'
 import type { Database } from '@/types/database.types'
 import { GLOBAL_ROLE_RANK as _GLOBAL_RANK } from '@/lib/constants'
 import { EmptyState } from '@/components/empty-state'
+import { Button } from '@/components/button'
 
 type UserRole = Database['public']['Enums']['user_role']
 type CollectiveRole = Database['public']['Enums']['collective_role']
@@ -30,8 +32,18 @@ interface RequireAuthProps {
 }
 
 export function RequireAuth({ children }: RequireAuthProps) {
-  const { user, profile, isLoading, isSuspended, needsTosAcceptance, onboardingDone } = useAuth()
+  const { user, profile, isLoading, isSuspended, needsTosAcceptance, onboardingDone, authError, refreshProfile, signOut } = useAuth()
   const location = useLocation()
+  const [guardTimedOut, setGuardTimedOut] = useState(false)
+
+  useEffect(() => {
+    if (profile || onboardingDone || !user || isLoading) {
+      setGuardTimedOut(false)
+      return
+    }
+    const timer = setTimeout(() => setGuardTimedOut(true), 10_000)
+    return () => clearTimeout(timer)
+  }, [profile, onboardingDone, user, isLoading])
 
   if (isLoading) {
     return <GuardSpinner />
@@ -41,27 +53,55 @@ export function RequireAuth({ children }: RequireAuthProps) {
     return <Navigate to="/login" state={{ from: location }} replace />
   }
 
-  // Check suspended (uses auth hook which already handles expiry)
   if (isSuspended) {
     return <Navigate to="/suspended" replace />
   }
 
-  // TOS re-acceptance required
   if (needsTosAcceptance && !location.pathname.startsWith('/accept-terms')) {
     return <Navigate to="/accept-terms" replace />
   }
 
-  // Profile not loaded yet - wait rather than flashing onboarding.
-  // The auth hook's loadUserData handles retry + profile creation,
-  // so the profile will always arrive. If we already know onboarding
-  // is done (local flag), skip the wait and render children immediately.
+  if ((authError || guardTimedOut) && !profile && !onboardingDone) {
+    return (
+      <div className="min-h-dvh bg-white flex flex-col items-center justify-center px-6">
+        <div className="w-20 h-20 rounded-full bg-error/10 flex items-center justify-center">
+          <AlertCircle className="w-10 h-10 text-error" />
+        </div>
+        <h1 className="mt-6 font-heading text-2xl font-bold text-neutral-900">
+          Something went wrong
+        </h1>
+        <p className="mt-2 text-neutral-500 text-center max-w-xs">
+          {authError || 'Profile loading timed out. Please try again.'}
+        </p>
+        <div className="mt-8 w-full max-w-xs space-y-3">
+          <Button
+            variant="primary"
+            size="lg"
+            fullWidth
+            onClick={() => {
+              setGuardTimedOut(false)
+              refreshProfile()
+            }}
+          >
+            Try again
+          </Button>
+          <Button
+            variant="ghost"
+            size="lg"
+            fullWidth
+            onClick={() => signOut()}
+          >
+            Back to login
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
   if (!profile && !onboardingDone) {
     return <GuardSpinner />
   }
 
-  // Redirect to onboarding ONLY if:
-  // 1. Profile explicitly says not completed, AND
-  // 2. The persistent local flag is not set (prevents re-onboarding on fetch failures)
   const onboardingPaths = ['/onboarding', '/leader-welcome', '/welcome-back']
   const isOnboardingPath = onboardingPaths.some((p) => location.pathname.startsWith(p))
   if (!onboardingDone && (!profile || !profile.onboarding_completed) && !isOnboardingPath) {

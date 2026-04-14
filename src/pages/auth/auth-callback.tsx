@@ -6,6 +6,7 @@ import { CheckCircle, AlertCircle, Loader2, Smartphone } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { OGMeta } from '@/components/og-meta'
 import { Button } from '@/components/button'
+import { useAuth } from '@/hooks/use-auth'
 
 type CallbackState = 'processing' | 'success' | 'error'
 
@@ -16,21 +17,17 @@ type CallbackState = 'processing' | 'success' | 'error'
 export default function AuthCallbackPage() {
   const navigate = useNavigate()
   const shouldReduceMotion = useReducedMotion()
+  const { isLoading: authLoading, authError } = useAuth()
   const [state, setState] = useState<CallbackState>('processing')
   const [errorMsg, setErrorMsg] = useState('')
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_IN' || event === 'PASSWORD_RECOVERY') {
         setState('success')
 
         if (event === 'PASSWORD_RECOVERY') {
           setTimeout(() => navigate('/reset-password', { replace: true }), 1500)
-          return
-        }
-
-        if (!isMobileBrowser()) {
-          setTimeout(() => navigate('/', { replace: true }), 1500)
         }
       }
     })
@@ -50,6 +47,21 @@ export default function AuthCallbackPage() {
       clearTimeout(timeout)
     }
   }, [navigate])
+
+  useEffect(() => {
+    if (state !== 'success') return
+    if (authLoading) return
+
+    if (authError) {
+      setErrorMsg(authError)
+      setState('error')
+      return
+    }
+
+    if (!isMobileBrowser()) {
+      navigate('/', { replace: true })
+    }
+  }, [state, authLoading, authError, navigate])
 
   return (
     <div className="min-h-dvh flex flex-col items-center justify-center px-6 bg-white">
