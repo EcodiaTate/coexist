@@ -10,7 +10,7 @@ RETURNS trigger AS $$
 DECLARE
   edge_url text := 'https://tjutlbzekfouwsiaplbr.supabase.co/functions/v1/excel-sync';
   -- Service role key for server-side Edge Function invocation (SECURITY DEFINER only)
-  svc_key text := 'REDACTED_SUPABASE_SERVICE_ROLE_KEY';
+  svc_key text := (SELECT decrypted_secret FROM vault.decrypted_secrets WHERE name = 'service_role_key' LIMIT 1);
   event_id_val uuid;
   event_date date;
 BEGIN

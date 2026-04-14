@@ -8,7 +8,7 @@ CREATE EXTENSION IF NOT EXISTS pg_net WITH SCHEMA extensions;
 CREATE OR REPLACE FUNCTION public.cron_excel_from_sync() RETURNS void AS $$
 DECLARE
   edge_url text := 'https://tjutlbzekfouwsiaplbr.supabase.co/functions/v1/excel-sync?direction=from-excel';
-  svc_key text := 'REDACTED_SUPABASE_SERVICE_ROLE_KEY';
+  svc_key text := (SELECT decrypted_secret FROM vault.decrypted_secrets WHERE name = 'service_role_key' LIMIT 1);
 BEGIN
   PERFORM net.http_post(
     url := edge_url,
