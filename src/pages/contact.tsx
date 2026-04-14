@@ -146,11 +146,16 @@ export default function ContactPage() {
           {/* Background layer */}
           <div
             ref={rm ? undefined : bgRef}
-            className="h-full will-change-transform"
+            className="h-full"
           >
             <img
               src="/img/contact-hero-bg.webp"
               alt="Contact Co-Exist"
+              width={1920}
+              height={1080}
+              loading="eager"
+              fetchPriority="high"
+              decoding="async"
               className="w-full h-full object-cover object-center sm:h-auto sm:object-fill block"
             />
           </div>
@@ -158,11 +163,16 @@ export default function ContactPage() {
           {/* Foreground cutout */}
           <div
             ref={rm ? undefined : fgRef}
-            className="absolute inset-0 z-[3] will-change-transform"
+            className="absolute inset-0 z-[3]"
           >
             <img
               src="/img/contact-hero-fg.webp"
               alt=""
+              width={1920}
+              height={1084}
+              loading="eager"
+              fetchPriority="high"
+              decoding="async"
               className="w-full h-full object-cover object-center sm:h-auto sm:object-fill block"
             />
           </div>
