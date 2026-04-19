@@ -124,7 +124,7 @@ function NotificationRow({
         <div
           className={cn(
             'flex items-center justify-center shrink-0 w-11 h-11 rounded-xl text-lg shadow-sm',
-            isUnread ? 'bg-primary-200/70' : 'bg-neutral-100',
+            isUnread ? 'bg-neutral-100' : 'bg-neutral-100',
             meta.color,
           )}
           aria-hidden="true"

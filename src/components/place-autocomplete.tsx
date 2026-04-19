@@ -223,7 +223,7 @@ function DropdownPortal({
               onMouseEnter={() => onHighlight(i)}
               className={cn(
                 'flex items-start gap-3 px-4 py-3 cursor-pointer transition-colors text-left',
-                i === highlightIndex ? 'bg-primary-50' : 'hover:bg-primary-50/50',
+                i === highlightIndex ? 'bg-neutral-50' : 'hover:bg-neutral-50',
               )}
             >
               <MapPin size={16} className="mt-0.5 shrink-0 text-neutral-400" />

@@ -61,7 +61,7 @@ export function BentoStatCard({
           : { duration: 0.45, delay: 0.08 + delay * 0.06, ease: [0.25, 0.46, 0.45, 0.94] }
       }
       className={cn(
-        'relative overflow-hidden rounded-3xl bg-[#f4f2ec]/90 shadow-[0_2px_12px_rgba(0,0,0,0.06)]',
+        'relative overflow-hidden rounded-3xl bg-neutral-50 shadow-sm',
         hero ? 'p-5 sm:p-6' : 'p-4 sm:p-5',
         className,
       )}
@@ -72,7 +72,7 @@ export function BentoStatCard({
         <span
           className={cn(
             'inline-flex items-center justify-center rounded-xl',
-            'bg-primary-200/60 text-primary-800',
+            'bg-neutral-100 text-neutral-700',
             hero ? 'w-12 h-12' : 'w-10 h-10',
           )}
           aria-hidden="true"
@@ -83,7 +83,7 @@ export function BentoStatCard({
         </span>
 
         {badge && (
-          <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-primary-100/80 text-primary-700 text-[10px] font-bold uppercase tracking-wide">
+          <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-neutral-100 text-neutral-700 text-[10px] font-bold uppercase tracking-wide">
             {badge}
           </span>
         )}

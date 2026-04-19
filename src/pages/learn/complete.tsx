@@ -37,8 +37,6 @@ export default function LearnCompletePage() {
     <Page swipeBack noBackground className="!px-0 bg-white" stickyOverlay={<Header title="" back transparent className="collapse-header" />}>
       {/* Background gradient */}
       <div className="relative min-h-[85vh] flex flex-col items-center justify-center overflow-hidden">
-        {/* Soft radial gradient bg */}
-        <div className="absolute inset-0 bg-gradient-to-b from-moss-50/60 via-white to-primary-50/30 pointer-events-none" />
 
 
         {/* Confetti */}
@@ -50,7 +48,7 @@ export default function LearnCompletePage() {
             initial={rm ? {} : { scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.15, type: 'spring', stiffness: 250, damping: 14 }}
-            className="inline-flex items-center justify-center w-24 h-24 rounded-3xl bg-gradient-to-br from-moss-200 to-moss-300 shadow-sm mb-8"
+            className="inline-flex items-center justify-center w-24 h-24 rounded-3xl bg-moss-100 shadow-sm mb-8"
           >
             <PartyPopper size={44} className="text-moss-700" />
           </motion.div>
@@ -88,9 +86,9 @@ export default function LearnCompletePage() {
             initial={rm ? {} : { opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.35 }}
-            className="text-[14px] text-primary-500 mb-8 leading-relaxed"
+            className="text-[14px] text-neutral-500 mb-8 leading-relaxed"
           >
-            You've completed <span className="font-bold text-primary-700">{title}</span>.
+            You've completed <span className="font-bold text-neutral-700">{title}</span>.
             <br />Great work on your leadership journey!
           </motion.p>
 
@@ -101,7 +99,7 @@ export default function LearnCompletePage() {
             transition={{ delay: 0.45 }}
             className="inline-flex items-center gap-3 px-5 py-3.5 rounded-2xl bg-white border border-moss-200/60 shadow-sm mb-10"
           >
-            <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-gradient-to-br from-moss-100 to-moss-200">
+            <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-moss-50">
               {isModule ? (
                 <BookOpen size={20} className="text-moss-600" />
               ) : (

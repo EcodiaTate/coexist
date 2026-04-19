@@ -1218,7 +1218,7 @@ function CalendarView({
                   ? 'bg-primary-700 text-white shadow-md'
                   : isToday
                     ? 'bg-primary-100 text-primary-800 font-bold'
-                    : 'hover:bg-primary-50 text-primary-700',
+                    : 'hover:bg-neutral-50 text-neutral-700',
               )}
             >
               <span className={cn('text-sm tabular-nums', isSelected ? 'font-bold' : 'font-medium')}>
@@ -1415,7 +1415,7 @@ function TodosTabContent({ rm }: { rm: boolean }) {
             'flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium cursor-pointer transition-all duration-150',
             editMode
               ? 'bg-primary-700 text-white shadow-sm'
-              : 'bg-white text-primary-600 shadow-sm hover:bg-primary-50',
+              : 'bg-white text-primary-600 shadow-sm hover:bg-neutral-50',
           )}
         >
           {editMode ? <Eye size={14} /> : <Pencil size={14} />}
@@ -1583,12 +1583,6 @@ export default function LeaderTasksPage() {
       <div className="absolute inset-0 bg-gradient-to-b from-amber-50/50 via-white to-moss-50/15" />
       <Header title="Tasks" back transparent className="absolute left-0 right-0 z-30" />
 
-      {/* Decorative elements */}
-      <div className="absolute -right-14 top-[15%] w-52 h-52 rounded-full border border-amber-200/25 animate-[gentleSpin_55s_linear_infinite]" />
-      <div className="absolute -right-6 top-[20%] w-36 h-36 rounded-full border border-amber-200/15 animate-[gentleSpin_45s_linear_infinite] [animation-direction:reverse]" />
-      <div className="absolute -left-16 -bottom-16 w-48 h-48 rounded-full border border-amber-200/20 animate-[gentleSpin_50s_linear_infinite]" />
-      <div className="absolute left-[15%] top-[22%] w-2 h-2 rounded-full bg-amber-300/25 animate-[float_4.5s_ease-in-out_infinite]" />
-      <div className="absolute right-[20%] top-[55%] w-1.5 h-1.5 rounded-full bg-moss-300/20 animate-[floatDown_5.5s_ease-in-out_1.5s_infinite]" />
 
       <motion.div
         className="relative z-10 px-6 pt-14 space-y-5 pb-20"

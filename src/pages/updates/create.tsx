@@ -87,7 +87,7 @@ export default function CreateUpdatePage() {
           <Shield size={28} className="text-neutral-400" />
         </div>
         <h2 className="font-heading text-lg font-bold text-neutral-900 mb-2">Admin Only</h2>
-        <p className="text-sm text-primary-500 text-center max-w-xs">
+        <p className="text-sm text-neutral-500 text-center max-w-xs">
           Only admin staff can create updates. Contact your admin if you need to post an update.
         </p>
       </div>

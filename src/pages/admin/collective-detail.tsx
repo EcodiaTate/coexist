@@ -102,7 +102,7 @@ const ROLE_COLORS: Record<string, string> = {
 
 const ROLE_CARD_ACCENTS: Record<string, { bg: string; border: string; icon: string }> = {
   leader: { bg: 'bg-gradient-to-br from-warning-50 to-warning-100/60', border: 'border-warning-200/60', icon: 'bg-warning-100 text-warning-600' },
-  co_leader: { bg: 'bg-gradient-to-br from-primary-50 to-primary-100/60', border: 'border-primary-200/60', icon: 'bg-primary-100 text-primary-600' },
+  co_leader: { bg: 'bg-white', border: 'border-neutral-100', icon: 'bg-primary-100 text-primary-600' },
   assist_leader: { bg: 'bg-gradient-to-br from-info-50 to-info-100/60', border: 'border-info-200/60', icon: 'bg-info-100 text-info-600' },
   participant: { bg: 'bg-gradient-to-br from-neutral-50 to-neutral-100/60', border: 'border-neutral-200/60', icon: 'bg-neutral-100 text-neutral-500' },
   member: { bg: 'bg-gradient-to-br from-neutral-50 to-neutral-100/60', border: 'border-neutral-200/60', icon: 'bg-neutral-100 text-neutral-500' },

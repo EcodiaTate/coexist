@@ -144,7 +144,7 @@ export function DatePicker({
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2',
             error
               ? 'ring-2 ring-error'
-              : 'hover:bg-primary-200/50 hover:shadow-sm',
+              : 'hover:bg-neutral-100 hover:shadow-sm',
           )}
         >
           <IconComponent

@@ -210,7 +210,7 @@ export default function ContactPage() {
           onSubmit={handleSubmit}
           className="rounded-2xl bg-surface-0 shadow-sm p-5 space-y-4"
         >
-          <h2 className="font-heading text-[15px] font-semibold text-primary-900">
+          <h2 className="font-heading text-[15px] font-semibold text-neutral-900">
             Send us a message
           </h2>
 
@@ -288,7 +288,7 @@ export default function ContactPage() {
                 </span>
                 <div className="flex-1 min-w-0">
                   <p className="text-[11px] font-medium text-neutral-500 leading-tight">{label}</p>
-                  <p className="text-[15px] font-medium text-primary-900 truncate">{value}</p>
+                  <p className="text-[15px] font-medium text-neutral-900 truncate">{value}</p>
                 </div>
               </a>
             ))}
@@ -302,10 +302,10 @@ export default function ContactPage() {
         >
           <MapPin size={18} className="text-primary-500 mt-0.5 shrink-0" />
           <div>
-            <p className="text-[13px] font-medium text-primary-700">
+            <p className="text-[13px] font-medium text-neutral-700">
               Based in Australia
             </p>
-            <p className="text-[12px] text-primary-400 mt-0.5">
+            <p className="text-[12px] text-neutral-400 mt-0.5">
               Co-Exist Australia is a registered charity operating nationwide with collectives across the country.
             </p>
           </div>

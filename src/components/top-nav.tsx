@@ -184,7 +184,7 @@ export function TopNav({ notificationCount = 0, className }: TopNavProps) {
                   role="menu"
                 >
                   {/* User info */}
-                  <div className="px-4 py-3 bg-primary-50/40">
+                  <div className="px-4 py-3 bg-neutral-50">
                     <p className="font-heading text-sm font-semibold text-neutral-900 truncate">
                       {profile?.display_name}
                     </p>
@@ -213,7 +213,7 @@ export function TopNav({ notificationCount = 0, className }: TopNavProps) {
                     label="Donate"
                     onClick={() => navigate('/donate')}
                   />
-                  <div className="my-1.5 h-px bg-primary-100/40" />
+                  <div className="my-1.5 h-px bg-neutral-100" />
                   <DropdownItem
                     icon={<Settings size={16} />}
                     label="Settings"
@@ -226,7 +226,7 @@ export function TopNav({ notificationCount = 0, className }: TopNavProps) {
                       onClick={() => navigate('/admin')}
                     />
                   )}
-                  <div className="my-1.5 h-px bg-primary-100/40" />
+                  <div className="my-1.5 h-px bg-neutral-100" />
                   <DropdownItem
                     icon={<LogOut size={16} />}
                     label="Log out"

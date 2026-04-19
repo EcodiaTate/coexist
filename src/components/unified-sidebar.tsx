@@ -65,7 +65,7 @@ function getSuiteIdentity(suite: Suite, collectiveName: string): SuiteIdentity {
         badgeBg: 'from-primary-50/80 to-primary-50/30',
         badgeBorder: 'border-neutral-100',
         labelColor: 'text-primary-500',
-        pillHover: 'hover:bg-primary-50/60',
+        pillHover: 'hover:bg-neutral-50',
       }
     case 'leader':
       return {
@@ -79,7 +79,7 @@ function getSuiteIdentity(suite: Suite, collectiveName: string): SuiteIdentity {
         badgeBg: 'from-moss-50/80 to-moss-50/30',
         badgeBorder: 'border-moss-100/30',
         labelColor: 'text-moss-500',
-        pillHover: 'hover:bg-moss-50/60',
+        pillHover: 'hover:bg-neutral-50',
       }
     default:
       return {
@@ -93,7 +93,7 @@ function getSuiteIdentity(suite: Suite, collectiveName: string): SuiteIdentity {
         badgeBg: 'from-sprout-50/80 to-primary-50/30',
         badgeBorder: 'border-sprout-100/30',
         labelColor: 'text-sprout-600',
-        pillHover: 'hover:bg-sprout-50/60',
+        pillHover: 'hover:bg-neutral-50',
       }
   }
 }
@@ -255,7 +255,7 @@ function MobileSidebarOverlay({
               'fixed top-0 right-0 bottom-0',
               'w-[min(84vw,360px)]',
               'bg-white gpu-panel',
-              'shadow-[-12px_0_40px_-8px_rgba(51,63,43,0.15)]',
+              'shadow-xl',
               'flex flex-col',
               'outline-none',
             )}

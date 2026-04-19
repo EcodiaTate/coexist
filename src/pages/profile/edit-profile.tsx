@@ -258,7 +258,7 @@ export default function EditProfilePage() {
     <Page
       swipeBack
       noBackground
-      className="bg-gradient-to-b from-surface-2 via-primary-50/30 to-moss-50/20"
+      className="bg-neutral-50"
       stickyOverlay={<Header title="" back transparent className="-mb-14" />}
       footer={
         <Button
@@ -298,7 +298,7 @@ export default function EditProfilePage() {
                 <button
                   onClick={handleAvatarChange}
                   disabled={cameraLoading || uploading}
-                  className="absolute -bottom-1 -right-1 flex items-center justify-center w-11 h-11 rounded-full bg-white shadow-sm text-primary-600 hover:bg-primary-50 active:scale-[0.93] transition-[colors,transform] duration-150 disabled:opacity-50"
+                  className="absolute -bottom-1 -right-1 flex items-center justify-center w-11 h-11 rounded-full bg-white shadow-sm text-primary-600 hover:bg-neutral-50 active:scale-[0.93] transition-[colors,transform] duration-150 disabled:opacity-50"
                   aria-label="Change avatar"
                 >
                   <Camera size={16} />
@@ -327,7 +327,7 @@ export default function EditProfilePage() {
           <motion.div variants={fadeUp}>
             <SectionCard
               icon={<User size={17} className="text-primary-600" />}
-              iconBg="bg-primary-200/80"
+              iconBg="bg-neutral-200"
               headerBg="bg-neutral-50"
               title="Personal Details"
               description="Your identity info - visible to event leaders"
@@ -409,7 +409,7 @@ export default function EditProfilePage() {
           <motion.div variants={fadeUp}>
             <SectionCard
               icon={<Sparkles size={17} className="text-sprout-600" />}
-              iconBg="bg-sprout-200/80"
+              iconBg="bg-sprout-100"
               headerBg="bg-neutral-50"
               title="About You"
               description="Express yourself - shown on your public profile"
@@ -475,7 +475,7 @@ export default function EditProfilePage() {
           <motion.div variants={fadeUp}>
             <SectionCard
               icon={<Heart size={17} className="text-moss-600" />}
-              iconBg="bg-moss-200/80"
+              iconBg="bg-moss-100"
               headerBg="bg-neutral-50"
               title="Conservation Interests"
               description="Select what excites you most"

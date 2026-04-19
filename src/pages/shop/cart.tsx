@@ -46,7 +46,7 @@ function ReservationTimer({ expiresAt }: { expiresAt: string | undefined }) {
   return (
     <div className={cn(
       'flex items-center gap-1.5 px-2.5 py-1 rounded-full mt-2 w-fit',
-      isExpiring ? 'bg-warning-50' : 'bg-moss-100/70',
+      isExpiring ? 'bg-warning-50' : 'bg-moss-50',
     )}>
       <Clock size={11} className={isExpiring ? 'text-warning-500' : 'text-moss-600'} />
       <span className={cn(

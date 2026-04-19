@@ -869,7 +869,7 @@ export default function ProductsTab() {
               <div
                 key={product.id}
                 className={cn(
-                  'rounded-xl bg-surface-1 border border-primary-100/40 overflow-hidden',
+                  'rounded-xl bg-surface-1 border border-neutral-100 overflow-hidden',
                   product.status === 'archived' && 'opacity-60',
                 )}
               >

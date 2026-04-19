@@ -43,7 +43,7 @@ export function SaveSuccessBanner({
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.1, type: 'spring', stiffness: 400, damping: 15 }}
-              className="flex items-center justify-center w-10 h-10 rounded-full bg-moss-200/60 shrink-0"
+              className="flex items-center justify-center w-10 h-10 rounded-full bg-moss-100 shrink-0"
             >
               <CheckCircle2 size={22} className="text-moss-600" />
             </motion.div>

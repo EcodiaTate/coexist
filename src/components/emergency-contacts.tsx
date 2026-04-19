@@ -139,7 +139,7 @@ function ContactAccordion({
         onClick={onToggle}
         className={cn(
           'w-full flex items-center gap-3 px-4 py-3.5',
-          'active:bg-primary-50/50 transition-colors duration-150',
+          'active:bg-neutral-50 transition-colors duration-150',
           'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-inset',
         )}
         aria-expanded={isOpen}
@@ -186,7 +186,7 @@ function ContactAccordion({
                   href={`tel:${contact.phone}`}
                   className={cn(
                     'flex items-center gap-3 px-3 py-3 rounded-xl',
-                    'bg-primary-50/40 active:bg-primary-100/60',
+                    'bg-neutral-50 active:bg-neutral-100',
                     'transition-colors duration-150',
                     'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
                     'min-h-[52px]',

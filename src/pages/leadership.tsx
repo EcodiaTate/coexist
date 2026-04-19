@@ -190,7 +190,7 @@ export default function LeadershipPage() {
                         View PDF
                       </p>
                     </div>
-                    <span className="flex items-center justify-center w-8 h-8 rounded-full bg-bark-200/60 group-hover:bg-bark-300/70 transition-colors shrink-0">
+                    <span className="flex items-center justify-center w-8 h-8 rounded-full bg-bark-100 group-hover:bg-bark-200 transition-colors shrink-0">
                       <ArrowRight size={14} className="text-bark-600" />
                     </span>
                   </div>

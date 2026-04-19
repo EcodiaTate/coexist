@@ -56,7 +56,7 @@ function MenuRow({ icon, label, subtitle, onClick, danger = false }: MenuRowProp
       aria-label={label}
     >
       <span
-        className={`flex items-center justify-center w-8 h-8 rounded-lg shrink-0 mr-3 ${danger ? 'bg-error-100 text-error-600' : 'bg-primary-100/70 text-primary-500'}`}
+        className={`flex items-center justify-center w-8 h-8 rounded-lg shrink-0 mr-3 ${danger ? 'bg-error-100 text-error-600' : 'bg-neutral-100 text-neutral-500'}`}
         aria-hidden="true"
       >
         {icon}
@@ -333,7 +333,6 @@ export default function SettingsAccountPage() {
   return (
     <Page noBackground stickyOverlay={<Header title="Account" back transparent className="collapse-header" />}>
       <div className="relative" style={{ paddingTop: '3.5rem' }}>
-        <div className="absolute inset-0 -mx-4 lg:-mx-6 bg-gradient-to-b from-primary-50/30 via-white to-primary-50/10 -z-10" />
 
         <motion.div
           className="pb-8"

@@ -205,7 +205,7 @@ export const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
                 className={cn(
                   'flex items-center justify-center shrink-0 rounded-full',
                   'text-neutral-400 hover:text-neutral-600',
-                  'hover:bg-primary-100/60 active:bg-primary-200/60',
+                  'hover:bg-neutral-100 active:bg-neutral-200',
                   'transition-colors duration-150',
                   compact ? 'w-11 h-11 mr-0.5' : 'w-11 h-11 mr-0.5',
                 )}

@@ -76,7 +76,7 @@ function EventPicker({
           'active:scale-[0.99] cursor-pointer select-none',
           selectedId
             ? 'bg-primary-50 text-primary-800 ring-2 ring-primary-400'
-            : 'bg-primary-100/60 text-primary-400 ring-1 ring-primary-200/60',
+            : 'bg-neutral-100 text-neutral-500 ring-1 ring-neutral-200',
           dropdownOpen && 'ring-2 ring-primary-400 bg-white',
         )}
       >
@@ -207,7 +207,7 @@ function CollectivePicker({
                 className={cn(
                   'w-full text-left px-3 py-2.5 flex items-center gap-2.5 transition-[colors,transform] duration-100 min-h-11',
                   'hover:bg-neutral-50 active:bg-neutral-100 active:scale-[0.98] cursor-pointer select-none',
-                  isSelected && 'bg-primary-50/80',
+                  isSelected && 'bg-primary-50',
                   'first:rounded-t-xl last:rounded-b-xl',
                 )}
               >

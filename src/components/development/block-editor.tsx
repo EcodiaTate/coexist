@@ -238,7 +238,7 @@ function QuizPicker({
               onClick={() => { onChange(q.id); setOpen(false); setSearch('') }}
               className={cn(
                 'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors',
-                value === q.id ? 'bg-moss-50 ring-1 ring-moss-300' : 'hover:bg-primary-50 active:bg-primary-100',
+                value === q.id ? 'bg-moss-50 ring-1 ring-moss-300' : 'hover:bg-neutral-50 active:bg-neutral-100',
               )}
             >
               <CircleDot size={14} className="text-moss-500 shrink-0" />
@@ -325,7 +325,7 @@ function SortableBlock({
         <button
           type="button"
           onClick={onEdit}
-          className="flex items-center justify-center w-9 h-9 rounded-lg text-primary-400 hover:text-primary-600 hover:bg-primary-100/60 transition-colors"
+          className="flex items-center justify-center w-9 h-9 rounded-lg text-primary-400 hover:text-primary-600 hover:bg-neutral-100 transition-colors"
         >
           <Pencil size={14} />
         </button>
@@ -440,7 +440,7 @@ function BlockEditForm({
           </span>
           <span className="text-sm font-semibold text-neutral-900">Edit Block</span>
         </div>
-        <button type="button" onClick={onCancel} className="flex items-center justify-center w-9 h-9 rounded-lg text-primary-400 hover:text-primary-600 hover:bg-primary-100/60 transition-colors">
+        <button type="button" onClick={onCancel} className="flex items-center justify-center w-9 h-9 rounded-lg text-primary-400 hover:text-primary-600 hover:bg-neutral-100 transition-colors">
           <X size={18} />
         </button>
       </div>

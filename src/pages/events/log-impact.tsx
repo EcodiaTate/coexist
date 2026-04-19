@@ -985,7 +985,6 @@ export default function LogImpactPage() {
             transition={shouldReduceMotion ? { duration: 0 } : { delay: 0.1, type: 'spring', stiffness: 200 }}
             className="relative w-20 h-20 mb-5"
           >
-            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-emerald-400 to-primary-600 opacity-20 blur-xl" />
             <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-emerald-100 to-primary-100 flex items-center justify-center">
               <CheckCircle2 size={36} className="text-primary-600" />
             </div>

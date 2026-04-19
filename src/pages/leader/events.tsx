@@ -83,7 +83,7 @@ export default function LeaderEventsPage() {
   /* Loading skeleton */
   if (showLoading) {
     return (
-      <div className="relative min-h-dvh overflow-x-hidden bg-gradient-to-b from-moss-50 via-white to-primary-50/30">
+      <div className="relative min-h-dvh overflow-x-hidden bg-white">
         <Header title="Events" back transparent className="absolute left-0 right-0 z-30" />
         <div className="relative z-10 px-6 pt-14 space-y-6">
           <div className="flex flex-col items-center gap-2 pb-2">
@@ -120,7 +120,7 @@ export default function LeaderEventsPage() {
   return (
     <div className="relative min-h-dvh overflow-x-hidden">
       {/* ── Bright airy background ── */}
-      <div className="absolute inset-0 bg-gradient-to-b from-moss-50 via-white to-primary-50/30" />
+      <div className="absolute inset-0 bg-white" />
       <Header title="Events" back transparent className="absolute left-0 right-0 z-30" />
 
 
@@ -139,7 +139,7 @@ export default function LeaderEventsPage() {
           <p className="text-[11px] font-semibold text-moss-500 uppercase tracking-[0.2em]">
             Manage
           </p>
-          <h1 className="font-heading text-3xl sm:text-4xl font-bold text-primary-900 mt-1.5">
+          <h1 className="font-heading text-3xl sm:text-4xl font-bold text-neutral-900 mt-1.5">
             Events
           </h1>
           {scopeCtx.showCollectiveSelector && collectiveScopeOptions.length > 1 && (
@@ -159,7 +159,7 @@ export default function LeaderEventsPage() {
           {[
             { value: stats?.upcoming ?? 0, label: 'Upcoming', color: 'text-moss-700' },
             { value: stats?.past ?? 0, label: 'Past', color: 'text-neutral-900' },
-            { value: stats?.drafts ?? 0, label: 'Drafts', color: 'text-primary-500' },
+            { value: stats?.drafts ?? 0, label: 'Drafts', color: 'text-neutral-500' },
           ].map((s) => (
             <div key={s.label} className="flex flex-col items-center rounded-2xl bg-white shadow-sm border border-neutral-100 px-5 py-3 min-w-[80px]">
               <span className={cn('font-heading text-2xl font-extrabold tabular-nums', s.color)}>{s.value}</span>

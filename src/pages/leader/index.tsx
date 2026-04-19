@@ -1165,7 +1165,7 @@ export default function LeaderDashboardPage() {
                   className={cn(
                     'group relative flex flex-col items-center gap-1.5 rounded-xl shadow-sm border p-3 hover:shadow-md active:scale-[0.96] transition-transform duration-150',
                     action.isCode
-                      ? 'bg-gradient-to-br from-primary-50 to-primary-100/80 border-primary-200/60'
+                      ? 'bg-primary-50 border-primary-100'
                       : 'bg-white border-neutral-100',
                     action.pulse && 'ring-2 ring-amber-400/50',
                   )}

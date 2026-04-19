@@ -224,7 +224,7 @@ export function QrScanner({
   if (isNative) {
     // Native: Capacitor handles the camera overlay
     return (
-      <div className="relative w-52 h-52 rounded-2xl bg-primary-50/60 shadow-sm flex items-center justify-center mb-5">
+      <div className="relative w-52 h-52 rounded-2xl bg-neutral-50 shadow-sm flex items-center justify-center mb-5">
         <Camera size={44} className="text-primary-300" />
         <motion.div
           className="absolute left-4 right-4 h-0.5 bg-primary-500 rounded-full"

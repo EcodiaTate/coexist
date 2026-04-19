@@ -37,7 +37,7 @@ export function SidebarShell({ collapsed, onToggleCollapse, children }: SidebarS
         'sticky top-0 self-start min-h-dvh max-h-dvh z-50',
         'bg-white',
         'border-r',
-        'shadow-[4px_0_24px_-4px_rgba(0,0,0,0.08),8px_0_16px_-8px_rgba(0,0,0,0.04)]',
+        'shadow-md',
         'transition-[width,border-color] duration-250 ease-in-out',
         collapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH,
         dAccent.borderColor,

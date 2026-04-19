@@ -439,7 +439,7 @@ export default function EventDayPage() {
 
         {/* Check-in code banner */}
         {event.check_in_code && (
-          <motion.div variants={fadeUp} className="mb-5 rounded-xl bg-gradient-to-br from-primary-50 to-primary-100/80 ring-1 ring-primary-200/60 p-4 text-center shadow-sm">
+          <motion.div variants={fadeUp} className="mb-5 rounded-xl bg-white border border-neutral-100 p-4 text-center shadow-sm">
             <p className="text-[11px] uppercase tracking-wider text-primary-600 font-semibold mb-1">Today's check-in code</p>
             <p className="text-4xl font-heading font-bold text-primary-700 tracking-[0.3em]">
               {event.check_in_code}
@@ -449,21 +449,21 @@ export default function EventDayPage() {
 
         {/* Stats row */}
         <motion.div variants={fadeUp} className="grid grid-cols-3 gap-3 mb-5">
-          <div className="rounded-xl bg-gradient-to-br from-sky-50 to-sky-100/80 ring-1 ring-sky-200/60 p-3 text-center shadow-sm">
+          <div className="rounded-xl bg-white border border-neutral-100 p-3 text-center shadow-sm">
             <div className="flex items-center justify-center w-8 h-8 rounded-full bg-sky-500/15 mx-auto mb-1.5">
               <ClipboardList size={16} className="text-sky-600" />
             </div>
             <p className="text-xl font-bold text-sky-700">{stats.registered}</p>
             <p className="text-caption font-medium text-sky-600">Registered</p>
           </div>
-          <div className="rounded-xl bg-gradient-to-br from-success-50 to-success-100/80 ring-1 ring-success-300/60 p-3 text-center shadow-sm">
+          <div className="rounded-xl bg-white border border-neutral-100 p-3 text-center shadow-sm">
             <div className="flex items-center justify-center w-8 h-8 rounded-full bg-success-500/15 mx-auto mb-1.5">
               <UserCheck size={16} className="text-success-600" />
             </div>
             <p className="text-xl font-bold text-success-700">{stats.checkedIn}</p>
             <p className="text-caption font-medium text-success-600">Checked In</p>
           </div>
-          <div className="rounded-xl bg-gradient-to-br from-amber-50 to-amber-100/80 ring-1 ring-amber-300/60 p-3 text-center shadow-sm">
+          <div className="rounded-xl bg-white border border-neutral-100 p-3 text-center shadow-sm">
             <div className="flex items-center justify-center w-8 h-8 rounded-full bg-amber-500/15 mx-auto mb-1.5">
               <Clock size={16} className="text-amber-600" />
             </div>

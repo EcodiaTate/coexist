@@ -247,7 +247,7 @@ export default function EditEventPage() {
         <motion.div variants={fadeUp} className={cn(
           'space-y-4 rounded-2xl p-4 border',
           isDayOfMode
-            ? 'bg-moss-50/60 border-moss-300 ring-2 ring-moss-200'
+            ? 'bg-moss-50 border-moss-300 ring-2 ring-moss-200'
             : 'bg-white border-neutral-100',
         )}>
           <h3 className="text-sm font-semibold flex items-center gap-1.5">
@@ -270,7 +270,7 @@ export default function EditEventPage() {
         <motion.div variants={fadeUp} className={cn(
           'space-y-4 rounded-2xl p-4 border',
           isDayOfMode
-            ? 'bg-moss-50/60 border-moss-300 ring-2 ring-moss-200'
+            ? 'bg-moss-50 border-moss-300 ring-2 ring-moss-200'
             : 'bg-white border-neutral-100',
         )}>
           <h3 className="text-sm font-semibold flex items-center gap-1.5">

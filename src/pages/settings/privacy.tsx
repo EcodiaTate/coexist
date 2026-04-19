@@ -56,7 +56,7 @@ function MenuRow({
       className="flex items-center w-full min-h-[52px] px-4 py-3 text-left transition-colors duration-100 cursor-pointer hover:bg-surface-3 active:bg-surface-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-400"
       aria-label={label}
     >
-      <span className="flex items-center justify-center w-8 h-8 rounded-lg shrink-0 mr-3 bg-primary-100/70 text-primary-500" aria-hidden="true">
+      <span className="flex items-center justify-center w-8 h-8 rounded-lg shrink-0 mr-3 bg-neutral-100 text-neutral-500" aria-hidden="true">
         {icon}
       </span>
       <span className="flex-1 min-w-0">
@@ -221,7 +221,6 @@ export default function SettingsPrivacyPage() {
   return (
     <Page noBackground stickyOverlay={<Header title="Privacy" back transparent className="collapse-header" />}>
       <div className="relative" style={{ paddingTop: '3.5rem' }}>
-        <div className="absolute inset-0 -mx-4 lg:-mx-6 bg-gradient-to-b from-primary-50/30 via-white to-primary-50/10 -z-10" />
 
         <motion.div
           className="pb-8"

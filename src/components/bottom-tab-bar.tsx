@@ -125,7 +125,7 @@ export function BottomTabBar({
 
   const activeText = accent === 'moss' ? 'text-moss-700' : 'text-primary-800'
   const inactiveText = accent === 'moss' ? 'text-moss-400/70' : 'text-neutral-400/70'
-  const activePill = accent === 'moss' ? 'bg-moss-100/80' : 'bg-primary-100/80'
+  const activePill = accent === 'moss' ? 'bg-moss-100' : 'bg-primary-100'
 
   // Android gesture/button nav bars don't reliably populate env(safe-area-inset-bottom).
   // Apply a 16px minimum so the bar always clears the system UI on Android.

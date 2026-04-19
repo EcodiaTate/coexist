@@ -124,7 +124,7 @@ function QuestionCard({
           <button
             type="button"
             onClick={onEdit}
-            className="flex items-center justify-center w-8 h-8 rounded-lg text-primary-400 hover:text-primary-600 hover:bg-primary-100/60 transition-colors"
+            className="flex items-center justify-center w-8 h-8 rounded-lg text-primary-400 hover:text-primary-600 hover:bg-neutral-100 transition-colors"
           >
             <MessageSquare size={14} />
           </button>

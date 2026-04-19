@@ -713,7 +713,7 @@ function UpdatesSection({ rm }: { rm: boolean }) {
               type="button"
               onClick={() => navigate('/updates')}
               aria-label={item.title}
-              className="shrink-0 w-56 snap-start text-left rounded-2xl overflow-hidden bg-amber-50 shadow-[0_4px_16px_rgba(0,0,0,0.12)] active:scale-[0.98] transition-transform duration-150 flex flex-col"
+              className="shrink-0 w-56 snap-start text-left rounded-2xl overflow-hidden bg-amber-50 shadow-sm active:scale-[0.98] transition-transform duration-150 flex flex-col"
             >
               {/* Image - fixed 4/3 ratio, only rendered when present */}
               {item.image_url && (
