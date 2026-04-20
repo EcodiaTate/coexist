@@ -48,6 +48,8 @@ describe('BottomSheet', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    // jsdom defaults to innerWidth 1024 (desktop). Force mobile so MobileSheet renders.
+    Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: 375 })
   })
 
   it('renders nothing when closed', () => {
@@ -95,8 +97,8 @@ describe('BottomSheet', () => {
         <p>Content</p>
       </BottomSheet>,
     )
-    // Handle bar is rendered in portal (document.body), not container
-    const handle = document.querySelector('.cursor-grab')
-    expect(handle).toBeInTheDocument()
+    // Drag handle is inside the mobile sheet portal
+    const dialog = screen.getByRole('dialog')
+    expect(dialog.querySelector('.cursor-grab')).toBeInTheDocument()
   })
 })

@@ -20,6 +20,15 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 })
 
+// Mock ResizeObserver - not implemented in jsdom
+global.ResizeObserver = vi.fn(function ResizeObserver() {
+  return {
+    observe: vi.fn(),
+    unobserve: vi.fn(),
+    disconnect: vi.fn(),
+  }
+}) as unknown as typeof ResizeObserver
+
 // Mock Capacitor for test environment
 vi.mock('@capacitor/core', () => ({
   Capacitor: {

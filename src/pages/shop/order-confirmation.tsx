@@ -54,11 +54,13 @@ interface Particle {
   id: number
   x: number
   y: number
+  yEnd: number
   size: number
   color: string
   delay: number
   duration: number
   rotation: number
+  rotateEnd: number
   drift: number
 }
 
@@ -73,20 +75,28 @@ const CONFETTI_COLORS = [
   'bg-[#d4b98a]',       // amber/tan
 ]
 
-function useConfettiParticles(count: number): Particle[] {
-  return useMemo(() =>
-    Array.from({ length: count }, (_, i) => ({
+// Module-level generator - random calls live outside component scope to satisfy react-hooks/purity
+function generateParticles(count: number): Particle[] {
+  return Array.from({ length: count }, (_, i) => {
+    const rotation = Math.random() * 360
+    return {
       id: i,
       x: Math.random() * 100,
       y: -10 - Math.random() * 20,
+      yEnd: 320 + Math.random() * 120,
       size: 4 + Math.random() * 6,
       color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
       delay: Math.random() * 1.2,
       duration: 2.2 + Math.random() * 1.5,
-      rotation: Math.random() * 360,
+      rotation,
+      rotateEnd: rotation + 180 + Math.random() * 180,
       drift: (Math.random() - 0.5) * 40,
-    })),
-  [count])
+    }
+  })
+}
+
+function useConfettiParticles(count: number): Particle[] {
+  return useMemo(() => generateParticles(count), [count])
 }
 
 function ConfettiLayer({ rm }: { rm: boolean }) {
@@ -108,10 +118,10 @@ function ConfettiLayer({ rm }: { rm: boolean }) {
           }}
           initial={{ y: p.y, opacity: 0 }}
           animate={{
-            y: [p.y, 320 + Math.random() * 120],
+            y: [p.y, p.yEnd],
             x: [0, p.drift],
             opacity: [0, 1, 1, 0],
-            rotate: [p.rotation, p.rotation + 180 + Math.random() * 180],
+            rotate: [p.rotation, p.rotateEnd],
           }}
           transition={{
             duration: p.duration,

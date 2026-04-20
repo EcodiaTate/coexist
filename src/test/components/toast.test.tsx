@@ -31,13 +31,10 @@ function TestConsumer() {
 }
 
 describe('Toast system', () => {
-  it('throws when useToast is used outside provider', () => {
-    // Suppress console.error for this test
-    const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
-    expect(() => render(<TestConsumer />)).toThrow(
-      'useToast must be used within a <ToastProvider>',
-    )
-    spy.mockRestore()
+  it('does not throw when useToast is used outside provider (returns no-op)', () => {
+    // useToast returns a no-op when used outside the provider to avoid crashes
+    // during HMR transitions - confirm it renders silently without errors
+    expect(() => render(<TestConsumer />)).not.toThrow()
   })
 
   it('renders a success toast', async () => {

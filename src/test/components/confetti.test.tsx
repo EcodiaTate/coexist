@@ -55,8 +55,8 @@ describe('Confetti', () => {
     // 3 particles should be rendered (each as an absolute div)
     const container = document.querySelector('[aria-hidden="true"]')
     expect(container).toBeInTheDocument()
-    // Each particle is a .absolute div inside the container
-    const particles = container?.querySelectorAll('.absolute')
+    // Each particle is a .css-particle div inside the container
+    const particles = container?.querySelectorAll('.css-particle')
     expect(particles?.length).toBe(3)
   })
 })

@@ -58,9 +58,9 @@ export function RoleGate({ minRole, collectiveId, capability, fallback = null, c
     return (isStaffPlus || hasMinRole(minRole)) ? <>{children}</> : <>{fallback}</>
   }
 
-  // Global role check
-  if (!isCollectiveRole(minRole)) {
-    const meetsRole = GLOBAL_RANK[globalRole] >= GLOBAL_RANK[minRole]
+  // Global role check - also handles collective roles when no collectiveId is provided
+  if (!isCollectiveRole(minRole) || !collectiveId) {
+    const meetsRole = (GLOBAL_RANK[globalRole] ?? 0) >= (GLOBAL_RANK[minRole] ?? 0)
     return meetsRole ? <>{children}</> : <>{fallback}</>
   }
 
