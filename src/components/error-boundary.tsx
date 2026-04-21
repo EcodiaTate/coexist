@@ -35,8 +35,12 @@ export class ErrorBoundary extends Component<Props, State> {
         <EmptyState
           illustration="error"
           title="Something went wrong"
-          description="This page ran into an issue. Try going back or refreshing."
-          action={{ label: 'Go home', to: '/' }}
+          description="This page ran into an issue. Reload to try again."
+          // Must be a full reload, not a Link. Navigating via Link only changes
+          // the URL — the errored boundary still has hasError=true and keeps
+          // showing the fallback, so the UI looks stuck. Reload resets the
+          // React tree entirely.
+          action={{ label: 'Reload', onClick: () => window.location.assign('/') }}
         />
       )
     }

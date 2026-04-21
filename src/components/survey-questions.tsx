@@ -426,12 +426,20 @@ export function resolveOtherValues(
 
 /**
  * Parse raw JSONB questions from the surveys table into typed SurveyQuestion[].
+ * Returns [] on any parse/shape error rather than throwing — a malformed
+ * questions blob shouldn't crash the survey renderer or the admin lists.
  */
 export function parseSurveyQuestions(raw: unknown): SurveyQuestion[] {
-  const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw
-  return (Array.isArray(parsed) ? parsed : []).map(
-    (q: Record<string, unknown>) => ({
-      id: (q.id as string) || (() => { throw new Error(`Survey question missing id: ${JSON.stringify(q.text)}`) })(),
+  let parsed: unknown
+  try {
+    parsed = typeof raw === 'string' ? JSON.parse(raw) : raw
+  } catch {
+    return []
+  }
+  return (Array.isArray(parsed) ? parsed : [])
+    .filter((q): q is Record<string, unknown> => !!q && typeof q === 'object' && typeof (q as Record<string, unknown>).id === 'string' && !!(q as Record<string, unknown>).id)
+    .map((q) => ({
+      id: q.id as string,
       type: (q.type as string) || 'free_text',
       text: (q.text as string) || '',
       description: (q.description as string) || undefined,
@@ -454,6 +462,5 @@ export function parseSurveyQuestions(raw: unknown): SurveyQuestion[] {
       date_min: (q.date_min as string) || undefined,
       date_max: (q.date_max as string) || undefined,
       impact_metric: (q.impact_metric as string) || undefined,
-    }),
-  )
+    }))
 }

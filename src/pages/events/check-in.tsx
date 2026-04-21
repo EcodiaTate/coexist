@@ -121,14 +121,16 @@ export default function CheckInPage() {
   const isLeaderOrAbove = collectiveRole.isCoLeader || collectiveRole.isLeader || isGlobalStaff
 
   const [state, setState] = useState<CheckInState>('idle')
-  const [digits, setDigits] = useState(['', '', '', ''])
+  // 3-digit check-in code. Sized to match the 3 inputs rendered below —
+  // previously was length 4 with dead slice logic that never triggered
+  // because the 4th input was never rendered.
+  const [digits, setDigits] = useState(['', '', ''])
   const [errorKind, setErrorKind] = useState<ErrorKind>('generic')
   const [showCelebration, setShowCelebration] = useState(false)
   const [checkedInOffline, setCheckedInOffline] = useState(false)
   const [promotingFromWaitlist, setPromotingFromWaitlist] = useState(false)
 
   const inputRefs = [
-    useRef<HTMLInputElement>(null),
     useRef<HTMLInputElement>(null),
     useRef<HTMLInputElement>(null),
     useRef<HTMLInputElement>(null),
@@ -148,7 +150,7 @@ export default function CheckInPage() {
       next[index] = digit
       return next
     })
-    if (digit && index < 3) {
+    if (digit && index < 2) {
       inputRefs[index + 1].current?.focus()
     }
   }, [])
@@ -161,21 +163,15 @@ export default function CheckInPage() {
 
   const handlePaste = useCallback((e: React.ClipboardEvent) => {
     e.preventDefault()
-    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 4)
-    if (pasted.length >= 3) {
-      const newDigits = ['', '', '', '']
-      for (let i = 0; i < pasted.length && i < 4; i++) {
-        newDigits[i] = pasted[i]
-      }
-      setDigits(newDigits)
-      const lastIdx = Math.min(pasted.length - 1, 3)
-      inputRefs[lastIdx].current?.focus()
+    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 3)
+    if (pasted.length === 3) {
+      setDigits([pasted[0], pasted[1], pasted[2]])
+      inputRefs[2].current?.focus()
     }
   }, [])
 
   const code = digits.join('')
-  const codeLength = 3
-  const isComplete = code.length >= codeLength && digits.slice(0, codeLength).every(d => d !== '')
+  const isComplete = digits.every((d) => d !== '')
 
   /* ---- Offline check-in ---- */
   const handleOfflineCheckIn = useCallback(async () => {
@@ -224,10 +220,8 @@ export default function CheckInPage() {
       return
     }
 
-    const submittedCode = code.slice(0, digits[3] ? 4 : 3)
-
     codeCheckIn.mutate(
-      { checkInCode: submittedCode },
+      { checkInCode: code },
       {
         onSuccess: () => {
           setState('success')
@@ -253,7 +247,7 @@ export default function CheckInPage() {
         },
       },
     )
-  }, [user, isComplete, code, digits, isOffline, codeCheckIn, handleOfflineCheckIn])
+  }, [user, isComplete, code, isOffline, codeCheckIn, handleOfflineCheckIn])
 
   /* ---- Promote from waitlist (leader action) ---- */
   const handlePromoteFromWaitlist = useCallback(async () => {
@@ -475,7 +469,7 @@ export default function CheckInPage() {
                   View Event
                 </Button>
               ) : (
-                <Button variant="primary" fullWidth onClick={() => { setState('idle'); setDigits(['', '', '', '']) }}>
+                <Button variant="primary" fullWidth onClick={() => { setState('idle'); setDigits(['', '', '']) }}>
                   Try Again
                 </Button>
               )}

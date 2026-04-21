@@ -99,23 +99,28 @@ export function useImageUpload({
     async (files: Blob[]): Promise<UploadImageResult[]> => {
       if (!user) throw new Error('Not authenticated')
 
-      const total = files.length
-      const fileProgress = new Array(total).fill(0)
-
       const settled = await Promise.allSettled(
-        files.map((file, i) => {
+        files.map((file) => {
           const path = buildPath()
-          return uploadImage(file, bucket, path, (p) => {
-            fileProgress[i] = p
-          })
+          return uploadImage(file, bucket, path)
         }),
       )
 
       const results: UploadImageResult[] = []
-      for (const outcome of settled) {
+      const newFailures: FailedUpload[] = []
+      settled.forEach((outcome, i) => {
         if (outcome.status === 'fulfilled') {
           results.push(outcome.value)
+        } else {
+          // Previously failed uploads were silently dropped — the caller got
+          // back fewer results with no way to detect that photos failed.
+          // Now they surface in failedUploads and can be retried.
+          const msg = outcome.reason instanceof Error ? outcome.reason.message : 'Upload failed'
+          newFailures.push({ blob: files[i], error: msg })
         }
+      })
+      if (newFailures.length > 0) {
+        setFailedUploads((prev) => [...prev, ...newFailures])
       }
 
       return results

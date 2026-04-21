@@ -52,6 +52,7 @@ import {
     ConfirmationSheet,
 } from '@/components'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
+import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
 import { parseLocationPoint } from '@/lib/geo'
 import { supabase } from '@/lib/supabase'
@@ -600,6 +601,7 @@ export default function LogImpactPage() {
   const navigate = useNavigate()
   const shouldReduceMotion = useReducedMotion()
   const queryClient = useQueryClient()
+  const { toast } = useToast()
 
   const { user, profile } = useAuth()
   const { data: event, isLoading: eventLoading } = useEventDetail(eventId)
@@ -619,12 +621,16 @@ export default function LogImpactPage() {
     queryKey: ['collective-leaders', event?.collective_id],
     queryFn: async () => {
       if (!event?.collective_id) return []
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('collective_members')
         .select('profiles(display_name)')
         .eq('collective_id', event.collective_id)
         .in('role', ['leader', 'co_leader', 'assist_leader'])
-      return (data ?? []).map((m: any) => m.profiles?.display_name).filter(Boolean) as string[]
+      if (error) throw error
+      type Row = { profiles: { display_name: string | null } | null }
+      return ((data ?? []) as unknown as Row[])
+        .map((m) => m.profiles?.display_name)
+        .filter((name): name is string => !!name)
     },
     enabled: !!event?.collective_id,
     staleTime: 10 * 60 * 1000,
@@ -831,11 +837,12 @@ export default function LogImpactPage() {
 
     try {
       if (!existingImpact) {
-        const { data: freshImpact } = await supabase
+        const { data: freshImpact, error: freshErr } = await supabase
           .from('event_impact')
           .select('logged_by, logged_at, profiles:logged_by(display_name)')
           .eq('event_id', eventId)
           .maybeSingle()
+        if (freshErr) throw freshErr
         if (freshImpact) {
           const who = (freshImpact.profiles as unknown as { display_name: string } | null)?.display_name ?? 'Another leader'
           const when = freshImpact.logged_at
@@ -854,21 +861,23 @@ export default function LogImpactPage() {
 
       if (surveyData?.surveyId && surveyQuestions.length > 0) {
         // Check for existing response first (unique index uses COALESCE so standard upsert onConflict won't work)
-        const { data: existingResp } = await supabase
+        const { data: existingResp, error: existingRespErr } = await supabase
           .from('survey_responses')
           .select('id')
           .eq('survey_id', surveyData.surveyId)
           .eq('event_id', eventId)
           .eq('user_id', user.id)
           .maybeSingle()
+        if (existingRespErr) throw existingRespErr
 
         if (existingResp) {
-          await supabase
+          const { error: updErr } = await supabase
             .from('survey_responses')
             .update({ answers: surveyAnswers as unknown as Json, updated_at: new Date().toISOString() })
             .eq('id', existingResp.id)
+          if (updErr) throw updErr
         } else {
-          await supabase
+          const { error: insErr } = await supabase
             .from('survey_responses')
             .insert({
               survey_id: surveyData.surveyId,
@@ -876,16 +885,18 @@ export default function LogImpactPage() {
               user_id: user.id,
               answers: surveyAnswers as unknown as Json,
             })
+          if (insErr) throw insErr
         }
 
         await syncSurveyImpact(eventId, surveyQuestions, surveyAnswers as Record<string, Json>, user.id, metricDefsPlaceholder ? undefined : validKeys)
       }
 
-      const { data: postSyncImpact } = await supabase
+      const { data: postSyncImpact, error: postSyncErr } = await supabase
         .from('event_impact')
         .select('trees_planted, rubbish_kg, area_restored_sqm, native_plants, wildlife_sightings, invasive_weeds_pulled, coastline_cleaned_m, custom_metrics')
         .eq('event_id', eventId)
         .maybeSingle()
+      if (postSyncErr) throw postSyncErr
 
       const customMetricsPayload: Record<string, unknown> = {
         species: species.length > 0 ? species : undefined,
@@ -925,10 +936,17 @@ export default function LogImpactPage() {
       queryClient.invalidateQueries({ queryKey: ['pending-surveys'] })
 
       setSubmitted(true)
+    } catch (err) {
+      // Previously this whole block had no catch — a failed upsert or network
+      // error silently returned the form with no indication anything was wrong,
+      // so leaders would re-submit or assume it saved. Now surface it.
+      console.error('Failed to log impact:', err)
+      const msg = err instanceof Error ? err.message : 'Failed to save impact'
+      toast.error(`Could not save impact — ${msg}`)
     } finally {
       setIsSubmitting(false)
     }
-  }, [eventId, user, isSubmitting, existingImpact, surveyData, surveyQuestions, surveyAnswers, species, wildlifeSightings, photos, beforePhotos, afterPhotos, drawnArea, logImpact, computedHoursTotal, notes, queryClient, validKeys, metricDefsPlaceholder])
+  }, [eventId, user, isSubmitting, existingImpact, surveyData, surveyQuestions, surveyAnswers, species, wildlifeSightings, photos, beforePhotos, afterPhotos, drawnArea, logImpact, computedHoursTotal, notes, queryClient, validKeys, metricDefsPlaceholder, toast])
 
   const isLoading = eventLoading || impactLoading || roleLoading || surveyLoading
   const showLoading = useDelayedLoading(isLoading)

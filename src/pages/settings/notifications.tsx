@@ -126,10 +126,11 @@ export default function SettingsNotificationsPage() {
       setPrefs((prev) => {
         const updated = { ...prev, [key]: value }
         const rollback = prev
-        // Merge-write: touches only this key (plus the prior notif-pref keys
-        // we've got locally), never profile_visible or anything else owned
-        // by the privacy page.
-        patchNotificationPrefs(user.id, { ...updated, sound_enabled: soundEnabled }).then(({ error }) => {
+        // Merge-write only the single key the user just changed.
+        // DO NOT include sound_enabled here — that's owned by handleSoundToggle,
+        // and including it means a stale soundEnabled closure could overwrite a
+        // more recent value written by the sound toggle.
+        patchNotificationPrefs(user.id, { [key]: value }).then(({ error }) => {
           if (error) {
             console.error('Failed to save preferences:', error)
             setPrefs(rollback)
@@ -138,7 +139,7 @@ export default function SettingsNotificationsPage() {
         return updated
       })
     },
-    [user, hydrated, soundEnabled],
+    [user, hydrated],
   )
 
   const handleSoundToggle = useCallback(
@@ -227,10 +228,21 @@ export default function SettingsNotificationsPage() {
           <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
             <SectionHeader label="Sound & Schedule" />
             <div className="bg-white/90 rounded-2xl shadow-sm border border-neutral-100 overflow-hidden">
-              <button
-                type="button"
+              {/* Outer is a div, not a button — can't nest <button> inside <button>
+                  (the Toggle is itself a button). Row remains tappable via its own
+                  onClick; the Toggle's click is stopped from bubbling so a tap on
+                  the switch doesn't fire the row handler too. */}
+              <div
+                role="button"
+                tabIndex={0}
                 onClick={() => handleSoundToggle(!soundEnabled)}
-                className="flex items-center w-full min-h-[52px] px-4 py-3 text-left hover:bg-surface-3 active:bg-surface-3 cursor-pointer"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    handleSoundToggle(!soundEnabled)
+                  }
+                }}
+                className="flex items-center w-full min-h-[52px] px-4 py-3 text-left hover:bg-surface-3 active:bg-surface-3 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-400"
               >
                 <span className="flex items-center justify-center w-8 h-8 rounded-lg shrink-0 mr-3 bg-neutral-100 text-neutral-500">
                   <Volume2 size={18} />
@@ -238,8 +250,10 @@ export default function SettingsNotificationsPage() {
                 <span className="flex-1 min-w-0">
                   <span className="block text-sm font-medium text-neutral-900">Notification Sounds</span>
                 </span>
-                <Toggle checked={soundEnabled} onChange={handleSoundToggle} size="sm" />
-              </button>
+                <span onClick={(e) => e.stopPropagation()}>
+                  <Toggle checked={soundEnabled} onChange={handleSoundToggle} size="sm" />
+                </span>
+              </div>
               <button
                 type="button"
                 onClick={() => setShowQuietHours(true)}

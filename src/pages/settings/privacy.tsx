@@ -226,11 +226,17 @@ export default function SettingsPrivacyPage() {
                 subtitle={hydrated ? (profileVisible ? 'Public' : 'Only collective members') : 'Loading…'}
                 rightContent={
                   hydrated ? (
-                    <Toggle
-                      checked={profileVisible ?? true}
-                      onChange={handleVisibilityToggle}
-                      size="sm"
-                    />
+                    // stopPropagation so the inner Toggle button's click doesn't
+                    // bubble up to MenuRow's outer button. Without this, tapping
+                    // the switch fires both handlers (nested <button> inside
+                    // <button> is invalid HTML and double-dispatches).
+                    <span onClick={(e) => e.stopPropagation()}>
+                      <Toggle
+                        checked={profileVisible ?? true}
+                        onChange={handleVisibilityToggle}
+                        size="sm"
+                      />
+                    </span>
                   ) : (
                     <Skeleton variant="text" className="w-10 h-6 rounded-full" />
                   )
@@ -243,11 +249,13 @@ export default function SettingsPrivacyPage() {
                 subtitle={hydrated ? (marketingOptIn ? 'Subscribed' : 'Unsubscribed') : 'Loading…'}
                 rightContent={
                   hydrated ? (
-                    <Toggle
-                      checked={marketingOptIn ?? true}
-                      onChange={handleMarketingToggle}
-                      size="sm"
-                    />
+                    <span onClick={(e) => e.stopPropagation()}>
+                      <Toggle
+                        checked={marketingOptIn ?? true}
+                        onChange={handleMarketingToggle}
+                        size="sm"
+                      />
+                    </span>
                   ) : (
                     <Skeleton variant="text" className="w-10 h-6 rounded-full" />
                   )

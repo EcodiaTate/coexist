@@ -328,11 +328,16 @@ export default function AdminExportsPage() {
         const surveyData = (data ?? []) as any[]
         rowCount = surveyData.length
 
-        // Build question ID → text map from survey definitions
+        // Build question ID → text map from survey definitions.
+        // Wrapped in try/catch per row: one malformed questions blob shouldn't
+        // abort the whole export — just skip that row's question labels.
         const questionMap = new Map<string, string>()
         for (const r of surveyData) {
           const rawQs = r.surveys?.questions
-          const questions = typeof rawQs === 'string' ? JSON.parse(rawQs) : rawQs
+          let questions: unknown = rawQs
+          if (typeof rawQs === 'string') {
+            try { questions = JSON.parse(rawQs) } catch { continue }
+          }
           if (Array.isArray(questions)) {
             for (const q of questions) {
               if (q.id && q.text && !questionMap.has(q.id)) {

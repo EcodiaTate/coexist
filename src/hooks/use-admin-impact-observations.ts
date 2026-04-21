@@ -226,23 +226,34 @@ export function useImpactObservations(filters: ObservationFilters, metricDefs: I
         legacyRawRows.push({ ...r, events: ev } as RawRow)
       }
 
-      const filtered = filters.search
-        ? rawRows.filter((r) =>
-            r.events.title.toLowerCase().includes(filters.search!.toLowerCase()),
-          )
+      const searchLower = filters.search?.toLowerCase()
+      const filtered = searchLower
+        ? rawRows.filter((r) => r.events.title.toLowerCase().includes(searchLower))
         : rawRows
+      // Apply the same title search to legacy rows — otherwise summary totals
+      // diverge from the displayed row list when the user searches.
+      const filteredLegacy = searchLower
+        ? legacyRawRows.filter((r) => r.events.title.toLowerCase().includes(searchLower))
+        : legacyRawRows
 
       const metricKeys = metricDefs.map((d) => d.key)
 
       // Transform rows
       const rows: EventImpactRow[] = filtered.map((r) => {
-        const attendance = parseAttendance(r.notes as string | null)
+        const parsed = parseAttendance(r.notes as string | null)
         const estimatedVolHours = Number(r.hours_total) || null
 
         const metrics: Record<string, number | null> = {}
         for (const key of metricKeys) {
           metrics[key] = getMetricValue(r, key)
         }
+
+        // Prefer the explicit attendees column; only fall back to parsed notes
+        // when attendees is null/undefined. Using `||` here would lose a
+        // legitimate zero attendance and silently substitute the notes parse.
+        const attendanceFinal = r.attendees != null
+          ? Number(r.attendees) || 0
+          : parsed
 
         return {
           eventId: r.events.id,
@@ -256,7 +267,7 @@ export function useImpactObservations(filters: ObservationFilters, metricDefs: I
           isLegacy:
             r.events.created_by === SEED_ADMIN ||
             ((r.notes as string) ?? '').startsWith('Legacy import'),
-          attendance: Number(r.attendees) || attendance,
+          attendance: attendanceFinal,
           estimatedVolHours,
         }
       })
@@ -273,9 +284,11 @@ export function useImpactObservations(filters: ObservationFilters, metricDefs: I
       const showNationalBaseline = isAllTime && !filters.collectiveId && !filters.activityType
 
       // Combined source for metric summation (live + legacy when included).
+      // Uses filteredLegacy so a title search narrows BOTH lists in lockstep —
+      // otherwise summary totals diverge from the displayed rows.
       const summableRows: Record<string, unknown>[] = [
         ...(filtered as unknown as Record<string, unknown>[]),
-        ...(legacyRawRows as unknown as Record<string, unknown>[]),
+        ...(filteredLegacy as unknown as Record<string, unknown>[]),
       ]
 
       const summaryMetrics: Record<string, number> = {}
@@ -293,16 +306,19 @@ export function useImpactObservations(filters: ObservationFilters, metricDefs: I
       // carry their count in the notes field ("Legacy import: 123 attendees").
       const liveAttendeeSum = Math.round(sumMetric(filtered as unknown as Record<string, unknown>[], 'attendees'))
       let legacyAttendeeSum = 0
-      for (const r of legacyRawRows) {
-        const explicit = Number(r.attendees) || 0
-        const parsed = explicit || (parseAttendance(r.notes as string | null) ?? 0)
-        legacyAttendeeSum += parsed
+      for (const r of filteredLegacy) {
+        // Don't use `||` — a legitimate 0 attendees would fall through to the
+        // notes parse. Prefer explicit column, fall back to notes only if null.
+        const att = r.attendees != null
+          ? Number(r.attendees) || 0
+          : (parseAttendance(r.notes as string | null) ?? 0)
+        legacyAttendeeSum += att
       }
       const totalAttendees = liveAttendeeSum + legacyAttendeeSum
       const totalEstimatedHours = Math.round(sumMetric(summableRows, 'hours_total'))
       const uniqueEventIds = new Set([
         ...rows.map((r) => r.eventId),
-        ...legacyRawRows.map((r) => r.event_id),
+        ...filteredLegacy.map((r) => r.event_id),
       ])
 
       const summary: ImpactSummary = {
@@ -344,13 +360,14 @@ export function useImpactObservations(filters: ObservationFilters, metricDefs: I
       // Fold legacy rows into the breakdown — don't bump eventCount (they
       // represent rolled-up history, not distinct events), but do add their
       // metrics/attendees/hours to the right collective bucket.
-      for (const r of legacyRawRows) {
+      for (const r of filteredLegacy) {
         const ev = r.events as unknown as RawRow['events'] | undefined
         if (!ev) continue
         const collectiveId = ev.collective_id
         const collectiveName = ev.collectives?.name ?? 'Unknown'
-        const explicit = Number(r.attendees) || 0
-        const parsedAtt = explicit || (parseAttendance(r.notes as string | null) ?? 0)
+        const parsedAtt = r.attendees != null
+          ? Number(r.attendees) || 0
+          : (parseAttendance(r.notes as string | null) ?? 0)
         const hours = Number(r.hours_total) || 0
         const existing = byCollective.get(collectiveId)
         if (existing) {
