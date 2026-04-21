@@ -431,10 +431,18 @@ export function AdminLayout() {
           })() : null}
 
           {/* Content rendered by nested <Route> children */}
+          {/*
+            Responsive padding: p-4 on phones → p-6 on small tablets → p-8 on
+            desktop. Was a flat p-6 which cost 48px horizontal on a 375px
+            iPhone SE, squishing content to 327px. /admin/impact was the
+            worst offender because it also added its own px-4 sm:px-6 lg:px-8
+            inside (stacking doubly). Child pages can now assume horizontal
+            padding is already handled here and should not add their own.
+          */}
           <div className={cn(
             'relative flex-1',
             !header.fullBleed && 'overflow-clip',
-            header.fullBleed ? 'p-0 bg-white' : 'p-6',
+            header.fullBleed ? 'p-0 bg-white' : 'p-4 sm:p-6 lg:p-8',
             !header.fullBleed && 'bg-gradient-to-b from-primary-50/40 via-white to-primary-50/20',
             showBottomTabs && 'pb-[calc(5rem+var(--safe-bottom))]',
           )}>
