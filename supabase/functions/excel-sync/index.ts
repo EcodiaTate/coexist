@@ -8,15 +8,25 @@
  * - Default direction is `from-excel`. Calling without `?direction=...` does the safe read
  *   direction and never writes to the sheet.
  * - Pre-2026 data in Excel is UNTOUCHABLE. Never written to by the app.
- * - to-excel only writes TEST-prefixed events (title ILIKE 'test%'). Real event data lives
- *   in the sheet via Microsoft Forms and must not be overwritten by the app.
+ * - to-excel writes app-created completed events that pass the migration gate:
+ *     (a) events whose title starts with "test" (dev/test, always sync regardless of
+ *         collective state), OR
+ *     (b) events whose collective has forms_migrated_at set AND whose date_start is
+ *         on or after forms_migrated_at (collective has cut over from Forms to the app).
+ *   Collectives with NULL forms_migrated_at are still using Forms for real events — their
+ *   app events are NOT pushed to the sheet, preventing double-entries during transition.
+ * - DEDUP: before appending any app-generated row, the function builds a signature set
+ *   from all integer-ID (Forms-origin) rows already on the sheet. Signature format is
+ *   (collective | date_iso | title), lowercased and trimmed. If an app event's signature
+ *   matches a Forms row, the app event is SKIPPED (not appended) and logged in errors as
+ *   `skippedDuplicates`. Admin must reconcile the Forms row manually — no auto-overwrite.
  * - from-excel is the PRIORITY direction. Run it first in full sync.
  *
  * Directions:
- *   POST /excel-sync?direction=to-excel      -> append/update TEST-prefixed events in Excel (title ILIKE 'test%')
+ *   POST /excel-sync?direction=to-excel      -> append/update migration-gated events in Excel
  *   POST /excel-sync?direction=from-excel    -> pull Excel data into Supabase (Excel wins)
  *   POST /excel-sync?direction=full          -> from-excel first, then to-excel
- *   POST /excel-sync?event_id=xxx            -> sync single 2026+ event to Excel
+ *   POST /excel-sync?event_id=xxx            -> sync single event to Excel
  *
  * Column mapping (28 columns, A-AB on "Post Event Review" sheet):
  *   0:  ID                    <- event.id (or legacy ID from sheet)
@@ -25,7 +35,8 @@
  *   3:  Collective            <- collectives.name
  *   4:  Location              <- events.address
  *   5:  Postcode              <- extracted from address
- *   6:  Primary Organiser     <- profiles.display_name (events.created_by)
+ *   6:  Primary Organiser     <- constant "Co-Exist" (matches Forms convention; partner-org
+ *                                support will come via event_organisations table — see TODO)
  *   7:  Other Group Attended  <- survey answer q1
  *   8:  Which Landcare Group  <- survey answer q2
  *   9:  Which OzFish group    <- survey answer q3
@@ -128,7 +139,7 @@ function dateToExcelSerial(isoDate: string): number {
   return Math.floor(diffMs / (24 * 60 * 60 * 1000))
 }
 
-/** Convert Excel serial number to ISO date */
+/** Convert Excel serial number to ISO date string (YYYY-MM-DD) */
 function excelSerialToDate(serial: number): string {
   const excelEpoch = new Date(1899, 11, 30)
   const date = new Date(excelEpoch.getTime() + serial * 24 * 60 * 60 * 1000)
@@ -202,7 +213,10 @@ function buildExcelRow(e: EventData): (string | number | null)[] {
     e.collective_name,                                       // 3: Collective
     e.address ?? '',                                         // 4: Location
     (e.answers?.postcode as string) ?? extractPostcode(e.address ?? ''), // 5: Postcode (survey answer, fallback to address extraction)
-    e.collective_name ?? '',                                 // 6: Primary Organiser (collective name, not person)
+    // TODO: When partner-org events land, populate `event_organisations` + `organisations` tables
+    // and pull the first related organisation's name here. For now, all app events are Co-Exist.
+    // Matches the Forms convention of writing "Co-Exist" in this column for every row.
+    'Co-Exist',                                              // 6: Primary Organiser of the Event
     (e.answers?.q1 as string) ?? '',                         // 7: Other Group Attended
     (e.answers?.q2 as string) ?? '',                         // 8: Which Landcare Group
     (e.answers?.q3 as string) ?? '',                         // 9: Which OzFish group
@@ -319,17 +333,36 @@ async function fetchEventData(
   }
 }
 
-// ---- Sync: Supabase -> Excel (2026+ only, append new + update existing) ----
+// ---- Dedup helper ----
+
+/** Canonical signature for matching Forms rows against app events.
+ *  Format: collective|date_iso_yyyy_mm_dd|title (all lowercased and trimmed). */
+function sigOf(collective: string, dateIso: string, title: string): string {
+  return [
+    (collective ?? '').trim().toLowerCase(),
+    dateIso.slice(0, 10),
+    (title ?? '').trim().toLowerCase(),
+  ].join('|')
+}
+
+// ---- Sync: Supabase -> Excel (migration-gated, append new + update existing) ----
 
 async function syncToExcel(
   supabase: ReturnType<typeof createClient>,
   graphToken: string,
   eventId?: string,
-): Promise<{ appended: number; updated: number; skipped: number; errors: string[] }> {
+): Promise<{
+  appended: number
+  updated: number
+  skipped: number
+  skippedDuplicates: number
+  errors: string[]
+}> {
   const errors: string[] = []
   let appended = 0
   let updated = 0
   let skipped = 0
+  let skippedDuplicates = 0
 
   // Read existing Excel data
   let excelState: ExcelState
@@ -337,7 +370,7 @@ async function syncToExcel(
     excelState = await readExcelState(graphToken)
   } catch (err) {
     errors.push(`Failed to read Excel: ${(err as Error).message}`)
-    return { appended, updated, skipped, errors }
+    return { appended, updated, skipped, skippedDuplicates, errors }
   }
 
   // Build a map of existing event IDs to their row index (1-based)
@@ -347,22 +380,51 @@ async function syncToExcel(
     if (id) idToRowIndex.set(id, i + 1) // +1 because Excel rows are 1-based
   }
 
+  // Build a signature set from Forms rows (integer IDs only) for dedup protection.
+  // If an app event's signature matches a Forms row, it is skipped — not appended.
+  // This prevents double-entries during the transition from Forms to the app for any
+  // collective that had real events logged via both systems on the same date.
+  const formsSignatures = new Set<string>()
+  for (let i = 1; i < excelState.rows.length; i++) {
+    const row = excelState.rows[i]
+    const id = String(row[0] ?? '')
+    if (!id) continue
+    // Only integer IDs are Forms rows — UUIDs are app rows and don't belong in the dedup set
+    if (/^[0-9a-f]{8}-[0-9a-f]{4}-/.test(id)) continue
+
+    const title = String(row[1] ?? '')
+    const dateSerial = Number(row[2])
+    const dateIso = Number.isFinite(dateSerial) ? excelSerialToDate(dateSerial) : ''
+    const collective = String(row[3] ?? '')
+    if (!title || !dateIso) continue
+    formsSignatures.add(sigOf(collective, dateIso, title))
+  }
+
   // Determine which events to sync
   let eventIds: string[] = []
   if (eventId) {
     eventIds = [eventId]
   } else {
-    // Batch mode: only test rows from Supabase (explicitly named "Test*")
-    // Forms rows on the sheet already cover real event data.
+    // Batch mode: completed 2026+ events that pass the migration gate.
+    // Pull collective forms_migrated_at and filter in JS:
+    //   (a) test-prefixed titles always sync (dev/test events, regardless of collective state)
+    //   (b) non-test events only sync if their collective has forms_migrated_at set AND
+    //       date_start >= forms_migrated_at (the collective has cut over from Forms)
     const { data: events } = await supabase
       .from('events')
-      .select('id')
-      .ilike('title', 'test%')
+      .select('id, title, date_start, collective_id, collectives(forms_migrated_at)')
+      .eq('status', 'completed')
+      .gte('date_start', SYNC_CUTOFF_DATE)
       .order('date_start', { ascending: true })
 
-    if (events) {
-      eventIds = events.map((e: { id: string }) => e.id)
-    }
+    const filtered = ((events ?? []) as any[]).filter((e: any) => {
+      if (/^test/i.test(e.title)) return true
+      const migratedAt = (e.collectives as any)?.forms_migrated_at
+      if (!migratedAt) return false
+      return new Date(e.date_start) >= new Date(migratedAt)
+    })
+
+    eventIds = filtered.map((e: any) => e.id)
   }
 
   // Sort into append vs update
@@ -381,11 +443,20 @@ async function syncToExcel(
       const existingRowIndex = idToRowIndex.get(eid)
 
       if (existingRowIndex) {
-        // 2026+ event already in sheet - UPDATE the row
+        // App event already in sheet - UPDATE the row
         updateRows.push({ rowIndex: existingRowIndex, row })
         updated++
       } else {
-        // New event - APPEND
+        // New app event - check dedup before appending.
+        // If this event matches a Forms row on (collective, date, title), skip it.
+        // The Forms row is the authoritative record for that event; appending an app row
+        // would create a duplicate. Admin must reconcile the Forms row manually.
+        const eventSig = sigOf(data.collective_name, data.date_start, data.title)
+        if (formsSignatures.has(eventSig)) {
+          skippedDuplicates++
+          errors.push(`Event ${eid}: skipped (matches Forms row signature ${eventSig})`)
+          continue
+        }
         newRows.push(row)
         appended++
       }
@@ -427,7 +498,7 @@ async function syncToExcel(
     }
   }
 
-  return { appended, updated, skipped, errors }
+  return { appended, updated, skipped, skippedDuplicates, errors }
 }
 
 // ---- Sync: Excel -> Supabase (Excel is source of truth) ----
