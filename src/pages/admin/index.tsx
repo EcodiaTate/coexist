@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useMemo } from 'react'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
@@ -33,6 +33,7 @@ import {
     type DateRange,
     dateRangeOptions,
 } from '@/hooks/use-admin-dashboard'
+import { useCollectives } from '@/hooks/use-collective'
 
 
 const scaleIn = {
@@ -289,9 +290,16 @@ function QuickLink({
 
 export default function AdminDashboardPage() {
   const [dateRange, setDateRange] = useState<DateRange>('all')
-  const { data, isLoading, isError } = useAdminOverview(dateRange)
+  const [collectiveId, setCollectiveId] = useState<string>('')
+  const { data: collectivesData } = useCollectives({ includeNational: false })
+  const { data, isLoading, isError } = useAdminOverview(dateRange, collectiveId || undefined)
   const showLoading = useDelayedLoading(isLoading)
   const { data: trends } = useTrendData()
+
+  const collectiveOptions = useMemo(() => ([
+    { value: '', label: 'All Collectives' },
+    ...(collectivesData ?? []).map((c) => ({ value: c.id, label: c.name })),
+  ]), [collectivesData])
 
   const shouldReduceMotion = useReducedMotion()
   const rm = !!shouldReduceMotion
@@ -381,14 +389,20 @@ export default function AdminDashboardPage() {
           initial="hidden"
           animate="visible"
         >
-          {/* ── Period filter ── */}
-          <motion.div variants={rm ? undefined : fadeUp} className="flex items-center gap-3">
+          {/* ── Filters ── */}
+          <motion.div variants={rm ? undefined : fadeUp} className="flex flex-wrap items-center gap-2 sm:gap-3">
             <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Showing</span>
             <Dropdown
               options={dateRangeOptions}
               value={dateRange}
               onChange={(v) => setDateRange(v as DateRange)}
-              className="w-44"
+              className="w-36 sm:w-44"
+            />
+            <Dropdown
+              options={collectiveOptions}
+              value={collectiveId}
+              onChange={setCollectiveId}
+              className="w-40 sm:w-52"
             />
           </motion.div>
 
