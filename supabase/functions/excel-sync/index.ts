@@ -5,13 +5,15 @@
  * "Master Impact Data Sheet.xlsx" on SharePoint (OneDrive for Business).
  *
  * CRITICAL RULES:
+ * - Default direction is `from-excel`. Calling without `?direction=...` does the safe read
+ *   direction and never writes to the sheet.
  * - Pre-2026 data in Excel is UNTOUCHABLE. Never written to by the app.
- * - 2026+ events sync both ways: app changes update the sheet, sheet
- *   changes update the DB. Both directions run for 2026+ UUID events.
+ * - to-excel only writes TEST-prefixed events (title ILIKE 'test%'). Real event data lives
+ *   in the sheet via Microsoft Forms and must not be overwritten by the app.
  * - from-excel is the PRIORITY direction. Run it first in full sync.
  *
  * Directions:
- *   POST /excel-sync?direction=to-excel      -> append/update 2026+ events in Excel
+ *   POST /excel-sync?direction=to-excel      -> append/update TEST-prefixed events in Excel (title ILIKE 'test%')
  *   POST /excel-sync?direction=from-excel    -> pull Excel data into Supabase (Excel wins)
  *   POST /excel-sync?direction=full          -> from-excel first, then to-excel
  *   POST /excel-sync?event_id=xxx            -> sync single 2026+ event to Excel
@@ -350,12 +352,12 @@ async function syncToExcel(
   if (eventId) {
     eventIds = [eventId]
   } else {
-    // Batch mode: all 2026+ completed events
+    // Batch mode: only test rows from Supabase (explicitly named "Test*")
+    // Forms rows on the sheet already cover real event data.
     const { data: events } = await supabase
       .from('events')
       .select('id')
-      .eq('status', 'completed')
-      .gte('date_start', SYNC_CUTOFF_DATE)
+      .ilike('title', 'test%')
       .order('date_start', { ascending: true })
 
     if (events) {
@@ -554,7 +556,7 @@ Deno.serve(async (req: Request) => {
 
   try {
     const url = new URL(req.url)
-    const direction = url.searchParams.get('direction') ?? 'to-excel'
+    const direction = url.searchParams.get('direction') ?? 'from-excel'
     const eventId = url.searchParams.get('event_id') ?? undefined
 
     // Auth: require service_role or valid user token
