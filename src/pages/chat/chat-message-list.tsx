@@ -162,11 +162,12 @@ function InlineAnnouncement({
           if (error) throw error
           toast.success("You're registered!")
         } else if (response === 'not_going') {
-          await supabase
+          const { error } = await supabase
             .from('event_registrations')
             .update({ status: 'cancelled' as const })
             .eq('event_id', eventId)
             .eq('user_id', user!.id)
+          if (error) throw error
           toast.info('RSVP removed')
         } else if (response === 'maybe') {
           try {

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
@@ -99,26 +99,42 @@ export default function CreateUpdatePage() {
     content.trim().length > 0 &&
     (targetAudience !== 'collective_specific' || !!selectedCollectiveId)
 
-  /* ---- Multi-image handling ---- */
-
+  /* ---- Multi-image handling ----
+   * Previews use object URLs (synchronous) so preview[i] always lines up
+   * with selectedFiles[i]. The previous FileReader approach was async per
+   * file, so a small file could finish ahead of a large one and the two
+   * arrays would drift out of order — removing index 0 then removed the
+   * wrong preview. Object URLs are revoked on removal and on unmount to
+   * avoid memory leaks.
+   */
   const handleFilesSelected = (files: FileList | null) => {
     if (!files) return
     const newFiles = Array.from(files).slice(0, 10 - selectedFiles.length)
+    const newPreviews = newFiles.map((f) => URL.createObjectURL(f))
     setSelectedFiles((prev) => [...prev, ...newFiles])
-
-    for (const file of newFiles) {
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        setPreviews((prev) => [...prev, e.target?.result as string])
-      }
-      reader.readAsDataURL(file)
-    }
+    setPreviews((prev) => [...prev, ...newPreviews])
   }
 
   const removeImage = (index: number) => {
     setSelectedFiles((prev) => prev.filter((_, i) => i !== index))
-    setPreviews((prev) => prev.filter((_, i) => i !== index))
+    setPreviews((prev) => {
+      const url = prev[index]
+      if (url?.startsWith('blob:')) URL.revokeObjectURL(url)
+      return prev.filter((_, i) => i !== index)
+    })
   }
+
+  useEffect(() => {
+    return () => {
+      for (const url of previews) {
+        if (url.startsWith('blob:')) URL.revokeObjectURL(url)
+      }
+    }
+    // Revoke only on unmount. Deliberately NOT tracking previews changes —
+    // per-item revocation already happens in removeImage, and revoking on
+    // every re-render would pull the rug from under still-visible <img>s.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   /* ---- Submit ---- */
 

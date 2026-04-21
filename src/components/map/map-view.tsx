@@ -1,6 +1,7 @@
-import { lazy, Suspense, type ReactNode } from 'react'
+import { Suspense, type ReactNode } from 'react'
 import { MapPin as MapPinLucide } from 'lucide-react'
 import { cn } from '@/lib/cn'
+import { lazyWithRetry } from '@/lib/lazy-with-retry'
 import type { MapCenter, MapMarker } from './use-map'
 import type { AreaGeoJSON } from './map-draw'
 
@@ -45,7 +46,7 @@ export interface MapViewProps {
 /*  Lazy-loaded inner map (avoids Leaflet in main bundle)              */
 /* ------------------------------------------------------------------ */
 
-const MapViewInner = lazy(() => import('./map-view-inner'))
+const MapViewInner = lazyWithRetry(() => import('./map-view-inner'))
 
 /* ------------------------------------------------------------------ */
 /*  Loading placeholder                                                */

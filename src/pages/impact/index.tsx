@@ -19,6 +19,7 @@ import { Header } from '@/components/header'
 import { CountUp } from '@/components/count-up'
 import { EmptyState } from '@/components/empty-state'
 import { Button } from '@/components/button'
+import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
 import { MiniBar } from '@/components/micro-viz'
 import { useImpactStats, useMonthlyActivity, useImpactByCategory, useStreak } from '@/hooks/use-impact'
@@ -286,6 +287,7 @@ export default function ImpactDashboardPage() {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   const shouldReduceMotion = useReducedMotion()
+  const { toast } = useToast()
   const { data: stats, isLoading: statsLoading, isError: statsError } = useImpactStats()
   const showLoading = useDelayedLoading(statsLoading)
   const { data: monthly } = useMonthlyActivity()
@@ -355,9 +357,25 @@ export default function ImpactDashboardPage() {
     if (stats.leadersEmpowered > 0) parts.push(`${stats.leadersEmpowered} leaders empowered`)
     const text = `My Co-Exist Impact: ${parts.join(', ')}! Join at coexistaus.org`
     if (navigator.share) {
-      await navigator.share({ title: 'My Co-Exist Impact', text })
-    } else {
+      try {
+        await navigator.share({ title: 'My Co-Exist Impact', text })
+      } catch (err) {
+        // AbortError = user cancelled, stay silent. Anything else falls back.
+        if (err instanceof Error && err.name === 'AbortError') return
+        try {
+          await navigator.clipboard.writeText(text)
+          toast.success('Copied to clipboard')
+        } catch {
+          toast.error('Could not share')
+        }
+      }
+      return
+    }
+    try {
       await navigator.clipboard.writeText(text)
+      toast.success('Copied to clipboard')
+    } catch {
+      toast.error('Could not copy')
     }
   }
 

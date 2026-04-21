@@ -736,7 +736,11 @@ export function useCheckIn() {
 
   return useMutation({
     mutationFn: async ({ eventId, userId }: { eventId: string; userId: string }) => {
-      const { error, count } = await supabase
+      // Must chain .select() to get the updated rows back — otherwise
+      // supabase-js returns count=null and the "not checkable" guard below
+      // never fires, silently succeeding even when the user is already
+      // cancelled/attended.
+      const { data, error } = await supabase
         .from('event_registrations')
         .update({
           status: 'attended',
@@ -745,8 +749,9 @@ export function useCheckIn() {
         .eq('event_id', eventId)
         .eq('user_id', userId)
         .in('status', ['registered', 'invited'])
+        .select('id')
       if (error) throw error
-      if (count === 0) throw new Error('User is not in a checkable status (registered or invited)')
+      if (!data || data.length === 0) throw new Error('User is not in a checkable status (registered or invited)')
     },
     onMutate: async ({ eventId, userId }) => {
       await queryClient.cancelQueries({ queryKey: ['event-attendees', eventId] })

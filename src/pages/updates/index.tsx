@@ -61,15 +61,20 @@ function getImages(update: UpdateWithAuthor): string[] {
 /*  Render content with clickable links                                */
 /* ------------------------------------------------------------------ */
 
-const LINK_RE = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|(https?:\/\/[^\s<]+)/g
+// Fresh regex per call. A module-level /g pattern would retain `lastIndex`
+// across invocations, so later renders would resume from the previous text's
+// offset and silently skip matches near the start of a new string.
+const LINK_PATTERN = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|(https?:\/\/[^\s<]+)/g
 
 function RichContent({ text, className }: { text: string; className?: string }) {
   const parts: React.ReactNode[] = []
   let lastIndex = 0
   let match: RegExpExecArray | null
   let key = 0
+  // Reset state so prior-call residue doesn't skew this call.
+  LINK_PATTERN.lastIndex = 0
 
-  while ((match = LINK_RE.exec(text)) !== null) {
+  while ((match = LINK_PATTERN.exec(text)) !== null) {
     // Text before match
     if (match.index > lastIndex) {
       parts.push(text.slice(lastIndex, match.index))

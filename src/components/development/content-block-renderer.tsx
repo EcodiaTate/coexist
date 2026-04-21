@@ -1,11 +1,12 @@
-import { lazy, Suspense } from 'react'
+import { Suspense } from 'react'
 import { cn } from '@/lib/cn'
+import { lazyWithRetry } from '@/lib/lazy-with-retry'
 import type { DevModuleContent } from '@/hooks/use-admin-development'
 
-const MarkdownRenderer = lazy(() => import('./markdown-renderer'))
-const VideoPlayer = lazy(() => import('./video-player'))
-const PdfViewer = lazy(() => import('./pdf-viewer'))
-const Slideshow = lazy(() => import('./slideshow'))
+const MarkdownRenderer = lazyWithRetry(() => import('./markdown-renderer'))
+const VideoPlayer = lazyWithRetry(() => import('./video-player'))
+const PdfViewer = lazyWithRetry(() => import('./pdf-viewer'))
+const Slideshow = lazyWithRetry(() => import('./slideshow'))
 
 interface ContentBlockRendererProps {
   block: DevModuleContent

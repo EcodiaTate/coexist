@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
-import { lazy, Suspense, useState, useCallback } from 'react'
+import { Suspense, useState, useCallback, useEffect } from 'react'
+import { lazyWithRetry as lazy, clearChunkReloadGuard } from '@/lib/lazy-with-retry'
 import { ErrorBoundary } from '@/components/error-boundary'
 import { RequireAuth, RequireRole, RequireLeaderAccess, RequireCapability } from '@/components/route-guard'
 import { AppShell } from '@/components/app-shell'
@@ -212,6 +213,14 @@ function App() {
   const [showSplash, setShowSplash] = useState(true)
   const { maintenanceMode, maintenanceMessage, forceUpdate, latestVersion } = useAppUpdate()
   useDeepLink()
+
+  // Clear the chunk-reload guard after a successful mount. If the user
+  // previously hit a stale-chunk reload, we reset the guard so a future
+  // deploy within the same session can trigger another reload instead of
+  // falling straight through to ErrorBoundary.
+  useEffect(() => {
+    clearChunkReloadGuard()
+  }, [])
 
   const handleSplashReady = useCallback(() => {
     setShowSplash(false)

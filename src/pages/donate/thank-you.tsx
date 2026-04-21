@@ -10,6 +10,7 @@ import { Header } from '@/components/header'
 import { Button } from '@/components/button'
 import { WhatsNext } from '@/components/whats-next'
 import { WaveTransition } from '@/components/wave-transition'
+import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
 import { getImpactMessage } from '@/types/donations'
 
@@ -130,6 +131,7 @@ export default function DonateThankYouPage() {
   const shouldReduceMotion = useReducedMotion()
   const rm = !!shouldReduceMotion
   const [showConfetti, setShowConfetti] = useState(true)
+  const { toast } = useToast()
 
   const rawAmount = Number(searchParams.get('amount') ?? 25)
   const amount = Number.isFinite(rawAmount) && rawAmount >= 1 && rawAmount <= 50000
@@ -150,11 +152,24 @@ export default function DonateThankYouPage() {
     if (navigator.share) {
       try {
         await navigator.share({ text, url: 'https://coexistaus.org/donate' })
-      } catch {
-        // User cancelled
+      } catch (err) {
+        // AbortError = user dismissed the share sheet — silent. Anything else
+        // is a real failure and we should fall back to clipboard.
+        if (err instanceof Error && err.name === 'AbortError') return
+        try {
+          await navigator.clipboard.writeText(text)
+          toast.success('Copied to clipboard')
+        } catch {
+          toast.error('Could not share')
+        }
       }
-    } else {
+      return
+    }
+    try {
       await navigator.clipboard.writeText(text)
+      toast.success('Copied to clipboard')
+    } catch {
+      toast.error('Could not copy to clipboard')
     }
   }
 

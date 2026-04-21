@@ -581,21 +581,24 @@ function usePushTestRunner() {
           .update({ notification_preferences: { ...orig, event_reminder: false } })
           .eq('id', user.id)
 
-        await new Promise((r) => setTimeout(r, 300))
+        try {
+          await new Promise((r) => setTimeout(r, 300))
 
-        const { data: resp, error } = await supabase.functions.invoke('send-push', {
-          body: { userId: user.id, title: '[TEST]', body: 'Should be blocked.', data: { type: 'event_reminder' } },
-        })
+          const { data: resp, error } = await supabase.functions.invoke('send-push', {
+            body: { userId: user.id, title: '[TEST]', body: 'Should be blocked.', data: { type: 'event_reminder' } },
+          })
 
-        // Restore immediately
-        await supabase
-          .from('profiles')
-          .update({ notification_preferences: orig })
-          .eq('id', user.id)
-
-        if (error) throw error
-        if ((resp?.sent ?? 0) > 0) throw new Error(`Sent ${resp.sent} despite opt-out!`)
-        return 'Correctly blocked. 0 delivered.'
+          if (error) throw error
+          if ((resp?.sent ?? 0) > 0) throw new Error(`Sent ${resp.sent} despite opt-out!`)
+          return 'Correctly blocked. 0 delivered.'
+        } finally {
+          // Always restore — otherwise a thrown error between disable and
+          // restore leaves the admin's event_reminder pref stuck at false.
+          await supabase
+            .from('profiles')
+            .update({ notification_preferences: orig })
+            .eq('id', user.id)
+        }
       }))
     }
 
@@ -628,20 +631,24 @@ function usePushTestRunner() {
           .update({ notification_preferences: quietPrefs })
           .eq('id', user.id)
 
-        await new Promise((r) => setTimeout(r, 300))
+        try {
+          await new Promise((r) => setTimeout(r, 300))
 
-        const { data: resp, error } = await supabase.functions.invoke('send-push', {
-          body: { userId: user.id, title: '[TEST]', body: 'Should be blocked.', data: { type: 'event_reminder' } },
-        })
+          const { data: resp, error } = await supabase.functions.invoke('send-push', {
+            body: { userId: user.id, title: '[TEST]', body: 'Should be blocked.', data: { type: 'event_reminder' } },
+          })
 
-        await supabase
-          .from('profiles')
-          .update({ notification_preferences: orig })
-          .eq('id', user.id)
-
-        if (error) throw error
-        if ((resp?.sent ?? 0) > 0) throw new Error(`Sent ${resp.sent} despite quiet hours! TZ: ${tz}`)
-        return `Correctly blocked during ${quietPrefs.quiet_hours_start}-${quietPrefs.quiet_hours_end} (${tz}).`
+          if (error) throw error
+          if ((resp?.sent ?? 0) > 0) throw new Error(`Sent ${resp.sent} despite quiet hours! TZ: ${tz}`)
+          return `Correctly blocked during ${quietPrefs.quiet_hours_start}-${quietPrefs.quiet_hours_end} (${tz}).`
+        } finally {
+          // Always restore — an in-between throw would otherwise leave the
+          // admin stuck in quiet hours mode until they manually fix it.
+          await supabase
+            .from('profiles')
+            .update({ notification_preferences: orig })
+            .eq('id', user.id)
+        }
       }))
     }
 

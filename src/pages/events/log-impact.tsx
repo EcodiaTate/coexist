@@ -1,4 +1,5 @@
-import { useState, useCallback, useMemo, useEffect, lazy, Suspense, startTransition } from 'react'
+import { useState, useCallback, useMemo, useEffect, Suspense, startTransition } from 'react'
+import { lazyWithRetry } from '@/lib/lazy-with-retry'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion, AnimatePresence } from 'framer-motion'
 import {
@@ -58,7 +59,7 @@ import { parseLocationPoint } from '@/lib/geo'
 import { supabase } from '@/lib/supabase'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 
-const MapView = lazy(() => import('@/components/map/map-view').then(m => ({ default: m.MapView })))
+const MapView = lazyWithRetry(() => import('@/components/map/map-view').then(m => ({ default: m.MapView })))
 
 /* ------------------------------------------------------------------ */
 /*  Animation variants                                                 */

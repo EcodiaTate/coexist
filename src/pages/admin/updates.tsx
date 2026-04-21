@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useCallback } from 'react'
+import { useState, useMemo, useRef, useCallback, useEffect } from 'react'
 import { motion, useReducedMotion, AnimatePresence } from 'framer-motion'
 import { adminVariants } from '@/lib/admin-motion'
 import {
@@ -69,6 +69,8 @@ function getImages(update: AdminUpdate): string[] {
 /*  Render content with clickable links (for preview)                  */
 /* ------------------------------------------------------------------ */
 
+// Module-level /g pattern retains lastIndex across calls — must reset
+// before each use or later renders skip matches near the start of the text.
 const LINK_RE = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|(https?:\/\/[^\s<]+)/g
 
 function RichContent({ text, className }: { text: string; className?: string }) {
@@ -76,6 +78,7 @@ function RichContent({ text, className }: { text: string; className?: string }) 
   let lastIndex = 0
   let match: RegExpExecArray | null
   let key = 0
+  LINK_RE.lastIndex = 0
 
   while ((match = LINK_RE.exec(text)) !== null) {
     if (match.index > lastIndex) {
@@ -195,16 +198,18 @@ function ComposeModal({
     content.trim().length > 0 &&
     (targetAudience !== 'collective_specific' || !!selectedCollectiveId)
 
+  // Previews use object URLs (synchronous) so preview[i] always lines up
+  // with selectedFiles[i]. FileReader readAsDataURL is async per file, so a
+  // small file could finish ahead of a large one and the two arrays drift
+  // out of order — removing index 0 then removed the wrong preview. Object
+  // URLs are revoked on per-item removal and on unmount.
   const handleFilesSelected = (files: FileList | null) => {
     if (!files) return
     const totalCurrent = existingImages.length + selectedFiles.length
     const newFiles = Array.from(files).slice(0, 10 - totalCurrent)
+    const newPreviews = newFiles.map((f) => URL.createObjectURL(f))
     setSelectedFiles((prev) => [...prev, ...newFiles])
-    for (const file of newFiles) {
-      const reader = new FileReader()
-      reader.onload = (e) => setPreviews((prev) => [...prev, e.target?.result as string])
-      reader.readAsDataURL(file)
-    }
+    setPreviews((prev) => [...prev, ...newPreviews])
   }
 
   const removeExisting = (index: number) => {
@@ -213,8 +218,22 @@ function ComposeModal({
 
   const removeNew = (index: number) => {
     setSelectedFiles((prev) => prev.filter((_, i) => i !== index))
-    setPreviews((prev) => prev.filter((_, i) => i !== index))
+    setPreviews((prev) => {
+      const url = prev[index]
+      if (url?.startsWith('blob:')) URL.revokeObjectURL(url)
+      return prev.filter((_, i) => i !== index)
+    })
   }
+
+  useEffect(() => {
+    return () => {
+      for (const url of previews) {
+        if (url.startsWith('blob:')) URL.revokeObjectURL(url)
+      }
+    }
+    // Revoke only on unmount. Per-item revoke happens in removeNew above.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const handleInsertLink = () => {
     if (!linkUrl.trim()) return

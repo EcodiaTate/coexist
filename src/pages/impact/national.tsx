@@ -22,6 +22,7 @@ import { useAdminHeader, useIsAdminLayout } from '@/components/admin-layout'
 import { CountUp } from '@/components/count-up'
 import { Button } from '@/components/button'
 import { EmptyState } from '@/components/empty-state'
+import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { useNationalImpact, useNationalCustomMetrics } from '@/hooks/use-impact'
@@ -248,6 +249,7 @@ export default function NationalImpactPage() {
   const isAdmin = useIsAdminLayout()
   useAdminHeader('Impact')
   const shouldReduceMotion = useReducedMotion()
+  const { toast } = useToast()
 
   const [timeRange, setTimeRange] = useState<'all-time' | 'current-year'>('all-time')
   const { data, isLoading, isError } = useNationalImpact(timeRange)
@@ -300,22 +302,37 @@ export default function NationalImpactPage() {
     alert('PDF export will be generated via Edge Function with branded Co-Exist template')
   }
 
-  const shareLink = () => {
+  const shareLink = async () => {
+    const parts: string[] = []
+    if (data?.eventsAttended) parts.push(`${data.eventsAttended.toLocaleString()} event attendances`)
+    if (data?.volunteerHours) parts.push(`${data.volunteerHours.toLocaleString()} est. volunteer hours`)
+    if (data?.treesPlanted) parts.push(`${data.treesPlanted.toLocaleString()} trees planted`)
+    if (data?.invasiveWeedsPulled) parts.push(`${data.invasiveWeedsPulled.toLocaleString()} invasive weeds pulled`)
+    if (data?.rubbishCollectedKg) parts.push(`${data.rubbishCollectedKg}kg litter removed`)
+    if (data?.cleanupSites) parts.push(`${data.cleanupSites} cleanup sites`)
+    if (data?.coastlineCleanedM) parts.push(`${data.coastlineCleanedM}m coastline cleaned`)
+    if (data?.leadersEmpowered) parts.push(`${data.leadersEmpowered} leaders empowered`)
+    const text = parts.join(', ') + '!'
+    const url = window.location.href
     if (navigator.share) {
-      const parts: string[] = []
-      if (data?.eventsAttended) parts.push(`${data.eventsAttended.toLocaleString()} event attendances`)
-      if (data?.volunteerHours) parts.push(`${data.volunteerHours.toLocaleString()} est. volunteer hours`)
-      if (data?.treesPlanted) parts.push(`${data.treesPlanted.toLocaleString()} trees planted`)
-      if (data?.invasiveWeedsPulled) parts.push(`${data.invasiveWeedsPulled.toLocaleString()} invasive weeds pulled`)
-      if (data?.rubbishCollectedKg) parts.push(`${data.rubbishCollectedKg}kg litter removed`)
-      if (data?.cleanupSites) parts.push(`${data.cleanupSites} cleanup sites`)
-      if (data?.coastlineCleanedM) parts.push(`${data.coastlineCleanedM}m coastline cleaned`)
-      if (data?.leadersEmpowered) parts.push(`${data.leadersEmpowered} leaders empowered`)
-      navigator.share({
-        title: 'Co-Exist National Impact',
-        text: parts.join(', ') + '!',
-        url: window.location.href,
-      })
+      try {
+        await navigator.share({ title: 'Co-Exist National Impact', text, url })
+      } catch (err) {
+        if (err instanceof Error && err.name === 'AbortError') return
+        try {
+          await navigator.clipboard.writeText(`${text} ${url}`)
+          toast.success('Copied to clipboard')
+        } catch {
+          toast.error('Could not share')
+        }
+      }
+      return
+    }
+    try {
+      await navigator.clipboard.writeText(`${text} ${url}`)
+      toast.success('Copied to clipboard')
+    } catch {
+      toast.error('Could not copy')
     }
   }
 

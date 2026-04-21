@@ -164,11 +164,17 @@ function TaskCard({ task }: { task: MyTask }) {
         return
       }
 
-      await supabase.from('survey_responses').insert({
+      // Insert survey response FIRST and verify success. Previously the error
+      // was unchecked — if RLS rejected the insert or a duplicate hit the
+      // unique index, the survey response was silently lost but the task
+      // was still marked complete, leaving the leader thinking they'd
+      // submitted data that never reached the DB.
+      const { error: respErr } = await supabase.from('survey_responses').insert({
         survey_id: task.template.survey_id,
         user_id: user.id,
         answers: answers as unknown as import('@/types/database.types').Json,
       })
+      if (respErr) throw respErr
       await completeMutation.mutateAsync({
         instanceId: task.id,
         notes: notes || undefined,

@@ -117,18 +117,16 @@ export function useEventProximity(): UseEventProximityReturn {
           })
           position = coarseCoords as GeolocationPosition
 
-          // If accuracy is good enough (<500m), use it and optionally refine in background
+          // Phase 2 (warm the GPS for next interval): if coarse accuracy is
+          // poor, kick off a high-accuracy fetch in the background. We don't
+          // await it or use the result here — it primes the OS location cache
+          // so the next CHECK_INTERVAL_MS tick has a recent precise fix to
+          // work with via maximumAge. Dropped silently on failure.
           if (coarseCoords.coords.accuracy > 500) {
-            // Phase 2: try high-accuracy in background, but don't block
             Geolocation.getCurrentPosition({
               enableHighAccuracy: true,
               timeout: 30000,
-            }).then((precise) => {
-              // Re-run proximity check with better coords on next interval
-              // For now we proceed with the coarse fix
-            }).catch(() => {
-              // High-accuracy failed, coarse fix is fine
-            })
+            }).catch(() => {})
           }
         } catch {
           // Coarse fix failed — try high-accuracy as last resort with longer timeout
