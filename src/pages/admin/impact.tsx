@@ -485,7 +485,7 @@ function DashboardTab() {
 
   if (showLoading) {
     return (
-      <div className="px-6 py-8 space-y-6">
+      <div className="px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="h-24 rounded-2xl bg-neutral-50 animate-pulse" style={{ animationDelay: `${i * 80}ms` }} />
@@ -502,7 +502,7 @@ function DashboardTab() {
 
   return (
     <motion.div
-      className="px-6 sm:px-8 py-6 space-y-8 pb-24"
+      className="px-4 sm:px-6 lg:px-8 py-6 space-y-8 pb-24"
       variants={v.stagger}
       initial="hidden"
       animate="visible"

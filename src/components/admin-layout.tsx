@@ -364,8 +364,8 @@ export function AdminLayout() {
                   'bg-gradient-to-br transition-[background] duration-700 ease-in-out',
                   cfg.hue,
                   cfg.tall
-                    ? 'px-6 pb-14 sm:px-8 sm:pb-16'
-                    : 'px-6 pb-10 sm:px-8 sm:pb-12',
+                    ? 'px-4 pb-14 sm:px-6 sm:pb-16 lg:px-8'
+                    : 'px-4 pb-10 sm:px-6 sm:pb-12 lg:px-8',
                   // Extend the gradient above the hero so overscroll never exposes the surface bg
                   'before:absolute before:inset-x-0 before:bottom-full before:h-[200px] before:bg-inherit',
                 )}

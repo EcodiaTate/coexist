@@ -9,7 +9,7 @@ import { Header } from '@/components/header'
 import { Toggle } from '@/components/toggle'
 import { BottomSheet } from '@/components/bottom-sheet'
 import { useAuth } from '@/hooks/use-auth'
-import { supabase } from '@/lib/supabase'
+import { patchNotificationPrefs } from '@/lib/profile-prefs'
 import type { NotificationPreferences } from '@/hooks/use-notifications'
 import { DEFAULT_PREFERENCES } from '@/hooks/use-notifications'
 import { adminStagger as stagger, fadeUp } from '@/lib/admin-motion'
@@ -96,68 +96,64 @@ export default function SettingsNotificationsPage() {
   const [showQuietHours, setShowQuietHours] = useState(false)
 
   // Notification preferences
+  // IMPORTANT: hydrate-before-write. Writes are gated on `hydrated` so we can
+  // never persist a default value before loading the real one. Also: this page
+  // NEVER writes profile_visible — that's owned by /settings/privacy and our
+  // merge-write helper preserves it regardless of what lives in local state.
   const [prefs, setPrefs] = useState<NotificationPreferences>(DEFAULT_PREFERENCES)
   const [soundEnabled, setSoundEnabled] = useState(true)
+  const [hydrated, setHydrated] = useState(false)
 
   type ProfileExt = { notification_preferences?: Partial<NotificationPreferences> & { sound_enabled?: boolean; profile_visible?: boolean } }
   const profileExt = profile as unknown as ProfileExt | null
   const savedPrefsJson = JSON.stringify(profileExt?.notification_preferences ?? null)
 
   // Hydrate from profile
-  const [profileVisible, setProfileVisible] = useState(true)
   useEffect(() => {
-    const saved = profileExt?.notification_preferences
+    if (!profileExt) return
+    const saved = profileExt.notification_preferences
     if (saved) {
       setPrefs((prev) => ({ ...prev, ...(saved as Partial<NotificationPreferences>) }))
       if (saved.sound_enabled !== undefined) setSoundEnabled(saved.sound_enabled)
-      if (saved.profile_visible !== undefined) setProfileVisible(saved.profile_visible)
     }
+    setHydrated(true)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [savedPrefsJson])
 
-  const persistPrefs = useCallback(
-    (updated: Record<string, unknown>, rollbackFn?: () => void) => {
-      if (!user) return
-      supabase
-        .from('profiles')
-        .update({ notification_preferences: updated } as unknown as Record<string, unknown>)
-        .eq('id', user.id)
-        .then(({ error }) => {
-          if (error) {
-            console.error('Failed to save preferences:', error)
-            rollbackFn?.()
-          }
-        })
-    },
-    [user],
-  )
-
   const updatePref = useCallback(
     (key: keyof NotificationPreferences, value: boolean | string) => {
+      if (!user || !hydrated) return
       setPrefs((prev) => {
         const updated = { ...prev, [key]: value }
         const rollback = prev
-        persistPrefs(
-          { ...updated, sound_enabled: soundEnabled, profile_visible: profileVisible },
-          () => setPrefs(rollback),
-        )
+        // Merge-write: touches only this key (plus the prior notif-pref keys
+        // we've got locally), never profile_visible or anything else owned
+        // by the privacy page.
+        patchNotificationPrefs(user.id, { ...updated, sound_enabled: soundEnabled }).then(({ error }) => {
+          if (error) {
+            console.error('Failed to save preferences:', error)
+            setPrefs(rollback)
+          }
+        })
         return updated
       })
     },
-    [persistPrefs, soundEnabled, profileVisible],
+    [user, hydrated, soundEnabled],
   )
 
   const handleSoundToggle = useCallback(
     (value: boolean) => {
-      if (!user) return
+      if (!user || !hydrated) return
       const prev = soundEnabled
       setSoundEnabled(value)
-      persistPrefs(
-        { ...prefs, sound_enabled: value, profile_visible: profileVisible },
-        () => setSoundEnabled(prev),
-      )
+      patchNotificationPrefs(user.id, { sound_enabled: value }).then(({ error }) => {
+        if (error) {
+          console.error('Failed to save sound pref:', error)
+          setSoundEnabled(prev)
+        }
+      })
     },
-    [user, prefs, profileVisible, soundEnabled, persistPrefs],
+    [user, hydrated, soundEnabled],
   )
 
   const notifToggles: { key: keyof NotificationPreferences; label: string; description: string }[] = [

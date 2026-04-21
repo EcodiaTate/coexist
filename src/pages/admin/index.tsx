@@ -311,7 +311,7 @@ export default function AdminDashboardPage() {
             <div className="h-4 w-48 rounded-lg bg-white/10" />
           </div>
         </div>
-        <div className="bg-white px-6 sm:px-8 pt-8 space-y-6 pb-20">
+        <div className="bg-white px-4 sm:px-6 lg:px-8 pt-8 space-y-6 pb-20">
           {/* Stat cards skeleton */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             <div className="col-span-2 h-36 rounded-2xl bg-neutral-50 animate-pulse" />
@@ -376,7 +376,7 @@ export default function AdminDashboardPage() {
       {/* ── Content ── */}
       <div className="relative z-10 bg-white">
         <motion.div
-          className="px-6 sm:px-8 pt-6 space-y-10 pb-24"
+          className="px-4 sm:px-6 lg:px-8 pt-6 space-y-10 pb-24"
           variants={rm ? undefined : stagger}
           initial="hidden"
           animate="visible"

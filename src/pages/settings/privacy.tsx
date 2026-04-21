@@ -10,6 +10,7 @@ import { Skeleton } from '@/components/skeleton'
 import { useAuth } from '@/hooks/use-auth'
 import { useToast } from '@/components/toast'
 import { supabase } from '@/lib/supabase'
+import { patchNotificationPrefs } from '@/lib/profile-prefs'
 import { useBlockedUsers, useUnblockUser } from '@/hooks/use-user-blocks'
 import type { NotificationPreferences } from '@/hooks/use-notifications'
 import { DEFAULT_PREFERENCES } from '@/hooks/use-notifications'
@@ -136,73 +137,59 @@ export default function SettingsPrivacyPage() {
   const [showBlockedUsers, setShowBlockedUsers] = useState(false)
 
   // Privacy state
+  // IMPORTANT: initial state is null, not a default. We refuse to render
+  // toggles or allow writes until we've hydrated from the DB. Previous bug:
+  // initial `true` defaults were written to the DB if the user toggled before
+  // hydration finished, silently flipping saved privacy settings back to public.
   type ProfileExt = { notification_preferences?: Partial<NotificationPreferences> & { sound_enabled?: boolean; profile_visible?: boolean }; marketing_opt_in?: boolean }
   const profileExt = profile as unknown as ProfileExt | null
 
-  const [profileVisible, setProfileVisible] = useState(() => {
-    const saved = profileExt?.notification_preferences
-    return saved?.profile_visible !== undefined ? saved.profile_visible : true
-  })
-  const [marketingOptIn, setMarketingOptIn] = useState(() =>
-    profileExt ? profileExt.marketing_opt_in !== false : true
-  )
-  const [soundEnabled, setSoundEnabled] = useState(() => {
-    const saved = profileExt?.notification_preferences
-    return saved?.sound_enabled !== undefined ? saved.sound_enabled : true
-  })
-  const [prefs, setPrefs] = useState<NotificationPreferences>(() => ({
-    ...DEFAULT_PREFERENCES,
-    ...(profileExt?.notification_preferences as Partial<NotificationPreferences> | undefined),
-  }))
-  const [hydrated, setHydrated] = useState(!!profileExt)
+  const [profileVisible, setProfileVisible] = useState<boolean | null>(null)
+  const [marketingOptIn, setMarketingOptIn] = useState<boolean | null>(null)
+  const [soundEnabled, setSoundEnabled] = useState<boolean | null>(null)
+  const [prefs, setPrefs] = useState<NotificationPreferences>(DEFAULT_PREFERENCES)
+  const [hydrated, setHydrated] = useState(false)
 
   useEffect(() => {
-    // Only seed from profile once - after the first load where profile arrives
     if (!profileExt || hydrated) return
     const saved = profileExt.notification_preferences
     if (saved) {
       setPrefs((prev) => ({ ...prev, ...(saved as Partial<NotificationPreferences>) }))
-      if (saved.sound_enabled !== undefined) setSoundEnabled(saved.sound_enabled)
-      if (saved.profile_visible !== undefined) setProfileVisible(saved.profile_visible)
+      // Absence of a saved value means never-explicitly-set. Default policy:
+      // profile_visible defaults to true (public), sound_enabled defaults to true.
+      setSoundEnabled(saved.sound_enabled !== undefined ? saved.sound_enabled : true)
+      setProfileVisible(saved.profile_visible !== undefined ? saved.profile_visible : true)
+    } else {
+      setSoundEnabled(true)
+      setProfileVisible(true)
     }
     setMarketingOptIn(profileExt.marketing_opt_in !== false)
     setHydrated(true)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profileExt])
 
-  const persistPrefs = useCallback(
-    (updated: Record<string, unknown>, rollbackFn?: () => void) => {
-      if (!user) return
-      supabase
-        .from('profiles')
-        .update({ notification_preferences: updated } as unknown as Record<string, unknown>)
-        .eq('id', user.id)
-        .then(({ error }) => {
-          if (error) {
-            console.error('Failed to save preferences:', error)
-            rollbackFn?.()
-          }
-        })
-    },
-    [user],
-  )
-
   const handleVisibilityToggle = useCallback(
     (value: boolean) => {
-      if (!user) return
+      // Hard gate: refuse to write until hydrated. Prevents the silent-revert bug.
+      if (!user || !hydrated) return
       const prev = profileVisible
       setProfileVisible(value)
-      persistPrefs(
-        { ...prefs, sound_enabled: soundEnabled, profile_visible: value },
-        () => setProfileVisible(prev),
-      )
+      // Merge-write via helper — never touches fields owned by other pages.
+      patchNotificationPrefs(user.id, { profile_visible: value }).then(({ error }) => {
+        if (error) {
+          console.error('Failed to save profile visibility:', error)
+          setProfileVisible(prev)
+          toast.error('Could not save — try again')
+        }
+      })
     },
-    [user, prefs, soundEnabled, profileVisible, persistPrefs],
+    [user, hydrated, profileVisible, toast],
   )
 
   const handleMarketingToggle = useCallback(
     (value: boolean) => {
-      if (!user) return
+      if (!user || !hydrated) return
+      const prev = marketingOptIn
       setMarketingOptIn(value)
       supabase
         .from('profiles')
@@ -211,11 +198,12 @@ export default function SettingsPrivacyPage() {
         .then(({ error }) => {
           if (error) {
             console.error('Failed to save marketing opt-in:', error)
-            setMarketingOptIn(!value)
+            setMarketingOptIn(prev)
+            toast.error('Could not save — try again')
           }
         })
     },
-    [user],
+    [user, hydrated, marketingOptIn, toast],
   )
 
   return (
@@ -235,28 +223,36 @@ export default function SettingsPrivacyPage() {
               <MenuRow
                 icon={<Eye size={18} />}
                 label="Profile Visibility"
-                subtitle={profileVisible ? 'Public' : 'Only collective members'}
+                subtitle={hydrated ? (profileVisible ? 'Public' : 'Only collective members') : 'Loading…'}
                 rightContent={
-                  <Toggle
-                    checked={profileVisible}
-                    onChange={handleVisibilityToggle}
-                    size="sm"
-                  />
+                  hydrated ? (
+                    <Toggle
+                      checked={profileVisible ?? true}
+                      onChange={handleVisibilityToggle}
+                      size="sm"
+                    />
+                  ) : (
+                    <Skeleton variant="text" className="w-10 h-6 rounded-full" />
+                  )
                 }
-                onClick={() => handleVisibilityToggle(!profileVisible)}
+                onClick={() => hydrated && handleVisibilityToggle(!profileVisible)}
               />
               <MenuRow
                 icon={<Mail size={18} />}
                 label="Marketing Emails"
-                subtitle={marketingOptIn ? 'Subscribed' : 'Unsubscribed'}
+                subtitle={hydrated ? (marketingOptIn ? 'Subscribed' : 'Unsubscribed') : 'Loading…'}
                 rightContent={
-                  <Toggle
-                    checked={marketingOptIn}
-                    onChange={handleMarketingToggle}
-                    size="sm"
-                  />
+                  hydrated ? (
+                    <Toggle
+                      checked={marketingOptIn ?? true}
+                      onChange={handleMarketingToggle}
+                      size="sm"
+                    />
+                  ) : (
+                    <Skeleton variant="text" className="w-10 h-6 rounded-full" />
+                  )
                 }
-                onClick={() => handleMarketingToggle(!marketingOptIn)}
+                onClick={() => hydrated && handleMarketingToggle(!marketingOptIn)}
               />
             </div>
           </motion.div>
