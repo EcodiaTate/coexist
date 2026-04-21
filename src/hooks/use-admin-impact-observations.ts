@@ -135,23 +135,63 @@ export function useImpactObservations(filters: ObservationFilters, metricDefs: I
       // Always restrict to post-baseline events to prevent 999_backfill rows
       // (date_start='2024-01-01', notes=NULL) from being double-counted with the baseline constants.
       const effectiveStart = rangeStart ?? new Date(IMPACT_BASELINE_DATE).toISOString()
+      const nowIso = new Date().toISOString()
 
-      let q = supabase
-        .from('event_impact')
-        .select(
-          `${IMPACT_SELECT_COLUMNS}, event_id, events!inner(id, title, date_start, date_end, collective_id, activity_type, created_by, collectives(name))`,
-        )
-        .or('notes.is.null,notes.not.like.Legacy import:%')
-        .gte('events.date_start', effectiveStart)
-        .lt('events.date_start', new Date().toISOString())
-        .order('logged_at', { ascending: false })
-      if (filters.collectiveId) q = q.eq('events.collective_id', filters.collectiveId)
-      if (filters.activityType) q = q.eq('events.activity_type', filters.activityType)
+      // ── Step 1: resolve event IDs matching filters ──
+      //
+      // Previously this query used embedded PostgREST filters
+      // (`events!inner(...).eq('events.collective_id', id)`). The canonical
+      // fetchImpactRows explicitly avoids that pattern — see impact-query.ts
+      // doc comment: "embedded PostgREST join filters are unreliable for
+      // scoping". This was the root cause of /admin/impact showing unfiltered
+      // (effectively national) numbers when a collective was selected.
+      //
+      // The two-step approach — filter events first, then fetch impact rows
+      // scoped to those IDs — is reliable and matches the rest of the codebase.
+      let eventsQuery = supabase
+        .from('events')
+        .select('id, title, date_start, date_end, collective_id, activity_type, created_by, collectives(name)')
+        .gte('date_start', effectiveStart)
+        .lt('date_start', nowIso)
+      if (filters.collectiveId) eventsQuery = eventsQuery.eq('collective_id', filters.collectiveId)
+      if (filters.activityType) eventsQuery = eventsQuery.eq('activity_type', filters.activityType)
 
-      const { data, error } = await q
-      if (error) throw error
+      const { data: eventsData, error: eventsErr } = await eventsQuery
+      if (eventsErr) throw eventsErr
 
-      const rawRows = (data ?? []) as unknown as RawRow[]
+      const eventById = new Map<string, RawRow['events']>()
+      for (const e of eventsData ?? []) {
+        eventById.set(e.id, e as unknown as RawRow['events'])
+      }
+      const eventIds = [...eventById.keys()]
+
+      // ── Step 2: fetch impact rows for those event IDs (chunked) ──
+      type ImpactRowRaw = Record<string, unknown> & { event_id: string }
+      const CHUNK = 200
+      const allImpactRows: ImpactRowRaw[] = []
+      if (eventIds.length > 0) {
+        for (let i = 0; i < eventIds.length; i += CHUNK) {
+          const chunk = eventIds.slice(i, i + CHUNK)
+          const { data: impactData, error: impactErr } = await supabase
+            .from('event_impact')
+            .select(`${IMPACT_SELECT_COLUMNS}, event_id`)
+            .in('event_id', chunk)
+            .or('notes.is.null,notes.not.like.Legacy import:%')
+            .order('logged_at', { ascending: false })
+          if (impactErr) throw impactErr
+          allImpactRows.push(...((impactData ?? []) as ImpactRowRaw[]))
+        }
+      }
+
+      // Reattach event info by joining in-memory (the old query returned
+      // events inline via embedded join — we preserve the RawRow shape for
+      // the downstream transforms).
+      const rawRows: RawRow[] = []
+      for (const r of allImpactRows) {
+        const ev = eventById.get(r.event_id)
+        if (!ev) continue
+        rawRows.push({ ...r, events: ev } as RawRow)
+      }
 
       const filtered = filters.search
         ? rawRows.filter((r) =>
