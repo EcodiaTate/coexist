@@ -152,7 +152,7 @@ export default function SignUpPage() {
           )}
 
           {/* Hero */}
-          <motion.div variants={childVariants} className="px-6 pt-6 pb-1">
+          <motion.div variants={childVariants} className="px-4 sm:px-6 pt-6 pb-1">
             <h1 className="text-[28px] font-bold text-neutral-900 tracking-tight leading-tight">
               Join the movement
             </h1>
@@ -319,7 +319,7 @@ export default function SignUpPage() {
           {/* Bottom CTA */}
           <motion.div
             variants={childVariants}
-            className="px-6 pt-4 pb-5"
+            className="px-4 sm:px-6 pt-4 pb-5"
             style={{ paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom))' }}
           >
             <Button

@@ -113,7 +113,7 @@ export default function LeadershipPage() {
 
       {/* Content */}
       <motion.div
-        className="px-6 space-y-8 pb-12 pt-6"
+        className="px-4 sm:px-6 lg:px-8 space-y-8 pb-12 pt-6"
         initial="hidden"
         animate="visible"
         variants={shouldReduceMotion ? undefined : stagger}

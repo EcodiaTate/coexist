@@ -1109,7 +1109,7 @@ export default function HomePage() {
 
           {/* Body sections */}
           <motion.div
-            className="px-6 space-y-10 pb-24 mt-4"
+            className="px-4 sm:px-6 lg:px-8 space-y-10 pb-24 mt-4"
             initial="hidden"
             animate="visible"
             variants={rm ? undefined : stagger}

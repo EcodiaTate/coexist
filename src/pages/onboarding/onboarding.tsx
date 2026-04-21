@@ -233,7 +233,7 @@ export default function OnboardingPage() {
 
       {/* Error banner + retry */}
       {submitError && (
-        <div className="px-6 pb-4">
+        <div className="px-4 sm:px-6 pb-4">
           <p className="text-sm text-error-600 text-center mb-2">{submitError}</p>
           <Button
             variant="primary"

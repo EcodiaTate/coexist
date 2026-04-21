@@ -100,7 +100,7 @@ export default function LearnSectionPage() {
       {/* ── Hero ── */}
       <div className="relative overflow-hidden bg-white">
         <div
-          className="relative z-10 px-6 pt-14 pb-14"
+          className="relative z-10 px-4 sm:px-6 lg:px-8 pt-14 pb-14"
           style={{ paddingTop: '3.5rem' }}
         >
           <div className="flex items-start justify-between gap-4">
@@ -137,7 +137,7 @@ export default function LearnSectionPage() {
         variants={rm ? undefined : stagger}
         initial="hidden"
         animate="visible"
-        className="px-5 sm:px-6 pb-20 space-y-2.5"
+        className="px-4 sm:px-6 lg:px-8 pb-20 space-y-2.5"
       >
         {sectionModules.length === 0 && (
           <div className="flex flex-col items-center justify-center py-16 text-center">

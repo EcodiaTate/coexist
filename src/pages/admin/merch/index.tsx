@@ -73,7 +73,7 @@ export default function AdminMerchPage() {
         <div className="absolute right-8 bottom-8 w-20 h-20 rounded-full border border-white/10" />
 
         <div
-          className="relative z-10 px-6 pt-10 pb-14 text-center"
+          className="relative z-10 px-4 sm:px-6 lg:px-8 pt-10 pb-14 text-center"
           style={{ paddingTop: '2.5rem' }}
         >
           <motion.div

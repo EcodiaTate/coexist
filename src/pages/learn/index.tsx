@@ -183,7 +183,7 @@ export default function LearnIndexPage() {
       {/* ── Hero ── */}
       <div className="relative overflow-hidden bg-white">
         <div
-          className="relative z-10 px-6 pt-14 pb-16 text-center"
+          className="relative z-10 px-4 sm:px-6 lg:px-8 pt-14 pb-16 text-center"
           style={{ paddingTop: '3.5rem' }}
         >
           <motion.div
@@ -229,7 +229,7 @@ export default function LearnIndexPage() {
       </div>
 
       {/* ── Content ── */}
-      <div className="px-5 sm:px-6 pb-20">
+      <div className="px-4 sm:px-6 lg:px-8 pb-20">
         {contentLoading ? (
           <div className="space-y-3 pt-4">
             <Skeleton className="h-20 rounded-2xl" />

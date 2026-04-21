@@ -996,7 +996,7 @@ export default function LeaderDashboardPage() {
         <div className="relative min-h-dvh overflow-x-hidden bg-white">
           {/* Hero skeleton */}
           <div className="relative h-[280px] bg-gradient-to-br from-primary-200 via-moss-200 to-primary-300 animate-pulse" />
-          <div className="relative z-10 px-6 -mt-6 space-y-4 pb-20">
+          <div className="relative z-10 px-4 sm:px-6 lg:px-8 -mt-6 space-y-4 pb-20">
             <div className="grid grid-cols-2 gap-3">
               {Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className="h-20 rounded-2xl bg-neutral-100 animate-pulse" style={{ animationDelay: `${i * 80}ms` }} />
@@ -1120,7 +1120,7 @@ export default function LeaderDashboardPage() {
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-black/10" />
 
             {/* Hero text */}
-            <div className="absolute inset-x-0 bottom-0 z-[2] px-6 pb-10">
+            <div className="absolute inset-x-0 bottom-0 z-[2] px-4 sm:px-6 lg:px-8 pb-10">
               {collectiveDetail?.region && (
                 <p className="flex items-center gap-1 text-xs text-white/70 mt-1">
                   <MapPin size={11} />
@@ -1136,7 +1136,7 @@ export default function LeaderDashboardPage() {
 
         {/* ── Content on white background ── */}
         <motion.div
-          className="relative z-10 px-6 -mt-1 space-y-6 pb-24"
+          className="relative z-10 px-4 sm:px-6 lg:px-8 -mt-1 space-y-6 pb-24"
           variants={rm ? undefined : stagger}
           initial="hidden"
           animate="visible"

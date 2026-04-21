@@ -71,7 +71,7 @@ export default function WelcomePage() {
         initial={shouldReduceMotion ? false : { opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.6 }}
-        className="px-6 pb-10 space-y-3 flex flex-col items-center"
+        className="px-4 sm:px-6 lg:px-8 pb-10 space-y-3 flex flex-col items-center"
         style={{ paddingBottom: 'max(2.5rem, env(safe-area-inset-bottom))' }}
       >
         <Button

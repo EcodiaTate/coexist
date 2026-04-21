@@ -92,7 +92,7 @@ export default function LoginPage() {
           <Header title="" back onBack={() => navigate('/welcome')} />
 
           {/* Heading */}
-          <div className="px-6 pt-10 pb-2">
+          <div className="px-4 sm:px-6 pt-10 pb-2">
             <motion.h1
               initial={rm ? {} : { opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -225,7 +225,7 @@ export default function LoginPage() {
             initial={rm ? {} : { opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.45 }}
-            className="px-6 pt-6 pb-6"
+            className="px-4 sm:px-6 pt-6 pb-6"
             style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}
           >
             <Button

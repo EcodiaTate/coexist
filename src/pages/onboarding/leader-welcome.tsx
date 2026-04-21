@@ -47,7 +47,7 @@ export default function LeaderWelcomePage() {
   return (
     <div className="min-h-dvh flex flex-col bg-white">
       <motion.div
-        className="flex-1 flex flex-col px-6 pt-12"
+        className="flex-1 flex flex-col px-4 sm:px-6 pt-12"
         variants={shouldReduceMotion ? undefined : stagger}
         initial="hidden"
         animate="visible"

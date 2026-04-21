@@ -149,7 +149,7 @@ export default function CartPage() {
         {/* Hero */}
         <div className="relative overflow-hidden bg-white">
 
-          <div className="relative z-10 px-6 pb-16 text-center" style={{ paddingTop: '5rem' }}>
+          <div className="relative z-10 px-4 sm:px-6 lg:px-8 pb-16 text-center" style={{ paddingTop: '5rem' }}>
             <motion.div
               initial={rm ? false : { opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -232,7 +232,7 @@ export default function CartPage() {
       <div className="relative overflow-hidden bg-white">
 
         <div
-          className="relative z-10 px-6 pb-12 flex items-center gap-4"
+          className="relative z-10 px-4 sm:px-6 lg:px-8 pb-12 flex items-center gap-4"
           style={{ paddingTop: '3.5rem' }}
         >
           <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-neutral-100 shrink-0">

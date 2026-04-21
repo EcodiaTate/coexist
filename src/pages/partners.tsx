@@ -127,7 +127,7 @@ export default function PartnersPage() {
         <div className="absolute left-[30%] top-6 w-12 h-12 rounded-full bg-white/[0.04]" />
 
         <div
-          className="relative z-10 px-6 pt-10 pb-14 text-center"
+          className="relative z-10 px-4 sm:px-6 lg:px-8 pt-10 pb-14 text-center"
           style={{ paddingTop: '2.5rem' }}
         >
           <motion.div

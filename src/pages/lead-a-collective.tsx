@@ -247,7 +247,7 @@ export default function LeadACollectivePage() {
         <div className="relative overflow-hidden bg-gradient-to-br from-sprout-600 via-primary-700 to-secondary-800">
           <div className="absolute -right-16 -top-16 w-64 h-64 rounded-full bg-white/5" />
           <div
-            className="relative z-10 px-6 pb-16 text-center"
+            className="relative z-10 px-4 sm:px-6 lg:px-8 pb-16 text-center"
             style={{ paddingTop: '4.5rem' }}
           >
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/15 mb-5">
@@ -263,7 +263,7 @@ export default function LeadACollectivePage() {
           </div>
           <WaveTransition fill="fill-primary-50" />
         </div>
-        <div className="px-6 pt-6 pb-12 space-y-4">
+        <div className="px-4 sm:px-6 lg:px-8 pt-6 pb-12 space-y-4">
           <Button variant="primary" size="lg" fullWidth onClick={() => navigate('/leadership')}>
             Back to Leadership
           </Button>
@@ -284,7 +284,7 @@ export default function LeadACollectivePage() {
         <div className="absolute right-12 bottom-16 w-24 h-24 rounded-full border border-white/8" />
 
         <div
-          className="relative z-10 px-6 pb-16"
+          className="relative z-10 px-4 sm:px-6 lg:px-8 pb-16"
           style={{ paddingTop: '4.5rem' }}
         >
           <motion.div

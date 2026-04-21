@@ -1585,7 +1585,7 @@ export default function LeaderTasksPage() {
 
 
       <motion.div
-        className="relative z-10 px-6 pt-14 space-y-5 pb-20"
+        className="relative z-10 px-4 sm:px-6 lg:px-8 pt-14 space-y-5 pb-20"
         variants={rm ? undefined : { hidden: {}, visible: { transition: { staggerChildren: 0.08, delayChildren: 0.12 } } }}
         initial="hidden"
         animate="visible"
