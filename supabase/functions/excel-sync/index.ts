@@ -357,18 +357,42 @@ function sigOf(collective: string, dateIso: string, title: string): string {
 // The sheet writes human-readable labels in col 13 (conservation type) or col 14 (recreation type).
 // Unmapped values default to 'other' with a warning appended to errors.
 const SHEET_LABEL_TO_ACTIVITY_TYPE: Record<string, string> = {
+  'bee hotel': 'workshop',
+  'bee hotel building': 'workshop',
+  'bush walk': 'nature_walk',
+  'bushwalk': 'nature_walk',
+  'camp out': 'camp_out',
+  'citizen science': 'workshop',
   'clean up': 'clean_up',
-  'shore cleanup': 'shore_cleanup',
-  'shore clean up': 'shore_cleanup',
-  'tree planting': 'tree_planting',
+  'conservation & recreation': 'other',
+  'conservation and recreation': 'other',
   'ecosystem restoration': 'ecosystem_restoration',
   'land regeneration': 'land_regeneration',
+  'marine restoration': 'marine_restoration',
   'nature hike': 'nature_hike',
+  'nature hike & camp out': 'camp_out',
+  'nature hike & dip': 'nature_hike',
+  'nature hike & photography': 'nature_hike',
+  'nature hike & sunset': 'nature_hike',
   'nature walk': 'nature_walk',
-  'camp out': 'camp_out',
-  'spotlighting': 'spotlighting',
-  'workshop': 'workshop',
+  'nature walk & sunset': 'nature_walk',
   'other': 'other',
+  'paint & dip': 'workshop',
+  'paint and dip': 'workshop',
+  'picnic': 'retreat',
+  'reef restoration': 'marine_restoration',
+  'retreat': 'retreat',
+  'shore clean up': 'shore_cleanup',
+  'shore cleanup': 'shore_cleanup',
+  'snorkel': 'marine_restoration',
+  'snorkeling': 'marine_restoration',
+  'snorkelling': 'marine_restoration',
+  'spotlighting': 'spotlighting',
+  'tree planting': 'tree_planting',
+  'trivia': 'workshop',
+  'weeding': 'land_regeneration',
+  'wildlife spotting': 'spotlighting',
+  'workshop': 'workshop',
 }
 
 // Generate a deterministic UUID v5 from a Forms integer ID.
@@ -397,10 +421,18 @@ function mapSheetActivityType(row: unknown[], errors: string[], rowLabel: string
   }
 
   const mapped = SHEET_LABEL_TO_ACTIVITY_TYPE[label]
-  if (!mapped && label) {
-    errors.push(`${rowLabel}: activity type "${label}" not in mapping, defaulted to 'other'`)
+  if (mapped) return mapped
+
+  // Fallback: strip trailing "& X" or "and X" suffix and retry
+  const stripped = label.replace(/\s+(&|and)\s+\S.*$/i, '').trim()
+  const mappedStripped = stripped !== label ? SHEET_LABEL_TO_ACTIVITY_TYPE[stripped] : undefined
+  if (mappedStripped) return mappedStripped
+
+  if (label) {
+    const strippedNote = stripped !== label ? ` (stripped: "${stripped}")` : ''
+    errors.push(`${rowLabel}: activity type "${label}"${strippedNote} not in mapping, defaulted to 'other'`)
   }
-  return mapped ?? 'other'
+  return 'other'
 }
 
 // ---- Sync: Supabase -> Excel (migration-gated, append new + update existing) ----
