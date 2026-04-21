@@ -61,6 +61,7 @@
  */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { generate as uuidv5 } from 'https://deno.land/std@0.224.0/uuid/v5.ts'
 
 // ---- Config ----
 const GRAPH_TENANT_ID = Deno.env.get('GRAPH_TENANT_ID') ?? ''
@@ -72,6 +73,11 @@ const SHEET_NAME = 'Post Event Review'
 
 // Only sync events from 2026 onwards - historical data is Excel-only
 const SYNC_CUTOFF_DATE = '2026-01-01'
+
+// Fixed namespace UUID for Forms-sourced synthetic events. Embedded as a literal
+// and MUST NEVER CHANGE — changing it invalidates all existing synthetic UUIDs and
+// causes duplicate rows on the next sync run.
+const FORMS_NAMESPACE_UUID = '6b9c8f4a-2e3d-5c7a-8b1f-4a9e6d2c1b0f'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -345,6 +351,58 @@ function sigOf(collective: string, dateIso: string, title: string): string {
   ].join('|')
 }
 
+// ---- Forms row helpers (from-excel direction only) ----
+
+// Reverse-map sheet display labels back to DB activity_type enum values.
+// The sheet writes human-readable labels in col 13 (conservation type) or col 14 (recreation type).
+// Unmapped values default to 'other' with a warning appended to errors.
+const SHEET_LABEL_TO_ACTIVITY_TYPE: Record<string, string> = {
+  'clean up': 'clean_up',
+  'shore cleanup': 'shore_cleanup',
+  'shore clean up': 'shore_cleanup',
+  'tree planting': 'tree_planting',
+  'ecosystem restoration': 'ecosystem_restoration',
+  'land regeneration': 'land_regeneration',
+  'nature hike': 'nature_hike',
+  'nature walk': 'nature_walk',
+  'camp out': 'camp_out',
+  'spotlighting': 'spotlighting',
+  'workshop': 'workshop',
+  'other': 'other',
+}
+
+// Generate a deterministic UUID v5 from a Forms integer ID.
+// Pure function of formsId — re-running sync is safe (upserts are no-ops when unchanged).
+async function formsIdToUuid(formsId: string | number): Promise<string> {
+  const data = new TextEncoder().encode(`forms-${formsId}`)
+  return await uuidv5(FORMS_NAMESPACE_UUID, data)
+}
+
+// Reverse-map sheet cols 12/13/14 back to a DB activity_type enum value.
+//   col[12]: "Conservation" | "Recreation" | label
+//   col[13]: conservation-specific label (when col[12] is "Conservation")
+//   col[14]: recreation-specific label (when col[12] is "Recreation")
+function mapSheetActivityType(row: unknown[], errors: string[], rowLabel: string): string {
+  const eventType = String(row[12] ?? '').trim().toLowerCase()
+  const conservationType = String(row[13] ?? '').trim().toLowerCase()
+  const recreationType = String(row[14] ?? '').trim().toLowerCase()
+
+  let label: string
+  if (eventType === 'conservation' && conservationType) {
+    label = conservationType
+  } else if (eventType === 'recreation' && recreationType) {
+    label = recreationType
+  } else {
+    label = eventType
+  }
+
+  const mapped = SHEET_LABEL_TO_ACTIVITY_TYPE[label]
+  if (!mapped && label) {
+    errors.push(`${rowLabel}: activity type "${label}" not in mapping, defaulted to 'other'`)
+  }
+  return mapped ?? 'other'
+}
+
 // ---- Sync: Supabase -> Excel (migration-gated, append new + update existing) ----
 
 async function syncToExcel(
@@ -506,10 +564,18 @@ async function syncToExcel(
 async function syncFromExcel(
   supabase: ReturnType<typeof createClient>,
   graphToken: string,
-): Promise<{ synced: number; skippedLegacy: number; errors: string[] }> {
+): Promise<{
+  synced: number
+  skippedLegacy: number
+  syncedFormsRows: number
+  skippedNoCollective: number
+  errors: string[]
+}> {
   const errors: string[] = []
   let synced = 0
   let skippedLegacy = 0
+  let syncedFormsRows = 0
+  let skippedNoCollective = 0
 
   // Read all Excel data
   let rows: unknown[][]
@@ -517,57 +583,178 @@ async function syncFromExcel(
     const usedRange = await graphRequest(graphToken, '/usedRange')
     rows = usedRange.values ?? []
   } catch (err) {
-    return { synced, skippedLegacy, errors: [`Failed to read Excel: ${(err as Error).message}`] }
+    return {
+      synced,
+      skippedLegacy,
+      syncedFormsRows,
+      skippedNoCollective,
+      errors: [`Failed to read Excel: ${(err as Error).message}`],
+    }
   }
 
-  if (rows.length < 2) return { synced, skippedLegacy, errors: ['No data rows in Excel'] }
+  if (rows.length < 2) {
+    return { synced, skippedLegacy, syncedFormsRows, skippedNoCollective, errors: ['No data rows in Excel'] }
+  }
 
-  // Process each data row (skip header)
+  // Build a collective name -> id lookup to avoid a DB query per Forms row.
+  // Normalised to lowercase for case-insensitive matching against sheet values.
+  const collectiveNameToId = new Map<string, string>()
+  try {
+    const { data: collectives } = await supabase.from('collectives').select('id, name')
+    for (const c of (collectives ?? []) as { id: string; name: string }[]) {
+      collectiveNameToId.set(c.name.trim().toLowerCase(), c.id)
+    }
+  } catch (err) {
+    errors.push(`Failed to load collectives: ${(err as Error).message}`)
+    // Non-fatal — Forms rows will all land in skippedNoCollective
+  }
+
+  // Resolve a system user for created_by / logged_by on synthetic Forms events.
+  // Falls back to null if none found (acceptable if the column is nullable).
+  let systemUserId: string | null = null
+  try {
+    const { data: adminUser } = await supabase
+      .from('profiles')
+      .select('id')
+      .in('role', ['admin', 'super_admin'])
+      .order('created_at', { ascending: true })
+      .limit(1)
+      .single()
+    systemUserId = (adminUser as { id: string } | null)?.id ?? null
+  } catch {
+    // null is acceptable — created_by may be nullable on the events table
+  }
+
+  // Process each data row (skip header row)
   for (let i = 1; i < rows.length; i++) {
     const row = rows[i]
     const excelId = String(row[0] ?? '')
     if (!excelId) continue
 
     try {
-      // Check if this ID is a Supabase UUID (app events) or legacy ID
       const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-/.test(excelId)
+      const isFormsId = /^\d+$/.test(excelId)
 
-      if (!isUuid) {
+      if (!isUuid && !isFormsId) {
+        // Unrecognised ID format — not a UUID and not a plain integer
         skippedLegacy++
         continue
       }
 
-      // Excel values take priority - update Supabase with what Excel says
-      const attendees = row[11] ? Number(row[11]) : null
-      const rubbishKg = row[15] ? Number(row[15]) : null
-      const treesPlanted = row[16] ? Number(row[16]) : null
+      if (isUuid) {
+        // App-created event: Excel wins on impact fields
+        const attendees = row[11] ? Number(row[11]) : null
+        const rubbishKg = row[15] ? Number(row[15]) : null
+        const treesPlanted = row[16] ? Number(row[16]) : null
 
-      if (attendees !== null || rubbishKg !== null || treesPlanted !== null) {
-        const { error } = await supabase
+        if (attendees !== null || rubbishKg !== null || treesPlanted !== null) {
+          const { error } = await supabase
+            .from('event_impact')
+            .upsert(
+              {
+                event_id: excelId,
+                attendees,
+                rubbish_kg: rubbishKg,
+                trees_planted: treesPlanted,
+              },
+              { onConflict: 'event_id' },
+            )
+
+          if (error) {
+            errors.push(`Row ${i + 1} (${excelId}): impact upsert failed: ${error.message}`)
+            continue
+          }
+        }
+
+        synced++
+      } else {
+        // Forms integer ID: synthesise a deterministic UUID v5 and upsert into events +
+        // event_impact. The UUID is a pure function of the integer ID — re-running is safe.
+        const rowLabel = `Row ${i + 1} (Forms ID ${excelId})`
+
+        // Resolve collective from col 3
+        const collectiveName = String(row[3] ?? '').trim()
+        const collectiveId = collectiveNameToId.get(collectiveName.toLowerCase())
+        if (!collectiveId) {
+          errors.push(`${rowLabel}: no collective match for "${collectiveName}" — skipped`)
+          skippedNoCollective++
+          continue
+        }
+
+        // Parse date from col 2 (Excel serial number or ISO string)
+        const dateRaw = row[2]
+        let dateIso: string
+        if (typeof dateRaw === 'number' && dateRaw > 1000) {
+          dateIso = excelSerialToDate(dateRaw) + 'T00:00:00+10:00'
+        } else if (typeof dateRaw === 'string' && dateRaw.match(/\d{4}-\d{2}-\d{2}/)) {
+          dateIso = dateRaw.includes('T') ? dateRaw : dateRaw + 'T00:00:00+10:00'
+        } else {
+          errors.push(`${rowLabel}: unparseable date "${dateRaw}" — skipped`)
+          skippedLegacy++
+          continue
+        }
+
+        const syntheticId = await formsIdToUuid(excelId)
+        const title = String(row[1] ?? '').trim() || `Forms Event ${excelId}`
+        const address = String(row[4] ?? '').trim()
+        const activityType = mapSheetActivityType(row, errors, rowLabel)
+
+        // Upsert the event row
+        const { error: eventError } = await supabase
+          .from('events')
+          .upsert(
+            {
+              id: syntheticId,
+              collective_id: collectiveId,
+              created_by: systemUserId,
+              title,
+              date_start: dateIso,
+              date_end: dateIso,
+              status: 'completed',
+              is_public: true,
+              activity_type: activityType,
+              address: address || null,
+            },
+            { onConflict: 'id' },
+          )
+
+        if (eventError) {
+          errors.push(`${rowLabel}: event upsert failed: ${eventError.message}`)
+          continue
+        }
+
+        // Upsert impact metrics — only the fields the sheet actually carries
+        const attendees = row[11] ? Number(row[11]) : null
+        const rubbishKg = row[15] ? Number(row[15]) : null
+        const treesPlanted = row[16] ? Number(row[16]) : null
+
+        const { error: impactError } = await supabase
           .from('event_impact')
           .upsert(
             {
-              event_id: excelId,
-              attendees,
-              rubbish_kg: rubbishKg,
-              trees_planted: treesPlanted,
+              event_id: syntheticId,
+              attendees: attendees ?? 0,
+              rubbish_kg: rubbishKg ?? 0,
+              trees_planted: treesPlanted ?? 0,
+              logged_at: dateIso,
+              logged_by: systemUserId,
             },
             { onConflict: 'event_id' },
           )
 
-        if (error) {
-          errors.push(`Row ${i + 1} (${excelId}): impact upsert failed: ${error.message}`)
-          continue
+        if (impactError) {
+          errors.push(`${rowLabel}: impact upsert failed: ${impactError.message}`)
+          // Event was created — count the row regardless of impact failure
         }
-      }
 
-      synced++
+        syncedFormsRows++
+      }
     } catch (err) {
       errors.push(`Row ${i + 1} (${excelId}): ${(err as Error).message}`)
     }
   }
 
-  return { synced, skippedLegacy, errors }
+  return { synced, skippedLegacy, syncedFormsRows, skippedNoCollective, errors }
 }
 
 // ---- Delete: Remove event row from Excel (dev/test only, no auto-trigger) ----
