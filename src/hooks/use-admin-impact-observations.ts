@@ -132,9 +132,17 @@ export function useImpactObservations(filters: ObservationFilters, metricDefs: I
       const rangeStart = getDateRangeStart(filters.dateRange)
       const isAllTime = filters.dateRange === 'all'
 
-      // Always restrict to post-baseline events to prevent 999_backfill rows
-      // (date_start='2024-01-01', notes=NULL) from being double-counted with the baseline constants.
-      const effectiveStart = rangeStart ?? new Date(IMPACT_BASELINE_DATE).toISOString()
+      // When we're looking at all-time (any scope), fetch legacy import rows
+      // too so pre-2026 history is represented in the totals. Legacy rows
+      // are attached to backfill events with pre-2026 date_start, so we also
+      // drop the baseline date floor in that case (for the events query).
+      //
+      // For scoped date ranges (week/month/quarter/year), we never want
+      // legacy pre-2026 data — those represent rolled-up past contributions
+      // and don't make sense in a "this week" view.
+      const includeLegacy = isAllTime
+      const effectiveStart = rangeStart
+        ?? (includeLegacy ? null : new Date(IMPACT_BASELINE_DATE).toISOString())
       const nowIso = new Date().toISOString()
 
       // ── Step 1: resolve event IDs matching filters ──
@@ -151,8 +159,8 @@ export function useImpactObservations(filters: ObservationFilters, metricDefs: I
       let eventsQuery = supabase
         .from('events')
         .select('id, title, date_start, date_end, collective_id, activity_type, created_by, collectives(name)')
-        .gte('date_start', effectiveStart)
         .lt('date_start', nowIso)
+      if (effectiveStart) eventsQuery = eventsQuery.gte('date_start', effectiveStart)
       if (filters.collectiveId) eventsQuery = eventsQuery.eq('collective_id', filters.collectiveId)
       if (filters.activityType) eventsQuery = eventsQuery.eq('activity_type', filters.activityType)
 
@@ -166,35 +174,56 @@ export function useImpactObservations(filters: ObservationFilters, metricDefs: I
       const eventIds = [...eventById.keys()]
 
       // ── Step 2: fetch impact rows for those event IDs (chunked) ──
+      //
+      // When includeLegacy is true, we make a second pass per chunk that
+      // fetches ONLY legacy rows (notes LIKE 'Legacy import:%') — these
+      // carry pre-2026 historical attendance/metrics for the events in
+      // scope (typically backfill events attached to a collective).
       type ImpactRowRaw = Record<string, unknown> & { event_id: string }
       const CHUNK = 200
-      const allImpactRows: ImpactRowRaw[] = []
+      const liveImpactRows: ImpactRowRaw[] = []
+      const legacyImpactRows: ImpactRowRaw[] = []
       if (eventIds.length > 0) {
         for (let i = 0; i < eventIds.length; i += CHUNK) {
           const chunk = eventIds.slice(i, i + CHUNK)
-          const { data: impactData, error: impactErr } = await supabase
+          const liveQ = supabase
             .from('event_impact')
             .select(`${IMPACT_SELECT_COLUMNS}, event_id`)
             .in('event_id', chunk)
             .or('notes.is.null,notes.not.like.Legacy import:%')
             .order('logged_at', { ascending: false })
-          if (impactErr) throw impactErr
-          // Supabase's select() type-parser can't statically validate our
-          // dynamic column list (IMPACT_SELECT_COLUMNS is a template string),
-          // so it flags a ParserError on the return type. Cast through
-          // unknown — at runtime the data shape matches ImpactRowRaw.
-          allImpactRows.push(...((impactData ?? []) as unknown as ImpactRowRaw[]))
+          const legacyQ = includeLegacy
+            ? supabase
+                .from('event_impact')
+                .select(`${IMPACT_SELECT_COLUMNS}, event_id`)
+                .in('event_id', chunk)
+                .like('notes', 'Legacy import:%')
+            : null
+          const [{ data: liveData, error: liveErr }, legacyRes] = await Promise.all([
+            liveQ,
+            legacyQ ?? Promise.resolve({ data: null, error: null }),
+          ])
+          if (liveErr) throw liveErr
+          if (legacyRes.error) throw legacyRes.error
+          // Cast through unknown: select() template-string type parser
+          // can't statically validate our dynamic column list.
+          liveImpactRows.push(...((liveData ?? []) as unknown as ImpactRowRaw[]))
+          legacyImpactRows.push(...((legacyRes.data ?? []) as unknown as ImpactRowRaw[]))
         }
       }
 
-      // Reattach event info by joining in-memory (the old query returned
-      // events inline via embedded join — we preserve the RawRow shape for
-      // the downstream transforms).
+      // Reattach event info by joining in-memory.
       const rawRows: RawRow[] = []
-      for (const r of allImpactRows) {
+      for (const r of liveImpactRows) {
         const ev = eventById.get(r.event_id)
         if (!ev) continue
         rawRows.push({ ...r, events: ev } as RawRow)
+      }
+      const legacyRawRows: RawRow[] = []
+      for (const r of legacyImpactRows) {
+        const ev = eventById.get(r.event_id)
+        if (!ev) continue
+        legacyRawRows.push({ ...r, events: ev } as RawRow)
       }
 
       const filtered = filters.search
@@ -232,33 +261,61 @@ export function useImpactObservations(filters: ObservationFilters, metricDefs: I
         }
       })
 
-      // Summary — sum from the returned rows.
-      // Only add baselines for the global all-time view (no collective/activity filter).
-      const showBaseline = isAllTime && !filters.collectiveId && !filters.activityType
+      // Summary — sum from the returned rows (live + legacy where applicable).
+      //
+      // Baseline handling:
+      // - Global all-time view (no collective/activity filter): add national
+      //   baseline constants (pre-2026 totals that weren't imported as rows).
+      // - Collective all-time view: do NOT add baseline constants (those are
+      //   national-scope historical totals, not any single collective's) —
+      //   instead the legacy import rows we fetched above cover the
+      //   pre-2026 history for that collective specifically.
+      const showNationalBaseline = isAllTime && !filters.collectiveId && !filters.activityType
+
+      // Combined source for metric summation (live + legacy when included).
+      const summableRows: Record<string, unknown>[] = [
+        ...(filtered as unknown as Record<string, unknown>[]),
+        ...(legacyRawRows as unknown as Record<string, unknown>[]),
+      ]
 
       const summaryMetrics: Record<string, number> = {}
       for (const key of metricKeys) {
-        summaryMetrics[key] = sumMetric(filtered, key)
+        summaryMetrics[key] = sumMetric(summableRows, key)
       }
-      if (showBaseline) {
+      if (showNationalBaseline) {
         if (metricKeys.includes('trees_planted'))
           summaryMetrics['trees_planted'] = (summaryMetrics['trees_planted'] ?? 0) + BASELINE_TREES
         if (metricKeys.includes('rubbish_kg'))
           summaryMetrics['rubbish_kg'] = (summaryMetrics['rubbish_kg'] ?? 0) + BASELINE_RUBBISH_KG
       }
 
-      const totalAttendees = Math.round(sumMetric(filtered as unknown as Record<string, unknown>[], 'attendees'))
-      const totalEstimatedHours = Math.round(sumMetric(filtered as unknown as Record<string, unknown>[], 'hours_total'))
-      const uniqueEventIds = new Set(rows.map((r) => r.eventId))
+      // Attendees: prefer the numeric `attendees` column; legacy rows often
+      // carry their count in the notes field ("Legacy import: 123 attendees").
+      const liveAttendeeSum = Math.round(sumMetric(filtered as unknown as Record<string, unknown>[], 'attendees'))
+      let legacyAttendeeSum = 0
+      for (const r of legacyRawRows) {
+        const explicit = Number(r.attendees) || 0
+        const parsed = explicit || (parseAttendance(r.notes as string | null) ?? 0)
+        legacyAttendeeSum += parsed
+      }
+      const totalAttendees = liveAttendeeSum + legacyAttendeeSum
+      const totalEstimatedHours = Math.round(sumMetric(summableRows, 'hours_total'))
+      const uniqueEventIds = new Set([
+        ...rows.map((r) => r.eventId),
+        ...legacyRawRows.map((r) => r.event_id),
+      ])
 
       const summary: ImpactSummary = {
-        totalEvents: uniqueEventIds.size + (showBaseline ? BASELINE_EVENTS : 0),
-        totalAttendees: totalAttendees + (showBaseline ? BASELINE_ATTENDEES : 0),
-        totalEstimatedHours: totalEstimatedHours + (showBaseline ? BASELINE_HOURS : 0),
+        totalEvents: uniqueEventIds.size + (showNationalBaseline ? BASELINE_EVENTS : 0),
+        totalAttendees: totalAttendees + (showNationalBaseline ? BASELINE_ATTENDEES : 0),
+        totalEstimatedHours: totalEstimatedHours + (showNationalBaseline ? BASELINE_HOURS : 0),
         metrics: summaryMetrics,
       }
 
-      // Collective breakdown — all rows are already non-legacy
+      // Collective breakdown — fold both live event rows and legacy imports.
+      // Legacy rows are per-collective historical aggregates attached to
+      // backfill events; on an all-time view they should be visible in the
+      // breakdown so collectives with pre-2026 history aren't under-counted.
       const byCollective = new Map<string, CollectiveBreakdown>()
       for (const r of rows) {
         const existing = byCollective.get(r.collectiveId)
@@ -281,6 +338,39 @@ export function useImpactObservations(filters: ObservationFilters, metricDefs: I
             attendees: r.attendance ?? 0,
             metrics,
             estimatedHours: r.estimatedVolHours ?? 0,
+          })
+        }
+      }
+      // Fold legacy rows into the breakdown — don't bump eventCount (they
+      // represent rolled-up history, not distinct events), but do add their
+      // metrics/attendees/hours to the right collective bucket.
+      for (const r of legacyRawRows) {
+        const ev = r.events as unknown as RawRow['events'] | undefined
+        if (!ev) continue
+        const collectiveId = ev.collective_id
+        const collectiveName = ev.collectives?.name ?? 'Unknown'
+        const explicit = Number(r.attendees) || 0
+        const parsedAtt = explicit || (parseAttendance(r.notes as string | null) ?? 0)
+        const hours = Number(r.hours_total) || 0
+        const existing = byCollective.get(collectiveId)
+        if (existing) {
+          existing.attendees += parsedAtt
+          existing.estimatedHours += hours
+          for (const key of metricKeys) {
+            existing.metrics[key] = (existing.metrics[key] ?? 0) + (getMetricValue(r, key) ?? 0)
+          }
+        } else {
+          const metrics: Record<string, number> = {}
+          for (const key of metricKeys) {
+            metrics[key] = getMetricValue(r, key) ?? 0
+          }
+          byCollective.set(collectiveId, {
+            collectiveId,
+            name: collectiveName,
+            eventCount: 0,
+            attendees: parsedAtt,
+            metrics,
+            estimatedHours: hours,
           })
         }
       }
