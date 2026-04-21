@@ -179,7 +179,11 @@ export function useImpactObservations(filters: ObservationFilters, metricDefs: I
             .or('notes.is.null,notes.not.like.Legacy import:%')
             .order('logged_at', { ascending: false })
           if (impactErr) throw impactErr
-          allImpactRows.push(...((impactData ?? []) as ImpactRowRaw[]))
+          // Supabase's select() type-parser can't statically validate our
+          // dynamic column list (IMPACT_SELECT_COLUMNS is a template string),
+          // so it flags a ParserError on the return type. Cast through
+          // unknown — at runtime the data shape matches ImpactRowRaw.
+          allImpactRows.push(...((impactData ?? []) as unknown as ImpactRowRaw[]))
         }
       }
 
