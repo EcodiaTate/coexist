@@ -395,6 +395,38 @@ const SHEET_LABEL_TO_ACTIVITY_TYPE: Record<string, string> = {
   'workshop': 'workshop',
 }
 
+// Token-CONTAINS fallback for Layer 4 — ordered most-specific first so longer tokens win.
+const TOKEN_TO_ACTIVITY_TYPE: [string, string][] = [
+  ['marine restoration', 'marine_restoration'],
+  ['reef restoration',   'marine_restoration'],
+  ['shore clean',        'shore_cleanup'],
+  ['tree planting',      'tree_planting'],
+  ['land regeneration',  'land_regeneration'],
+  ['ecosystem restoration', 'ecosystem_restoration'],
+  ['clean up',           'clean_up'],
+  ['cleanup',            'clean_up'],
+  ['snorkel',            'marine_restoration'],
+  ['spotting',           'spotlighting'],
+  ['spotlight',          'spotlighting'],
+  ['nature hike',        'nature_hike'],
+  ['nature walk',        'nature_walk'],
+  ['bush walk',          'nature_walk'],
+  ['hike',               'nature_hike'],
+  ['walk',               'nature_walk'],
+  ['weeding',            'land_regeneration'],
+  ['invasive',           'land_regeneration'],
+  ['hotel',              'workshop'],
+  ['citizen science',    'workshop'],
+  ['trivia',             'workshop'],
+  ['picnic',             'retreat'],
+  ['camp out',           'camp_out'],
+  ['paint',              'workshop'],
+  ['painting',           'workshop'],
+  ['restoration',        'ecosystem_restoration'],
+  ['conservation',       'other'],
+  ['workshop',           'workshop'],
+]
+
 // Generate a deterministic UUID v5 from a Forms integer ID.
 // Pure function of formsId — re-running sync is safe (upserts are no-ops when unchanged).
 async function formsIdToUuid(formsId: string | number): Promise<string> {
@@ -406,6 +438,9 @@ async function formsIdToUuid(formsId: string | number): Promise<string> {
 //   col[12]: "Conservation" | "Recreation" | label
 //   col[13]: conservation-specific label (when col[12] is "Conservation")
 //   col[14]: recreation-specific label (when col[12] is "Recreation")
+// Fallback chain: (1) exact map, (2) strip "& X"/"and X" suffix, (3) strip parens + hyphen
+// tail, (4) token-CONTAINS against TOKEN_TO_ACTIVITY_TYPE. Layers 3-4 emit INFO telemetry
+// to errors so resolution strategy is visible in sync logs without blocking the run.
 function mapSheetActivityType(row: unknown[], errors: string[], rowLabel: string): string {
   const eventType = String(row[12] ?? '').trim().toLowerCase()
   const conservationType = String(row[13] ?? '').trim().toLowerCase()
@@ -420,16 +455,37 @@ function mapSheetActivityType(row: unknown[], errors: string[], rowLabel: string
     label = eventType
   }
 
+  // Layer 1: exact match
   const mapped = SHEET_LABEL_TO_ACTIVITY_TYPE[label]
   if (mapped) return mapped
 
-  // Fallback: strip trailing "& X" or "and X" suffix and retry
-  const stripped = label.replace(/\s+(&|and)\s+\S.*$/i, '').trim()
-  const mappedStripped = stripped !== label ? SHEET_LABEL_TO_ACTIVITY_TYPE[stripped] : undefined
-  if (mappedStripped) return mappedStripped
+  // Layer 2: strip trailing "& X" or "and X" suffix and retry
+  const andStripped = label.replace(/\s+(&|and)\s+\S.*$/i, '').trim()
+  if (andStripped !== label && SHEET_LABEL_TO_ACTIVITY_TYPE[andStripped]) return SHEET_LABEL_TO_ACTIVITY_TYPE[andStripped]
+
+  // Layer 3: paren-qualifier strip + hyphen-tail strip, then retry exact map
+  const l3Paren = label.replace(/\s*\(.*?\)\s*/g, ' ').trim()
+  const l3 = l3Paren.replace(/\s*-\s*.*$/, '').trim()
+  const mappedL3 = (l3 && l3 !== label && l3 !== andStripped) ? SHEET_LABEL_TO_ACTIVITY_TYPE[l3] : undefined
+  if (mappedL3) {
+    const strategy = l3Paren !== label
+      ? (l3 !== l3Paren ? 'paren-strip+hyphen-strip' : 'paren-strip')
+      : 'hyphen-strip'
+    errors.push(`INFO ${rowLabel}: activity type "${label}" resolved to "${mappedL3}" via ${strategy}`)
+    return mappedL3
+  }
+
+  // Layer 4: token-CONTAINS fallback (ordered most-specific first)
+  for (const [token, actType] of TOKEN_TO_ACTIVITY_TYPE) {
+    const escaped = token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    if (new RegExp(`\\b${escaped}\\b`, 'i').test(label)) {
+      errors.push(`INFO ${rowLabel}: activity type "${label}" resolved to "${actType}" via token-contains: ${token}`)
+      return actType
+    }
+  }
 
   if (label) {
-    const strippedNote = stripped !== label ? ` (stripped: "${stripped}")` : ''
+    const strippedNote = andStripped !== label ? ` (stripped: "${andStripped}")` : ''
     errors.push(`${rowLabel}: activity type "${label}"${strippedNote} not in mapping, defaulted to 'other'`)
   }
   return 'other'
