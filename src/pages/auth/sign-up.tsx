@@ -142,7 +142,7 @@ export default function SignUpPage() {
           {refValid && (
             <motion.div
               variants={childVariants}
-              className="mx-5 mt-3 flex items-center gap-2.5 rounded-xl bg-white border border-neutral-100 px-4 py-2.5"
+              className="mx-5 mt-3 flex items-center justify-center gap-2.5 rounded-xl bg-white border border-neutral-100 px-4 py-2.5"
             >
               <UserPlus size={16} className="text-neutral-500 shrink-0" />
               <p className="text-sm text-neutral-900">
@@ -152,7 +152,7 @@ export default function SignUpPage() {
           )}
 
           {/* Hero */}
-          <motion.div variants={childVariants} className="px-4 sm:px-6 pt-6 pb-1">
+          <motion.div variants={childVariants} className="px-4 sm:px-6 pt-6 pb-1 text-center">
             <h1 className="text-[28px] font-bold text-neutral-900 tracking-tight leading-tight">
               Join the movement
             </h1>

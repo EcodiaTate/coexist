@@ -189,7 +189,7 @@ export default function LoginPage() {
                 inputClassName="bg-white border-2 border-neutral-200 text-neutral-900 focus:border-primary-500 rounded-xl"
               />
 
-              <div className="flex items-center justify-between pt-1">
+              <div className="flex items-center justify-center gap-6 pt-1">
                 <button
                   type="button"
                   onClick={handleMagicLink}
