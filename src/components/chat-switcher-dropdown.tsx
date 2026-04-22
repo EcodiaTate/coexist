@@ -97,13 +97,13 @@ export function ChatSwitcherDropdown({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.95 }}
             transition={{ duration: 0.15, ease: 'easeOut' }}
-            className="absolute right-0 top-full mt-1 z-50 w-72 max-w-[calc(100vw-2rem)] max-h-[calc(100dvh-8rem)] rounded-2xl bg-white shadow-xl ring-1 ring-primary-200/60 overflow-hidden"
+            className="absolute right-0 top-full mt-2 z-50 w-60 max-w-[calc(100vw-1rem)] max-h-[calc(100dvh-8rem)] rounded-xl bg-white shadow-lg ring-1 ring-neutral-200/70 overflow-hidden"
           >
-            <div className="max-h-[inherit] overflow-y-auto py-1.5">
+            <div className="max-h-[inherit] overflow-y-auto py-1">
               {/* Collectives */}
               {collectives.length > 0 && (
                 <div>
-                  <p className="text-[10px] uppercase tracking-wider font-extrabold text-neutral-400 px-3.5 pt-2 pb-1">Collectives</p>
+                  <p className="text-[9px] uppercase tracking-wider font-bold text-neutral-400 px-3 pt-1.5 pb-0.5">Collectives</p>
                   {collectives.map((c) => {
                     const isPrimary = primaryChatId === c.id
                     const isCurrent = c.id === currentCollectiveId
@@ -117,24 +117,24 @@ export function ChatSwitcherDropdown({
                             if (!isCurrent) navigate(`/chat/${c.id}`)
                           }}
                           className={cn(
-                            'flex flex-1 items-center gap-3 pl-3.5 pr-1 py-2.5 text-left text-sm transition-[colors,transform] duration-100 active:scale-[0.98] min-h-11 cursor-pointer',
+                            'flex flex-1 items-center gap-2.5 pl-3 pr-1 py-1.5 text-left text-[13px] transition-colors duration-100 cursor-pointer',
                             isCurrent
-                              ? 'bg-primary-50 text-primary-900 font-bold'
+                              ? 'bg-primary-50 text-primary-900 font-semibold'
                               : 'text-neutral-700 hover:bg-neutral-50',
                           )}
                         >
-                          <div className="h-8 w-8 rounded-lg overflow-hidden shrink-0 relative bg-primary-100">
+                          <div className="h-6 w-6 rounded-md overflow-hidden shrink-0 relative bg-primary-100">
                             {c.coverUrl ? (
                               <img src={c.coverUrl} alt="" loading="lazy" className="h-full w-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none' }} />
                             ) : (
                               <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary-400 to-secondary-600">
-                                <Leaf size={14} className="text-white" />
+                                <Leaf size={11} className="text-white" />
                               </div>
                             )}
                           </div>
                           <span className="truncate flex-1">{c.name}</span>
                           {isPrimary && (
-                            <span className="text-[10px] font-bold text-primary-500 bg-primary-100 px-1.5 py-0.5 rounded-full shrink-0">
+                            <span className="text-[9px] font-bold text-primary-500 bg-primary-100 px-1.5 py-0.5 rounded-full shrink-0">
                               Default
                             </span>
                           )}
@@ -148,15 +148,15 @@ export function ChatSwitcherDropdown({
                               handleSetPrimary(c.id)
                             }}
                             className={cn(
-                              'flex items-center justify-center min-h-9 min-w-9 rounded-full mr-1.5 transition-colors duration-150 cursor-pointer select-none',
+                              'flex items-center justify-center h-7 w-7 rounded-full mr-1.5 transition-colors duration-150 cursor-pointer select-none',
                               isPrimary
                                 ? 'text-primary-500 hover:bg-primary-100'
-                                : 'text-neutral-400 hover:text-neutral-600 hover:bg-neutral-50',
+                                : 'text-neutral-300 hover:text-neutral-500 hover:bg-neutral-50',
                             )}
                             aria-label={isPrimary ? 'Remove as default chat' : 'Set as default chat'}
                             title={isPrimary ? 'Remove as default' : 'Set as default'}
                           >
-                            <Star size={14} className={isPrimary ? 'fill-current' : ''} />
+                            <Star size={12} className={isPrimary ? 'fill-current' : ''} />
                           </button>
                         )}
                       </div>
@@ -168,8 +168,8 @@ export function ChatSwitcherDropdown({
               {/* Staff channels */}
               {channels.length > 0 && (
                 <div>
-                  {collectives.length > 0 && <div className="h-px bg-primary-100 mx-3 my-1" />}
-                  <p className="text-[10px] uppercase tracking-wider font-extrabold text-neutral-400 px-3.5 pt-2 pb-1">Staff Channels</p>
+                  {collectives.length > 0 && <div className="h-px bg-neutral-100 mx-3 my-1" />}
+                  <p className="text-[9px] uppercase tracking-wider font-bold text-neutral-400 px-3 pt-1.5 pb-0.5">Staff Channels</p>
                   {channels.map((ch) => (
                     <button
                       key={ch.id}
@@ -179,14 +179,14 @@ export function ChatSwitcherDropdown({
                         if (ch.id !== currentChannelId) navigate(`/chat/channel/${ch.id}`)
                       }}
                       className={cn(
-                        'flex w-full items-center gap-3 px-3.5 py-2.5 text-left text-sm transition-[colors,transform] duration-100 active:scale-[0.98] min-h-11 cursor-pointer',
+                        'flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-[13px] transition-colors duration-100 cursor-pointer',
                         ch.id === currentChannelId
-                          ? 'bg-primary-50 text-primary-900 font-bold'
+                          ? 'bg-primary-50 text-primary-900 font-semibold'
                           : 'text-neutral-700 hover:bg-neutral-50',
                       )}
                     >
-                      <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-plum-400 to-plum-600 flex items-center justify-center shrink-0">
-                        <Lock size={14} className="text-white" />
+                      <div className="h-6 w-6 rounded-md bg-gradient-to-br from-plum-400 to-plum-600 flex items-center justify-center shrink-0">
+                        <Lock size={11} className="text-white" />
                       </div>
                       <span className="truncate">{ch.name}</span>
                     </button>
@@ -197,8 +197,8 @@ export function ChatSwitcherDropdown({
               {/* All collectives (staff/admin only) */}
               {otherCollectives.length > 0 && (
                 <div>
-                  {(collectives.length > 0 || channels.length > 0) && <div className="h-px bg-primary-100 mx-3 my-1" />}
-                  <p className="text-[10px] uppercase tracking-wider font-extrabold text-neutral-400 px-3.5 pt-2 pb-1">All Collectives</p>
+                  {(collectives.length > 0 || channels.length > 0) && <div className="h-px bg-neutral-100 mx-3 my-1" />}
+                  <p className="text-[9px] uppercase tracking-wider font-bold text-neutral-400 px-3 pt-1.5 pb-0.5">All Collectives</p>
                   {otherCollectives.map((c) => {
                     const isCurrent = c.id === currentCollectiveId
                     return (
@@ -210,18 +210,18 @@ export function ChatSwitcherDropdown({
                           if (!isCurrent) navigate(`/chat/${c.id}`)
                         }}
                         className={cn(
-                          'flex w-full items-center gap-3 px-3.5 py-2.5 text-left text-sm transition-[colors,transform] duration-100 active:scale-[0.98] min-h-11 cursor-pointer',
+                          'flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-[13px] transition-colors duration-100 cursor-pointer',
                           isCurrent
-                            ? 'bg-primary-50 text-primary-900 font-bold'
+                            ? 'bg-primary-50 text-primary-900 font-semibold'
                             : 'text-neutral-700 hover:bg-neutral-50',
                         )}
                       >
-                        <div className="h-8 w-8 rounded-lg overflow-hidden shrink-0 bg-primary-100">
+                        <div className="h-6 w-6 rounded-md overflow-hidden shrink-0 bg-primary-100">
                           {c.coverUrl ? (
                             <img src={c.coverUrl} alt="" loading="lazy" className="h-full w-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none' }} />
                           ) : (
                             <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary-400 to-secondary-600">
-                              <Leaf size={14} className="text-white" />
+                              <Leaf size={11} className="text-white" />
                             </div>
                           )}
                         </div>

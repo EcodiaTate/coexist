@@ -3,7 +3,6 @@ import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { Mail } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
-import { Header } from '@/components/header'
 import { OGMeta } from '@/components/og-meta'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
@@ -88,11 +87,8 @@ export default function LoginPage() {
             }
           }}
         >
-          {/* Back button */}
-          <Header title="" back onBack={() => navigate('/welcome')} />
-
           {/* Heading */}
-          <div className="px-4 sm:px-6 pt-10 pb-2 text-center">
+          <div className="px-4 sm:px-6 pt-16 pb-2 text-center">
             <motion.h1
               initial={rm ? {} : { opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}

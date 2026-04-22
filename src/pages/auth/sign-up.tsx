@@ -3,7 +3,6 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { UserPlus } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
-import { Header } from '@/components/header'
 import { OGMeta } from '@/components/og-meta'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
@@ -135,9 +134,6 @@ export default function SignUpPage() {
           animate="visible"
           className="flex-1 flex flex-col"
         >
-          {/* Back button */}
-          <Header title="" back onBack={() => navigate('/welcome')} />
-
           {/* Referral banner */}
           {refValid && (
             <motion.div

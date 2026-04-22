@@ -137,10 +137,18 @@ export function useImpactObservations(filters: ObservationFilters, metricDefs: I
       // are attached to backfill events with pre-2026 date_start, so we also
       // drop the baseline date floor in that case (for the events query).
       //
+      // BUT: for the national all-time view, the BASELINE_* constants already
+      // represent pre-2026 history. If we also pulled in legacy rows there,
+      // pre-2026 contributions would be counted twice (once from the constants,
+      // once from the legacy row sum) — this was the /admin/impact doubling bug.
+      // Only include legacy rows when the view is scoped to a specific collective
+      // or activity type (where baselines aren't added).
+      //
       // For scoped date ranges (week/month/quarter/year), we never want
       // legacy pre-2026 data — those represent rolled-up past contributions
       // and don't make sense in a "this week" view.
-      const includeLegacy = isAllTime
+      const isNationalAllTime = isAllTime && !filters.collectiveId && !filters.activityType
+      const includeLegacy = isAllTime && !isNationalAllTime
       const effectiveStart = rangeStart
         ?? (includeLegacy ? null : new Date(IMPACT_BASELINE_DATE).toISOString())
       const nowIso = new Date().toISOString()
