@@ -67,7 +67,10 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-dvh flex flex-col bg-surface-warm">
+    <div
+      className="min-h-dvh flex flex-col bg-surface-warm"
+      style={{ paddingTop: 'var(--safe-top)' }}
+    >
       <OGMeta
         title="Log In"
         description="Sign in to your Co-Exist account. Access conservation events, connect with your collective, and track your environmental impact across Australia."
@@ -88,7 +91,7 @@ export default function LoginPage() {
           }}
         >
           {/* Heading */}
-          <div className="px-4 sm:px-6 pt-16 pb-2 text-center">
+          <div className="px-4 sm:px-6 pt-10 pb-2 text-center">
             <motion.h1
               initial={rm ? {} : { opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}

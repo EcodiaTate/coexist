@@ -117,7 +117,10 @@ export default function SignUpPage() {
   const childVariants = shouldReduceMotion ? undefined : fadeUp
 
   return (
-    <div className="min-h-dvh flex flex-col bg-white">
+    <div
+      className="min-h-dvh flex flex-col bg-white"
+      style={{ paddingTop: 'var(--safe-top)' }}
+    >
       <OGMeta
         title="Sign Up"
         description="Create your free Co-Exist account. Join thousands of young Australians volunteering for conservation - tree planting, beach cleanups, habitat restoration, and more."

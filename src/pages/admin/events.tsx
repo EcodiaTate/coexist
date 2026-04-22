@@ -390,9 +390,8 @@ export default function AdminEventsPage() {
   const heroStats = useMemo(() => (
     <AdminHeroStatRow>
       <AdminHeroStat value={data?.stats?.upcoming ?? 0} label="Upcoming" icon={<Flame size={18} />} color="warning" delay={0} reducedMotion={false} />
-      <AdminHeroStat value={data?.stats?.total ?? 0} label="Total Events" icon={<CalendarDays size={18} />} color="primary" delay={1} reducedMotion={false} />
-      <AdminHeroStat value={data?.stats?.totalRegistrations ?? 0} label="Registrations" icon={<ClipboardList size={18} />} color="sprout" delay={2} reducedMotion={false} />
-      <AdminHeroStat value={data?.stats?.avgAttendance ?? 0} label="Avg Attendance" icon={<Users size={18} />} color="moss" delay={3} reducedMotion={false} />
+      <AdminHeroStat value={data?.stats?.totalRegistrations ?? 0} label="Registrations" icon={<ClipboardList size={18} />} color="sprout" delay={1} reducedMotion={false} />
+      <AdminHeroStat value={data?.stats?.avgAttendance ?? 0} label="Avg Attendance" icon={<Users size={18} />} color="moss" delay={2} reducedMotion={false} />
     </AdminHeroStatRow>
   ), [data?.stats])
 
