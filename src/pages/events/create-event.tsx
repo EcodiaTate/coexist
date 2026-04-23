@@ -19,8 +19,6 @@ import {
     Sprout,
     Footprints,
     BookOpen,
-    Droplets,
-    Flower2,
     Repeat,
     Accessibility,
     Mountain,
