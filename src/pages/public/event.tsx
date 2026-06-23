@@ -237,7 +237,7 @@ export default function PublicEventPage() {
           variants={shouldReduceMotion ? undefined : fadeUp}
           className={cn(
             'mt-8 flex flex-col gap-3',
-            'sticky bottom-4 rounded-2xl bg-white/95 p-4 shadow-sm',
+            'sticky bottom-4 rounded-md bg-white/95 p-4 shadow-sm',
             'sm:relative sm:bottom-auto sm:bg-transparent sm:p-0 sm:shadow-none',
           )}
         >

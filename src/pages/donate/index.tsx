@@ -142,7 +142,7 @@ function DonationForm({ rm }: { rm: boolean }) {
       <div>
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-11 h-11 rounded-2xl bg-primary-50 flex items-center justify-center shrink-0">
+          <div className="w-11 h-11 rounded-md bg-primary-50 flex items-center justify-center shrink-0">
             <Heart size={19} className="text-primary-600" />
           </div>
           <div>
@@ -182,7 +182,7 @@ function DonationForm({ rm }: { rm: boolean }) {
               onClick={() => handlePresetSelect(preset)}
               whileTap={rm ? undefined : { scale: 0.95 }}
               className={cn(
-                'relative flex flex-col items-center gap-0.5 py-4 px-2 rounded-2xl transition-all duration-200 cursor-pointer',
+                'relative flex flex-col items-center gap-0.5 py-4 px-2 rounded-md transition-all duration-200 cursor-pointer',
                 'border-2',
                 selectedAmount === preset
                   ? 'border-neutral-900 bg-neutral-900 text-white shadow-sm'
@@ -216,7 +216,7 @@ function DonationForm({ rm }: { rm: boolean }) {
             shrink/grow the page and stutter the layout. Fades the text
             content rather than animating the whole block in/out. */}
         <div
-          className="mb-5 px-4 py-3.5 rounded-2xl bg-white border border-neutral-100 shadow-sm overflow-hidden"
+          className="mb-5 px-4 py-3.5 rounded-md bg-white border border-neutral-100 shadow-sm overflow-hidden"
           style={{ minHeight: '88px' }}
         >
           <motion.p
@@ -266,7 +266,7 @@ function DonationForm({ rm }: { rm: boolean }) {
         </div>
 
         {/* Public toggle */}
-        <div className="mb-6 px-4 py-3 rounded-2xl bg-neutral-100/80 border border-neutral-200">
+        <div className="mb-6 px-4 py-3 rounded-md bg-neutral-100/80 border border-neutral-200">
           <Toggle
             checked={isPublic}
             onChange={setIsPublic}
@@ -284,7 +284,7 @@ function DonationForm({ rm }: { rm: boolean }) {
           icon={createDonation.isPending ? <Loader2 size={18} className="animate-spin" /> : <Heart size={18} />}
           onClick={handleDonate}
           disabled={!isValid || !user || createDonation.isPending}
-          className="shadow-sm !rounded-2xl"
+          className="shadow-sm !rounded-md"
         >
           {createDonation.isPending
             ? 'Setting up...'
@@ -292,7 +292,7 @@ function DonationForm({ rm }: { rm: boolean }) {
         </Button>
 
         {createDonation.isError && (
-          <p className="text-xs text-red-500 text-center mt-2">
+          <p className="text-xs text-error-500 text-center mt-2">
             Something went wrong. Please try again.
           </p>
         )}
@@ -356,12 +356,12 @@ export default function DonatePage() {
                 <Link
                   to="/donate/donors"
                   className={cn(
-                    'flex items-center gap-3 p-4 rounded-2xl',
+                    'flex items-center gap-3 p-4 rounded-md',
                     'bg-white border border-neutral-100 shadow-sm',
                     'transition-all active:scale-[0.98] duration-200',
                   )}
                 >
-                  <div className="w-10 h-10 rounded-xl bg-primary-50 flex items-center justify-center shrink-0">
+                  <div className="w-10 h-10 rounded-sm bg-primary-50 flex items-center justify-center shrink-0">
                     <Users size={18} className="text-primary-600" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -378,7 +378,7 @@ export default function DonatePage() {
 
               {/* ── Tax deductibility note ── */}
               <motion.div variants={fadeUp}>
-                <div className="flex items-start gap-3 px-4 py-3.5 rounded-2xl bg-white border border-neutral-100 shadow-sm">
+                <div className="flex items-start gap-3 px-4 py-3.5 rounded-md bg-white border border-neutral-100 shadow-sm">
                   <Shield size={16} className="text-neutral-400 shrink-0 mt-0.5" />
                   <div>
                     <p className="text-xs text-neutral-500 font-medium">Tax-deductible giving</p>
