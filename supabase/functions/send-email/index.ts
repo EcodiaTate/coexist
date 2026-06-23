@@ -50,6 +50,11 @@ const EMAIL_TEMPLATES: Record<string, TemplateDefinition> = {
     description: 'Event registration confirmation. Data: { name, event_title, event_date, event_location, event_url }',
     subject: (d) => `You're registered: ${d.event_title}`,
   },
+  ticket_confirmation: {
+    category: 'transactional',
+    description: 'Ticket purchase confirmation. Data: { name, event_title, event_date, event_location, ticket_code, quantity, amount, currency, ticket_url }',
+    subject: (d) => `You're going: ${d.event_title}`,
+  },
   event_reminder: {
     category: 'transactional',
     description: '24h event reminder. Data: { name, event_title, event_date, event_location, event_url }',
@@ -377,6 +382,27 @@ const BODY_BUILDERS: Record<string, (d: Record<string, unknown>) => string> = {
       ]) +
       p('We\'ll send you a reminder before the event. See you there!'),
     footerCta: { label: 'View Event Details', url: d.event_url as string || APP_URL },
+  }),
+
+  // Ticket purchase confirmation. ticket_url is the access link: for guest
+  // buyers it is a single-use magic link that signs them in and opens the
+  // ticket + event group chat; for members it is the direct ticket page.
+  ticket_confirmation: (d) => emailShell({
+    heroTitle: 'You\'re going!',
+    heroSubtitle: d.event_title as string,
+    heroEmoji: '\u{1F3AB}',
+    body: greeting(d.name) +
+      p(`Your ticket for <strong>${d.event_title}</strong> is confirmed. Tap below to view your ticket and join the group chat.`) +
+      infoCard([
+        ['Event', d.event_title],
+        ['Date', d.event_date],
+        ['Location', d.event_location],
+        ['Ticket code', d.ticket_code],
+        ['Quantity', d.quantity],
+        ['Paid', `$${d.amount} ${d.currency || 'AUD'}`],
+      ]) +
+      ctaButton('View your ticket', (d.ticket_url as string) || APP_URL),
+    footerCta: { label: 'Open the App', url: APP_URL },
   }),
 
   event_reminder: (d) => emailShell({
