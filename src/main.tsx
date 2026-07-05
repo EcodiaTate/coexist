@@ -56,6 +56,7 @@ import { initSentry, SentryErrorBoundary } from '@/lib/sentry'
 import { Capacitor } from '@capacitor/core'
 import { SplashScreen } from '@capacitor/splash-screen'
 import { clearChunkReloadGuard } from '@/lib/lazy-with-retry'
+import { isWebViewBelowFloor } from '@/lib/webview-floor'
 import App from './App'
 import './styles/globals.css'
 
@@ -210,27 +211,93 @@ if (Capacitor.isNativePlatform()) {
 // Initialize Sentry error reporting (no-op if VITE_SENTRY_DSN is not set)
 initSentry()
 
-try {
-  createRoot(document.getElementById('root')!).render(
-    <StrictMode>
-      <HelmetProvider>
-        <QueryClientProvider client={queryClient}>
-          <BrowserRouter>
-            <AuthProvider>
-              <ToastProvider>
-                <SentryErrorBoundary>
-                  <App />
-                </SentryErrorBoundary>
-                <CookieConsentBanner />
-              </ToastProvider>
-            </AuthProvider>
-          </BrowserRouter>
-        </QueryClientProvider>
-      </HelmetProvider>
-    </StrictMode>,
-  )
-} catch (err) {
-  showBootError('render', err)
+// Below the Tailwind v4 CSS floor (oklch / color-mix, ~Chrome 111 / Safari 16.4)
+// the app's stylesheet cannot apply: position:fixed utilities drop, dvh units are
+// unsupported, and the layout grows to a ~21,000px document with the phone gate
+// and nav rendered far off-screen. The 2026-07-05 build-target + polyfill fix
+// cured the JS syntax/API crash class but does NOT touch CSS, so below the CSS
+// floor the app still renders broken. Rather than mount that, render a plain
+// upgrade screen and skip mounting the app entirely. The screen uses ONLY inline
+// styles, hex colours and normal document flow (no oklch, no position:fixed
+// dependence, no dvh) so it renders correctly on the very engine that fails the
+// modern stylesheet. See src/lib/webview-floor.ts.
+function renderWebViewUpgradeScreen() {
+  const root = document.getElementById('root')
+  if (!root) return
+  // The index.html boot-error overlay is gated on __APP_MOUNTED; set it so a
+  // stray boot-window error can never paint white over this screen.
+  ;(window as unknown as { __APP_MOUNTED?: boolean }).__APP_MOUNTED = true
+
+  let isIOS = false
+  try {
+    isIOS = Capacitor.getPlatform() === 'ios'
+  } catch { /* Capacitor not resolvable - fall back to UA sniff */ }
+  if (!isIOS) {
+    const ua = navigator.userAgent || ''
+    // iOS Safari / WKWebView carries no "Chrome" / "CriOS" / "Android" token.
+    isIOS = /iPad|iPhone|iPod/.test(ua) || (/Safari/.test(ua) && !/Chrome|CriOS|Android/.test(ua))
+  }
+
+  const OLIVE = '#869e62'
+  const OLIVE_DARK = '#4a5c34'
+  const INK = '#333f2b'
+  const MUTED = '#5c6d47'
+  const BG = '#f5f7f0'
+  const WEBVIEW_URL = 'https://play.google.com/store/apps/details?id=com.google.android.webview'
+  const WEB_URL = 'https://app.coexistaus.org'
+
+  const heading = isIOS ? 'Please update to the latest iOS' : 'Please update your system browser'
+  const body = isIOS
+    ? 'Co-Exist needs a newer version of iOS to run correctly. Updating takes a few minutes and fixes this.'
+    : 'Co-Exist needs a newer version of the Android System WebView (the component that runs the app). Updating takes a minute and fixes this.'
+
+  const primaryBtn = isIOS
+    ? ''
+    : '<a href="' + WEBVIEW_URL + '" style="display:inline-block;background:' + OLIVE + ';color:#ffffff;text-decoration:none;font-weight:700;font-size:16px;padding:14px 22px;border-radius:10px;margin-top:8px;">Update Android System WebView</a>'
+
+  const secondary = isIOS
+    ? ''
+    : '<p style="margin:22px 0 0;font-size:15px;color:' + MUTED + ';">Or open Co-Exist in Chrome: <a href="' + WEB_URL + '" style="color:' + OLIVE_DARK + ';font-weight:700;text-decoration:none;">app.coexistaus.org</a></p>'
+
+  root.innerHTML =
+    '<div style="min-height:100vh;background:' + BG + ';margin:0;padding:24px;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;-webkit-text-size-adjust:100%;">' +
+      '<div style="max-width:420px;margin:0 auto;padding-top:14vh;text-align:center;">' +
+        '<div style="font-size:22px;font-weight:800;letter-spacing:0.5px;color:' + OLIVE + ';margin-bottom:28px;">Co-Exist</div>' +
+        '<h1 style="font-size:24px;line-height:1.25;font-weight:800;color:' + INK + ';margin:0 0 14px;">' + heading + '</h1>' +
+        '<p style="font-size:16px;line-height:1.5;color:' + MUTED + ';margin:0 0 24px;">' + body + '</p>' +
+        primaryBtn +
+        secondary +
+      '</div>' +
+    '</div>'
+}
+
+const belowFloor = isWebViewBelowFloor()
+
+if (belowFloor) {
+  renderWebViewUpgradeScreen()
+} else {
+  try {
+    createRoot(document.getElementById('root')!).render(
+      <StrictMode>
+        <HelmetProvider>
+          <QueryClientProvider client={queryClient}>
+            <BrowserRouter>
+              <AuthProvider>
+                <ToastProvider>
+                  <SentryErrorBoundary>
+                    <App />
+                  </SentryErrorBoundary>
+                  <CookieConsentBanner />
+                </ToastProvider>
+              </AuthProvider>
+            </BrowserRouter>
+          </QueryClientProvider>
+        </HelmetProvider>
+      </StrictMode>,
+    )
+  } catch (err) {
+    showBootError('render', err)
+  }
 }
 
 // Service worker registration is WEB-ONLY.
