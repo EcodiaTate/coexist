@@ -5,6 +5,7 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { Input } from '@/components/input'
 import { cn } from '@/lib/cn'
 import { useOffline } from '@/hooks/use-offline'
+import { geocodePrecisionRank } from '@/lib/geo'
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -41,6 +42,10 @@ interface NominatimResult {
   display_name: string
   lat: string
   lon: string
+  place_rank?: number
+  addresstype?: string
+  class?: string
+  type?: string
   address: {
     house_number?: string
     road?: string
@@ -148,24 +153,23 @@ async function searchPlaces(
 
   const data: NominatimResult[] = await res.json()
 
-  const queryHasNumber = /\d/.test(query)
-
-  const mapped = data.map((r) => ({
+  const mapped = data.map((r, i) => ({
     display_name: r.display_name,
     lat: parseFloat(r.lat),
     lng: parseFloat(r.lon),
     short_name: buildShortName(r.address) || r.display_name.split(',').slice(0, 3).join(',').trim(),
-    _hasHouseNumber: !!r.address.house_number,
+    // Specificity of this match (house/street beats suburb/city/state).
+    _precision: geocodePrecisionRank(r),
+    // Preserve Nominatim's relevance order as a stable tiebreak.
+    _order: i,
   }))
 
-  // When the user typed a number, surface results that actually have a
-  // house number first - Nominatim otherwise mixes street-only matches in
-  // and the picker grabs whichever comes first.
-  if (queryHasNumber) {
-    mapped.sort((a, b) => Number(b._hasHouseNumber) - Number(a._hasHouseNumber))
-  }
+  // Surface the most PRECISE match first so the picker lands the pin on the
+  // exact address / venue, not the suburb centroid Nominatim mixes in. Ties
+  // fall back to Nominatim's own relevance ranking (original order).
+  mapped.sort((a, b) => b._precision - a._precision || a._order - b._order)
 
-  return mapped.map(({ _hasHouseNumber: _ignore, ...rest }) => rest)
+  return mapped.map(({ _precision: _p, _order: _o, ...rest }) => rest)
 }
 
 /* ------------------------------------------------------------------ */

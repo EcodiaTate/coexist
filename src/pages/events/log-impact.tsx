@@ -35,7 +35,7 @@ import { useCollectiveRole } from '@/hooks/use-collective-role'
 import { useAuth } from '@/hooks/use-auth'
 import { useEventSurvey } from '@/hooks/use-event-survey'
 import { SurveyQuestionRenderer } from '@/components/survey-questions'
-import { isQuestionVisible, stripHiddenAnswers } from '@/components/survey-questions-utils'
+import { computeMissingRequired, seedProfileAutofill, stripHiddenAnswers } from '@/components/survey-questions-utils'
 import { syncSurveyImpact } from '@/lib/survey-impact'
 import { useImpactMetricDefs } from '@/hooks/use-impact-metric-defs'
 import { useImeSafeOnChange } from '@/hooks/use-ime-safe-on-change'
@@ -713,11 +713,16 @@ export default function LogImpactPage() {
   }, [])
 
   useEffect(() => {
-    if (existingSurveyResponse && Object.keys(surveyAnswers).length === 0) {
-      startTransition(() => setSurveyAnswers(existingSurveyResponse))
+    if (Object.keys(surveyAnswers).length > 0) return
+    // Read-only profile_autofill questions need their value seeded (the
+    // renderer never sets them); overlay any existing saved response on top.
+    const autofill = seedProfileAutofill(surveyQuestions, profile as Record<string, unknown> | null | undefined)
+    const seed = { ...autofill, ...(existingSurveyResponse ?? {}) }
+    if (Object.keys(seed).length > 0) {
+      startTransition(() => setSurveyAnswers(seed))
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [existingSurveyResponse])
+  }, [existingSurveyResponse, surveyQuestions, profile])
 
   // default_value seeding was removed 2026-05-18 night. It used to seed
   // 'No' into Issues / Highlights / Grant on first render so leaders could
@@ -744,19 +749,10 @@ export default function LogImpactPage() {
   // (q1_name, q2 Landcare, q3 OzFish, q7 What-was-collected) that depend on
   // a Yes answer in their parent question stay out of the required check
   // when their parent is No or unanswered.
-  const surveyMissingRequired = useMemo(() => {
-    return surveyQuestions
-      .filter((q) => q.required)
-      .filter((q) => isQuestionVisible(q, surveyAnswers))
-      .filter((q) => {
-        const v = surveyAnswers[q.id]
-        if (v === null || v === undefined) return true
-        if (typeof v === 'string' && v.trim() === '') return true
-        if (Array.isArray(v) && v.length === 0) return true
-        return false
-      })
-      .map((q) => q.id)
-  }, [surveyQuestions, surveyAnswers])
+  const surveyMissingRequired = useMemo(
+    () => computeMissingRequired(surveyQuestions, surveyAnswers),
+    [surveyQuestions, surveyAnswers],
+  )
   const canSubmitSurvey = surveyMissingRequired.length === 0
 
   const camera = useCamera()

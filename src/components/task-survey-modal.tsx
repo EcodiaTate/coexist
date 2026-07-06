@@ -10,6 +10,8 @@ import { SurveyQuestionRenderer } from '@/components/survey-questions'
 import {
   resolveOtherValues,
   parseSurveyQuestions,
+  computeMissingRequired,
+  seedProfileAutofill,
   type SurveyQuestion,
 } from '@/components/survey-questions-utils'
 
@@ -85,45 +87,24 @@ export function TaskSurveyModal({
 
   const questions: SurveyQuestion[] = survey?.questions ?? []
 
-  // Auto-fill profile and collective fields when questions load
+  // Auto-fill read-only profile_autofill questions when the survey loads.
   useEffect(() => {
-    if (!questions.length || !profile) return
-    const autofilled: Record<string, unknown> = {}
-    for (const q of questions) {
-      if (q.type === 'profile_autofill' && q.profile_field) {
-        const field = q.profile_field
-        let value: unknown = null
-
-        if (field.startsWith('collective.')) {
-          const collectiveField = field.replace('collective.', '')
-          if (collective) {
-            value = (collective as Record<string, unknown>)[collectiveField]
-          }
-        } else {
-          value = (profile as Record<string, unknown>)[field]
-          if (Array.isArray(value)) {
-            value = value.join(', ')
-          }
-        }
-
-        if (value !== undefined && value !== null && value !== '') {
-          autofilled[q.id] = String(value)
-        }
-      }
-    }
+    if (!questions.length) return
+    const autofilled = seedProfileAutofill(
+      questions,
+      profile as Record<string, unknown> | null | undefined,
+      collective as Record<string, unknown> | null | undefined,
+    )
     if (Object.keys(autofilled).length > 0) {
       setAnswers((prev) => ({ ...autofilled, ...prev }))
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [questions.length, profile, collective])
 
-  const allRequiredAnswered = questions.every((q) => {
-    if (!q.required) return true
-    const val = answers[q.id]
-    if (val === undefined || val === null || val === '') return false
-    if (q.type === 'checkbox' && Array.isArray(val) && val.length === 0) return false
-    return true
-  })
+  // Canonical gate: required + VISIBLE + unanswered. The visibility filter
+  // (previously missing here) stops a hidden conditional required question
+  // from permanently blocking submission when it cannot be answered.
+  const allRequiredAnswered = computeMissingRequired(questions, answers).length === 0
 
   const setAnswer = (questionId: string, value: unknown) => {
     setAnswers((prev) => ({ ...prev, [questionId]: value }))

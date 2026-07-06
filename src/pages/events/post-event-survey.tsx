@@ -11,7 +11,7 @@ import { useEventDetail, ACTIVITY_TYPE_LABELS, isPastEvent } from '@/hooks/use-e
 import { wallClockNow } from '@/lib/date-format'
 import { useEventSurvey } from '@/hooks/use-event-survey'
 import { SurveyQuestionRenderer } from '@/components/survey-questions'
-import { isQuestionVisible, stripHiddenAnswers } from '@/components/survey-questions-utils'
+import { computeMissingRequired, seedProfileAutofill, stripHiddenAnswers } from '@/components/survey-questions-utils'
 import {
     Page,
     Header,
@@ -135,11 +135,13 @@ export default function PostEventSurveyPage() {
 
   const { data: event, isLoading: eventLoading } = useEventDetail(eventId)
   const { data: surveyData, isLoading: surveyLoading } = useEventSurvey(eventId, event?.activity_type, 'attendee')
-  const questions = surveyData?.questions ?? []
+  const questions = useMemo(() => surveyData?.questions ?? [], [surveyData])
   const surveyId = surveyData?.surveyId
   const { data: existingResponse } = useExistingResponse(surveyId, eventId)
   const { data: attendance, isLoading: attendanceLoading } = useAttendanceCheck(eventId)
   const submitMutation = useSubmitSurvey()
+
+  const { profile } = useAuth()
 
   const [userAnswers, setUserAnswers] = useState<Record<string, unknown>>({})
   const [submitted, setSubmitted] = useState(false)
@@ -150,28 +152,35 @@ export default function PostEventSurveyPage() {
     return (resp?.answers as Record<string, unknown>) ?? {}
   }, [existingResponse])
 
-  const answers: Record<string, unknown> = Object.keys(userAnswers).length > 0 ? userAnswers : existingAnswers
+  // Read-only profile_autofill questions never get a setAnswer from the
+  // renderer, so seed their values or a required one can never be satisfied.
+  const seededAutofill = useMemo(
+    () => seedProfileAutofill(questions, profile as Record<string, unknown> | null | undefined),
+    [questions, profile],
+  )
+
+  // MERGE (not replace): autofill < existing response < the user's live
+  // edits. The prior `keys(userAnswers) > 0 ? userAnswers : existingAnswers`
+  // dropped every previously-saved answer the moment the user touched a
+  // single field on an edit, so the gate reported the untouched required
+  // questions as missing even though they were answered - a false "you
+  // haven't filled all required sections" on resubmit.
+  const answers: Record<string, unknown> = useMemo(
+    () => ({ ...seededAutofill, ...existingAnswers, ...userAnswers }),
+    [seededAutofill, existingAnswers, userAnswers],
+  )
 
   const setAnswer = useCallback((key: string, value: unknown) => {
     setUserAnswers((prev) => ({ ...prev, [key]: value }))
   }, [])
 
-  // Visible-required gate: a hidden conditional question doesn't block
-  // submission. Mirrors log-impact's surveyMissingRequired logic so the
-  // two surfaces behave consistently.
-  const requiredKeys = useMemo(
-    () =>
-      questions
-        .filter((q) => q.required)
-        .filter((q) => isQuestionVisible(q, answers))
-        .map((q) => q.id),
+  // Visible + required + unanswered gate. Hidden conditional questions and
+  // 0/false/multi-select answers are handled canonically in
+  // survey-questions-utils so every survey surface behaves identically.
+  const canSubmit = useMemo(
+    () => computeMissingRequired(questions, answers).length === 0,
     [questions, answers],
   )
-
-  const canSubmit = requiredKeys.every((key) => {
-    const val = answers[key]
-    return val !== undefined && val !== null && val !== ''
-  })
 
   const { toast } = useToast()
 

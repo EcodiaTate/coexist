@@ -87,6 +87,92 @@ export function stripHiddenAnswers(
 }
 
 /**
+ * Canonical "is this answer filled?" predicate. Single source of truth for
+ * every survey surface's required-question gate (log-impact, post-event
+ * survey, task survey modal). Prior to 2026-07 each surface re-implemented
+ * this inline and diverged, producing false "you haven't filled all
+ * required sections" errors on genuinely-answered questions.
+ *
+ * A value counts as answered when it holds real content:
+ *   - undefined / null                       -> NOT answered
+ *   - empty string or whitespace-only string -> NOT answered
+ *   - empty array (unselected multi-select)  -> NOT answered
+ *   - the number 0 (a valid scale/rating)    -> ANSWERED
+ *   - boolean false                          -> ANSWERED
+ *   - any non-empty string / array / object  -> ANSWERED
+ *
+ * The 0 / false cases are load-bearing: a linear scale can start at 0 and a
+ * naive `!value` or `value !== ''` check that treats those as blank blocks
+ * submission of a fully-answered survey.
+ */
+export function isAnswered(value: unknown): boolean {
+  if (value === undefined || value === null) return false
+  if (typeof value === 'string') return value.trim().length > 0
+  if (Array.isArray(value)) return value.length > 0
+  return true
+}
+
+/**
+ * Ids of required questions that are currently VISIBLE (show_if satisfied)
+ * and not yet answered. Callers gate submission on this returning an empty
+ * array.
+ *
+ * The visibility filter is essential: a required conditional question whose
+ * parent answer hides it MUST NOT block submission - it cannot be answered
+ * while hidden, so counting it produces a permanent, unfixable "incomplete"
+ * state (the task survey modal had exactly this bug because it omitted the
+ * filter).
+ */
+export function computeMissingRequired(
+  questions: SurveyQuestion[],
+  answers: Record<string, unknown>,
+): string[] {
+  return questions
+    .filter((q) => q.required)
+    .filter((q) => isQuestionVisible(q, answers))
+    .filter((q) => !isAnswered(answers[q.id]))
+    .map((q) => q.id)
+}
+
+/**
+ * Seed profile_autofill answers from the signed-in profile (+ their
+ * collective). profile_autofill questions render READ-ONLY: the renderer
+ * displays the value but never calls setAnswer for them, so their answer
+ * must be seeded into form state or a required profile_autofill question can
+ * never be satisfied - the leader/attendee sees their name on screen yet the
+ * gate reports the field missing and submission is blocked forever. The two
+ * event survey surfaces (log-impact, post-event survey) previously did no
+ * such seeding; this helper unifies the behaviour with the task survey modal.
+ *
+ * `profile_field` may be a plain profile column ("display_name", "postcode")
+ * or a "collective.<field>" reference resolved against the collective arg.
+ */
+export function seedProfileAutofill(
+  questions: SurveyQuestion[],
+  profile: Record<string, unknown> | null | undefined,
+  collective?: Record<string, unknown> | null,
+): Record<string, unknown> {
+  if (!profile && !collective) return {}
+  const seeded: Record<string, unknown> = {}
+  for (const q of questions) {
+    if (q.type !== 'profile_autofill' || !q.profile_field) continue
+    const field = q.profile_field
+    let value: unknown = null
+    if (field.startsWith('collective.')) {
+      const cf = field.replace('collective.', '')
+      if (collective) value = collective[cf]
+    } else if (profile) {
+      value = profile[field]
+      if (Array.isArray(value)) value = value.join(', ')
+    }
+    if (value !== undefined && value !== null && value !== '') {
+      seeded[q.id] = String(value)
+    }
+  }
+  return seeded
+}
+
+/**
  * Resolve "other" write-in values into final answers.
  * Call before submitting to replace __other__ placeholders.
  */

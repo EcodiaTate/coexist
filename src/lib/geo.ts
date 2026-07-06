@@ -95,6 +95,52 @@ export function parseLocationPoint(point: unknown): MapCenter | null {
 }
 
 /**
+ * A Nominatim result, reduced to just the fields that signal how
+ * geographically SPECIFIC the match is. Both the address autocomplete and
+ * the type-to-move-pin forward geocode use this to prefer an exact address
+ * or named venue over a suburb / city / region centroid.
+ */
+export interface GeocodePrecisionInput {
+  /** Nominatim place_rank: ~4 country, ~8 state, ~16 city, ~19 suburb, ~26 street, ~30 house. */
+  place_rank?: number | string
+  /** e.g. "building", "road", "suburb", "city", "state". */
+  addresstype?: string
+  class?: string
+  type?: string
+  address?: { house_number?: string; road?: string } | null
+}
+
+/**
+ * Rank a geocode result by specificity (higher = more precise). This is the
+ * fix for "the event map generalises to the suburb": Nominatim mixes a
+ * suburb / city centroid in with the exact address, and picking or
+ * forward-geocoding whichever comes first drops the pin on the locality
+ * centre instead of the venue. Sorting / choosing by this rank surfaces the
+ * exact point first so the persisted lat/lng is the precise location.
+ *
+ * place_rank is the primary signal (it directly encodes admin-level vs
+ * street vs house). addresstype / house_number are a fallback for the rare
+ * result that omits place_rank.
+ */
+export function geocodePrecisionRank(r: GeocodePrecisionInput): number {
+  const rank =
+    typeof r.place_rank === 'string' ? parseInt(r.place_rank, 10) : r.place_rank
+  if (typeof rank === 'number' && Number.isFinite(rank)) {
+    // Nudge exact-building matches (house number present) above a bare
+    // street match at the same nominal rank.
+    return r.address?.house_number ? rank + 0.5 : rank
+  }
+  // No place_rank: infer from addresstype / class.
+  const t = (r.addresstype || r.type || r.class || '').toLowerCase()
+  if (r.address?.house_number || t === 'building' || t === 'house') return 30
+  if (['road', 'amenity', 'leisure', 'tourism', 'shop', 'natural', 'park', 'pedestrian', 'footway'].includes(t)) return 26
+  if (['neighbourhood', 'hamlet', 'locality'].includes(t)) return 22
+  if (['suburb', 'city', 'town', 'village', 'municipality'].includes(t)) return 16
+  if (['county', 'state', 'region', 'country'].includes(t)) return 8
+  return 18 // unknown: treat as roughly locality-level
+}
+
+/**
  * City-centre fallback coords keyed by collective slug. Used everywhere a
  * collective needs a map pin but doesn't have a populated location_point
  * yet - the explore map and the collective detail page both pull from

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { MapCenter } from '@/components/map/use-map'
+import { geocodePrecisionRank } from '@/lib/geo'
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -36,6 +37,10 @@ interface NominatimForwardResult {
   lat: string
   lon: string
   display_name: string
+  place_rank?: number
+  addresstype?: string
+  class?: string
+  type?: string
   address?: NominatimReverseResult['address']
 }
 
@@ -138,7 +143,11 @@ async function forwardGeocodeTopResult(
   const params = new URLSearchParams({
     q: query,
     format: 'json',
-    limit: '1',
+    // Pull several candidates, not just the first: Nominatim often returns a
+    // suburb / city centroid ahead of the exact street match. Choosing the
+    // most PRECISE candidate is what stops the typed-address pin from
+    // generalising to the suburb.
+    limit: '5',
     addressdetails: '1',
     countrycodes: countryCode,
   })
@@ -149,7 +158,9 @@ async function forwardGeocodeTopResult(
   if (!res.ok) return null
   const data = (await res.json()) as NominatimForwardResult[]
   if (!data.length) return null
-  const top = data[0]
+  const top = data.reduce((best, cur) =>
+    geocodePrecisionRank(cur) > geocodePrecisionRank(best) ? cur : best,
+  )
   const short = top.address
     ? buildShortNameFromAddress(top.address)
     : top.display_name.split(',').slice(0, 3).join(',').trim()
