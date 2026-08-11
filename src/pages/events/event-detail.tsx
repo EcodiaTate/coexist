@@ -572,12 +572,9 @@ export default function EventDetailPage() {
         navigate(`/events/${event.id}/ticket-confirmation?ticket_id=${result.ticket_id}`)
         return
       }
-      if (result.url) {
-        window.location.href = result.url
-      } else if (result.session_id) {
-        const { redirectToCheckout: redir } = await import('@/lib/stripe')
-        await redir(result.session_id)
-      }
+      // Provider seam: Stripe by default; GreenPay only when enabled + keyed.
+      const { redirectToHostedCheckout } = await import('@/lib/payments')
+      await redirectToHostedCheckout(result)
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to start checkout')
     }

@@ -28,6 +28,9 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import Stripe from 'https://esm.sh/stripe@14?target=deno'
 import { withSentry } from '../_shared/sentry.ts'
+// Provider seam (STAGED, gated OFF): refund routes to Stripe by default.
+// See GREENPAY-STAGING-DO-NOT-MERGE.md.
+import { createRefundViaActiveProvider } from '../_shared/payments/refund-helper.ts'
 
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, { apiVersion: '2024-04-10' })
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!
@@ -111,7 +114,7 @@ Deno.serve(withSentry('cancel-event', async (req: Request) => {
       try {
         if (isPaid) {
           try {
-            await stripe.refunds.create({ payment_intent: t.stripe_payment_intent_id! })
+            await createRefundViaActiveProvider(stripe, t.stripe_payment_intent_id!)
           } catch (err) {
             const msg = (err as Error).message
             if (!/already been refunded|already refunded/i.test(msg)) throw err

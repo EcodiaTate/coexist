@@ -17,6 +17,9 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import Stripe from 'https://esm.sh/stripe@14?target=deno'
 import { withSentry } from '../_shared/sentry.ts'
+// Provider seam (STAGED, gated OFF). See GREENPAY-STAGING-DO-NOT-MERGE.md.
+import { activePaymentProvider } from '../_shared/payments/provider.ts'
+import { greenPayPublicCheckout } from '../_shared/payments/greenpay-handlers.ts'
 
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, { apiVersion: '2024-04-10' })
 const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
@@ -30,6 +33,8 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 Deno.serve(withSentry('public-checkout', async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+  // STAGED: default provider is Stripe, so this branch is never taken today.
+  if (activePaymentProvider() === 'greenpay') return greenPayPublicCheckout(req)
   const json = (data: unknown, status = 200) =>
     new Response(JSON.stringify(data), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
 

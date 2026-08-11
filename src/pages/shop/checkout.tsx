@@ -10,7 +10,7 @@ import { useToast } from '@/components/toast'
 import { useCart } from '@/hooks/use-cart'
 import { useCreateMerchCheckout, useSavedAddresses } from '@/hooks/use-orders'
 import { useCartReservationSync, useMyReservations, useReservationCountdown } from '@/hooks/use-stock-reservation'
-import { redirectToCheckout } from '@/lib/stripe'
+import { redirectToHostedCheckout } from '@/lib/payments'
 import { formatPrice, type ShippingAddress } from '@/types/merch'
 import { cn } from '@/lib/cn'
 
@@ -122,11 +122,8 @@ export default function CheckoutPage() {
     }
     try {
       const result = await checkout.mutateAsync({ shippingAddress: address })
-      if (result.url) {
-        window.location.href = result.url
-      } else if (result.session_id) {
-        await redirectToCheckout(result.session_id)
-      }
+      // Provider seam: Stripe by default; GreenPay only when enabled + keyed.
+      await redirectToHostedCheckout(result)
     } catch {
       toast.error('Checkout failed. Please try again.')
     }

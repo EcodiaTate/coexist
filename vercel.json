@@ -1,4 +1,10 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "git": {
+    "deploymentEnabled": {
+      "greenpay-staging": false
+    }
+  },
   "rewrites": [
     { "source": "/privacy", "destination": "/privacy.html" },
     { "source": "/((?!assets|favicon|manifest|privacy\\.html|\\.well-known).*)", "destination": "/index.html" }
