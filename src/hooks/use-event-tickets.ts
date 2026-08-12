@@ -5,6 +5,10 @@ import { useAuth } from '@/hooks/use-auth'
 import { useOffline } from '@/hooks/use-offline'
 import { queueOfflineAction } from '@/lib/offline-sync'
 import { DIETARY_GATE_QUERY_KEY } from '@/lib/dietary'
+import {
+  SPOT_TAKING_TICKET_STATUSES,
+  INVENTORY_HOLD_TICKET_STATUSES,
+} from '@/lib/event-capacity'
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -65,13 +69,16 @@ export function useEventTicketTypes(eventId: string | undefined) {
       if (error) throw error
       if (!types?.length) return []
 
-      // Count sold tickets per type (pending + confirmed + checked_in)
+      // Inventory hold per type: pending + confirmed + checked_in. Includes
+      // pending on purpose so a ticket mid-checkout is not oversold. This is the
+      // inventory-hold set (a superset of the displayed "spots filled" count),
+      // canonicalised in @/lib/event-capacity.
       const typeIds = types.map((t) => t.id)
       const { data: soldData } = await supabase
         .from('event_tickets')
         .select('ticket_type_id, quantity')
         .in('ticket_type_id', typeIds)
-        .in('status', ['pending', 'confirmed', 'checked_in'])
+        .in('status', [...INVENTORY_HOLD_TICKET_STATUSES])
 
       const soldByType = new Map<string, number>()
       for (const row of soldData ?? []) {
@@ -577,8 +584,13 @@ export function useTicketSalesSummary(eventId: string | undefined) {
       let totalCheckedIn = 0
       const byType: Record<string, { sold: number; revenue: number }> = {}
 
+      // "Sold" = seats a valid ticket occupies (confirmed + checked_in), the
+      // canonical spot-taking set from @/lib/event-capacity. The event banner
+      // renders the same count (event.spots_taken via the event_spots_taken
+      // RPC) for a ticketed event, so this panel and the banner cannot diverge.
+      const spotTaking = new Set<string>(SPOT_TAKING_TICKET_STATUSES)
       for (const t of tickets) {
-        if (t.status === 'confirmed' || t.status === 'checked_in') {
+        if (spotTaking.has(t.status)) {
           totalRevenue += t.price_cents
           totalSold += t.quantity
           if (t.status === 'checked_in') totalCheckedIn += t.quantity

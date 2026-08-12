@@ -7020,7 +7020,9 @@ export type Database = {
         Args: { p_event_id: string }
         Returns: string
       }
+      event_going_count: { Args: { p_event_id: string }; Returns: number }
       event_host_count: { Args: { p_event_id: string }; Returns: number }
+      event_spots_taken: { Args: { p_event_id: string }; Returns: number }
       expire_stale_pending_tickets: { Args: never; Returns: number }
       generate_event_check_in_code: { Args: never; Returns: string }
       generate_public_check_in_token: { Args: never; Returns: string }
