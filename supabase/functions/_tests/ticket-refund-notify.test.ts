@@ -45,6 +45,11 @@ class FakeDb implements RefundNotifyClient {
   claimAttempts: Array<[string, number]> = []
 
   from(table: string) {
+    // Every nested builder below is an object-literal method, so each one rebinds `this` and
+    // cannot reach the fake client. Destructuring instead, which is the rule's own sanctioned
+    // escape, would snapshot claimError, and the tests set that AFTER construction and expect
+    // it read on each call. The alias is the behaviour-preserving option, not the lazy one.
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this
     return {
       update(values: Record<string, unknown>) {
