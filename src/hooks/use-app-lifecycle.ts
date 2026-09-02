@@ -38,6 +38,15 @@ const RESUME_REFRESH_PREFIXES = new Set([
 const SLOW_RESUME_THRESHOLD_MS = 2000
 
 /**
+ * Safety-net deadline for ending the span when a paint never comes.
+ *
+ * This number is load-bearing for reading the issue, not just for the timer.
+ * A settle that lands on this deadline measures the deadline, so it must never
+ * be reported as a slow resume. See the note on `settle` below.
+ */
+const RESUME_SETTLE_DEADLINE_MS = 5000
+
+/**
  * Handles native app lifecycle events (pause/resume).
  *
  * On resume the previous behaviour was a synchronous, blanket
@@ -69,8 +78,28 @@ export function useAppLifecycle() {
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return
 
-    let resumeHandle: { remove: () => void } | null = null
-    let pauseHandle: { remove: () => void } | null = null
+    // THE HANDLE HAS TO BE TRACKED THROUGH A DISPOSED FLAG, NOT A BARE `let`.
+    // The listener is registered inside two chained promises (the dynamic
+    // import, then addListener). The previous code assigned the handle in the
+    // final `.then()` and the cleanup read a variable that was still null
+    // whenever teardown beat those promises, so the listener outlived the
+    // effect and the next mount added another one on top of it.
+    //
+    // Measured 2026-09-02 on Sentry issue 7669690336, latest 120 events: 123 of
+    // 135 consecutive `resume: start` breadcrumb pairs were 0ms apart, which is
+    // two or more live listeners firing inside a single resume tick rather than
+    // two separate resumes. 99 events carried exactly 2 starts and 12 carried
+    // 4; exactly one carried 1. Every duplicate listener opens its own span,
+    // arms its own deadline timer and sends its own captureMessage, so roughly
+    // half the issue's raw event count was one resume counted twice. The
+    // outliers prove it directly: they arrive in pairs on the same timestamp
+    // (291367/291423, 108489/108527, 365511/365527).
+    let disposed = false
+    const handles: Array<{ remove: () => void }> = []
+    const track = (h: { remove: () => void }) => {
+      if (disposed) h.remove()
+      else handles.push(h)
+    }
 
     // Dynamic import to match existing pattern and avoid pulling @capacitor/app into main chunk
     import('@capacitor/app').then(({ App }) => {
@@ -88,7 +117,7 @@ export function useAppLifecycle() {
         })
 
         let settled = false
-        const settle = () => {
+        const settle = (source: 'paint' | 'deadline') => {
           if (settled) return
           settled = true
           const durationMs = Math.round(performance.now() - startedAt)
@@ -96,14 +125,42 @@ export function useAppLifecycle() {
             category: 'app.lifecycle',
             message: 'resume: settled',
             level: 'info',
-            data: { duration_ms: durationMs },
+            data: { duration_ms: durationMs, source },
           })
           span.setAttribute('duration_ms', durationMs)
+          span.setAttribute('settle_source', source)
           span.end()
           // Breadcrumbs only attach to a co-firing error, and the span is
           // sampled (tracesSampleRate 0.1 in prod). Surface a slow resume as
           // its own searchable event so it is visible on issue 7616758580 even
           // when no hang error is captured.
+          //
+          // ONLY A PAINT SETTLE MEASURES A RESUME A USER WAITED THROUGH.
+          // A deadline settle means requestAnimationFrame never fired, and rAF
+          // does not fire while the document is hidden (the safety net below
+          // exists for exactly that case). So on any resume that lands with the
+          // webview still off screen the deadline ALWAYS wins and ALWAYS
+          // reports at least RESUME_SETTLE_DEADLINE_MS, which is above the slow
+          // threshold by construction. Reporting it captured the timer, not the
+          // app.
+          //
+          // Measured 2026-09-02 over the latest 120 events on issue 7669690336
+          // (Sentry REST /issues/7669690336/events/?full=true, 12 pages):
+          // 107 of 120 sat in a 5004ms to 5570ms band whose middle 50% spans
+          // 15ms (p25 5011, p50 5017, p75 5026), which is the shape of a
+          // setTimeout and not of a hang; and 110 of the 114 events carrying a
+          // lifecycle crumb settled with the app last known BACKGROUND. Only 4
+          // of 120 were genuine paint settles (2405, 2434, 2883, 2897ms, all
+          // Android, all after a foreground transition). Not one event in the
+          // whole sample fell in the 3.3s to 4.1s band the issue is named for.
+          if (source !== 'paint') return
+          // A paint settle far beyond the deadline is not work either: it means
+          // both the deadline timer and rAF were frozen by an OS suspend and
+          // `performance.now()` accumulated wall clock across it. The same
+          // sample carried 7 such events between 77.8s and 365.5s, every one of
+          // them with the app backgrounded and, in the 291s case, with the
+          // `foreground` crumb landing AFTER the settle.
+          if (durationMs > RESUME_SETTLE_DEADLINE_MS) return
           if (durationMs >= SLOW_RESUME_THRESHOLD_MS) {
             Sentry.captureMessage(
               `slow app resume web-rehydrate: ${durationMs}ms`,
@@ -122,20 +179,22 @@ export function useAppLifecycle() {
           })
           // Approximate "first settle after resume": one paint after the
           // invalidation was dispatched.
-          requestAnimationFrame(settle)
+          requestAnimationFrame(() => settle('paint'))
         })
         // Safety net: end the span even if a paint never comes because the app
         // was re-backgrounded before settling (rAF does not fire when hidden).
-        setTimeout(settle, 5000)
-      }).then(h => { resumeHandle = h })
+        // This path closes the span so it is not leaked; it does NOT report.
+        setTimeout(() => settle('deadline'), RESUME_SETTLE_DEADLINE_MS)
+      }).then(track)
 
       // Pause: no-op for now. Realtime subscriptions auto-reconnect.
-      App.addListener('pause', () => {}).then(h => { pauseHandle = h })
+      App.addListener('pause', () => {}).then(track)
     })
 
     return () => {
-      resumeHandle?.remove()
-      pauseHandle?.remove()
+      disposed = true
+      for (const h of handles) h.remove()
+      handles.length = 0
     }
   }, [queryClient])
 }
