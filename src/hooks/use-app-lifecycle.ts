@@ -96,6 +96,9 @@ export function useAppLifecycle() {
     // (291367/291423, 108489/108527, 365511/365527).
     let disposed = false
     const handles: Array<{ remove: () => void }> = []
+    // Visibility listeners are per-resume, not per-effect, so they need their
+    // own drain on teardown.
+    const releases: Array<() => void> = []
     const track = (h: { remove: () => void }) => {
       if (disposed) h.remove()
       else handles.push(h)
@@ -116,57 +119,120 @@ export function useAppLifecycle() {
           level: 'info',
         })
 
+        // WHETHER THE WINDOW WAS EVER HIDDEN IS THE MEASUREMENT, NOT WHETHER
+        // IT IS HIDDEN NOW. Checking visibility at settle time is the obvious
+        // guard and it is wrong: a paint settle that arrives because the app
+        // came BACK from the background is visible at the instant it settles,
+        // which is exactly the artifact this guard exists to drop. Sampled
+        // 2026-09-02 on event 84a42639 (Android, reported 2405ms): foreground
+        // 09:36:04.840, resume start .886, BACKGROUND 09:36:05.993, foreground
+        // 09:36:06.930, settle 09:36:07.270. Only 335ms of that 2405ms window
+        // was the paint. The rest was the app off screen, and a settle-time
+        // check would have waved it through.
+        //
+        // So the flag latches on any hidden transition across the whole window
+        // and is seeded from the state at window start, which is the iOS case:
+        // the resume listener routinely fires AFTER the app has already gone
+        // back to background (event 505fbb26, foreground 05:45:24.131,
+        // background .139, resume start .140).
+        let hiddenDuringWindow =
+          typeof document !== 'undefined' && document.visibilityState === 'hidden'
+        const onVisibilityChange = () => {
+          if (document.visibilityState === 'hidden') hiddenDuringWindow = true
+        }
+        if (typeof document !== 'undefined') {
+          document.addEventListener('visibilitychange', onVisibilityChange)
+        }
+        const releaseVisibility = () => {
+          if (typeof document !== 'undefined') {
+            document.removeEventListener('visibilitychange', onVisibilityChange)
+          }
+        }
+        // Registered against the effect too: a resume whose settle never runs
+        // because the process was killed must not leave the listener behind.
+        // Defect 2 in this file was exactly a listener that outlived its owner.
+        releases.push(releaseVisibility)
+
         let settled = false
         const settle = (source: 'paint' | 'deadline') => {
           if (settled) return
           settled = true
+          releaseVisibility()
           const durationMs = Math.round(performance.now() - startedAt)
           Sentry.addBreadcrumb({
             category: 'app.lifecycle',
             message: 'resume: settled',
             level: 'info',
-            data: { duration_ms: durationMs, source },
+            data: {
+              duration_ms: durationMs,
+              source,
+              hidden_during_window: hiddenDuringWindow,
+            },
           })
           span.setAttribute('duration_ms', durationMs)
           span.setAttribute('settle_source', source)
+          span.setAttribute('hidden_during_window', hiddenDuringWindow)
           span.end()
           // Breadcrumbs only attach to a co-firing error, and the span is
           // sampled (tracesSampleRate 0.1 in prod). Surface a slow resume as
           // its own searchable event so it is visible on issue 7616758580 even
           // when no hang error is captured.
           //
-          // ONLY A PAINT SETTLE MEASURES A RESUME A USER WAITED THROUGH.
-          // A deadline settle means requestAnimationFrame never fired, and rAF
-          // does not fire while the document is hidden (the safety net below
-          // exists for exactly that case). So on any resume that lands with the
-          // webview still off screen the deadline ALWAYS wins and ALWAYS
-          // reports at least RESUME_SETTLE_DEADLINE_MS, which is above the slow
-          // threshold by construction. Reporting it captured the timer, not the
-          // app.
+          // A WINDOW THAT WAS EVER HIDDEN MEASURES THE HIDING, NOT THE APP.
+          // rAF does not run while the document is hidden, so on a resume that
+          // lands with the webview off screen the deadline wins by
+          // construction and reports at least RESUME_SETTLE_DEADLINE_MS, which
+          // clears the slow threshold without anything being slow.
           //
-          // Measured 2026-09-02 over the latest 120 events on issue 7669690336
-          // (Sentry REST /issues/7669690336/events/?full=true, 12 pages):
-          // 107 of 120 sat in a 5004ms to 5570ms band whose middle 50% spans
-          // 15ms (p25 5011, p50 5017, p75 5026), which is the shape of a
-          // setTimeout and not of a hang; and 110 of the 114 events carrying a
-          // lifecycle crumb settled with the app last known BACKGROUND. Only 4
-          // of 120 were genuine paint settles (2405, 2434, 2883, 2897ms, all
-          // Android, all after a foreground transition). Not one event in the
-          // whole sample fell in the 3.3s to 4.1s band the issue is named for.
-          if (source !== 'paint') return
-          // A paint settle far beyond the deadline is not work either: it means
-          // both the deadline timer and rAF were frozen by an OS suspend and
-          // `performance.now()` accumulated wall clock across it. The same
-          // sample carried 7 such events between 77.8s and 365.5s, every one of
-          // them with the app backgrounded and, in the 291s case, with the
-          // `foreground` crumb landing AFTER the settle.
-          if (durationMs > RESUME_SETTLE_DEADLINE_MS) return
-          if (durationMs >= SLOW_RESUME_THRESHOLD_MS) {
-            Sentry.captureMessage(
-              `slow app resume web-rehydrate: ${durationMs}ms`,
-              'warning',
-            )
+          // Re-derived 2026-09-02 over ALL 237 events on issue 7669690336
+          // (Sentry REST /issues/7669690336/events/?full=true, 24 pages to the
+          // end of the population, not a recency window): p50 5018ms with the
+          // middle 50% spanning 100ms, and the oldest 117 events carry the same
+          // 5018ms p50, so the cluster is the timer and not a recent
+          // regression. iOS produced 184 events and its FASTEST was 5001ms: not
+          // once in nineteen days did an iOS resume paint before the deadline.
+          // Reconstructing each window from its breadcrumbs and integrating the
+          // visible time: 75 windows fully hidden, 131 partly (iOS typically
+          // 0.1 to 5 per cent visible, a foreground blip then straight back),
+          // 22 unattributable, and 9 fully visible. Those 9 are the only real
+          // measurements in the issue, all Android, 2053 to 4153ms.
+          if (hiddenDuringWindow) return
+          if (source === 'paint') {
+            // A paint settle far beyond the deadline is not work either: both
+            // the timer and rAF were frozen by an OS suspend and
+            // `performance.now()` accumulated wall clock across it. 36 events
+            // ran from 5.6s to 4852s, and 24 of them carry a `foreground`
+            // breadcrumb timestamped AFTER their own settle. On cca9e997 the
+            // app backgrounded 7ms after the resume tick and the settle landed
+            // 365527ms later, 91ms before the foreground crumb.
+            if (durationMs > RESUME_SETTLE_DEADLINE_MS) return
+            if (durationMs >= SLOW_RESUME_THRESHOLD_MS) {
+              Sentry.captureMessage(
+                `slow app resume web-rehydrate: ${durationMs}ms`,
+                'warning',
+              )
+            }
+            return
           }
+          // A DEADLINE SETTLE ON A WINDOW THAT STAYED VISIBLE IS THE REAL HANG.
+          // rAF starved for the full deadline while the user was looking at the
+          // app is frozen UI, and suppressing every deadline settle to kill the
+          // false positives would delete this signal with them. It did not
+          // occur once in the 237-event population, so this path costs nothing
+          // today and only speaks when something genuinely new happens. It
+          // carries its own message so it groups as its own Sentry issue rather
+          // than re-polluting COEXIST-14.
+          //
+          // UNVERIFIED: that `document.visibilityState` flips to 'hidden' in a
+          // backgrounded WKWebView was not exercised on a real iOS device in
+          // the pass that wrote this. It is the same premise the rAF-starvation
+          // diagnosis already rests on. If it is wrong on some platform this
+          // path gets noisy in a clearly-named new issue rather than corrupting
+          // the existing one.
+          Sentry.captureMessage(
+            `app resume never painted: visible ${durationMs}ms without a frame`,
+            'error',
+          )
         }
 
         // Defer the cache work off the synchronous resume tick so first paint
@@ -183,7 +249,8 @@ export function useAppLifecycle() {
         })
         // Safety net: end the span even if a paint never comes because the app
         // was re-backgrounded before settling (rAF does not fire when hidden).
-        // This path closes the span so it is not leaked; it does NOT report.
+        // This path closes the span so it is not leaked. It reports only when
+        // the window stayed visible throughout, which is a genuine hang.
         setTimeout(() => settle('deadline'), RESUME_SETTLE_DEADLINE_MS)
       }).then(track)
 
@@ -195,6 +262,8 @@ export function useAppLifecycle() {
       disposed = true
       for (const h of handles) h.remove()
       handles.length = 0
+      for (const release of releases) release()
+      releases.length = 0
     }
   }, [queryClient])
 }

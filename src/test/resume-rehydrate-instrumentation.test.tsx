@@ -87,6 +87,10 @@ let rafQueue: FrameRequestCallback[] = []
 
 beforeEach(() => {
   vi.clearAllMocks()
+  /* `visibilityState` is redefined per test and the descriptor outlives the
+     test that set it, so a hidden window would leak forward and quietly turn a
+     later reporting assertion into a suppression one. Reset it first. */
+  Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'visible' })
   for (const k of Object.keys(listeners)) delete listeners[k]
   addListenerDeferred = []
   holdAddListener = false
@@ -109,17 +113,32 @@ afterEach(() => {
 /** Fire the queued rAF callbacks, which jsdom will not do on its own. */
 const paint = () => act(() => { const q = rafQueue; rafQueue = []; for (const cb of q) cb(now) })
 
+/* jsdom reports `visible` and never changes it, so every visibility case has to
+   be driven explicitly. The hook latches on the transition, not on the value at
+   settle time, so these fire a real `visibilitychange` rather than only setting
+   the property. */
+const setVisibility = (state: 'visible' | 'hidden') => act(() => {
+  Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => state })
+  document.dispatchEvent(new Event('visibilitychange'))
+})
+
 describe('COEXIST-14 resume instrumentation', () => {
-  it('does not report a slow resume when only the safety-net deadline fired', async () => {
+  it('does not report a slow resume when only the safety-net deadline fired on a hidden webview', async () => {
     /* The hidden-webview case: rAF never runs, the 5000ms timer settles the
-       span, and 107 of 120 real events took this path. A report here is the
-       instrument measuring itself. */
+       span, and this is what all 184 iOS events in the population did. A report
+       here is the instrument measuring itself.
+
+       This test used to assert the hidden case while leaving jsdom's document
+       VISIBLE the whole time, so it passed on a guard that keyed off the settle
+       source alone and never once exercised hiddenness. The window is now
+       actually hidden, which is what the 5017ms cluster is. */
     const { useAppLifecycle } = await import('@/hooks/use-app-lifecycle')
     renderHook(() => useAppLifecycle(), { wrapper: Wrapper })
     await flush()
     expect(listeners.resume, 'resume listener was never registered').toBeTypeOf('function')
 
     act(() => { listeners.resume!() })
+    setVisibility('hidden')
     now = 5017
     await act(async () => { await vi.advanceTimersByTimeAsync(5000) })
 
@@ -131,9 +150,16 @@ describe('COEXIST-14 resume instrumentation', () => {
   })
 
   it('does report a slow resume when a real paint settled above the threshold', async () => {
-    /* The genuine signal the issue is supposed to carry. Four of 120 sampled
-       events were this, at 2405, 2434, 2883 and 2897ms. Without this case the
-       first test would pass on a reporter that was simply deleted. */
+    /* The genuine signal the issue is supposed to carry. Without this case the
+       first test would pass on a reporter that was simply deleted.
+
+       The four events this comment used to name (2405, 2434, 2883, 2897ms) are
+       NOT examples of it. Re-derived over the full 237-event population on
+       2026-09-02, every one of those four is a stalled rAF from an earlier
+       resume cycle firing after the app came back, with 0.9s to 1.4s of
+       background sitting inside the measured window. The genuine paint settles
+       are 9 other events, all Android, 2053 to 4153ms, whose windows were
+       visible end to end. */
     const { useAppLifecycle } = await import('@/hooks/use-app-lifecycle')
     renderHook(() => useAppLifecycle(), { wrapper: Wrapper })
     await flush()
@@ -160,7 +186,9 @@ describe('COEXIST-14 resume instrumentation', () => {
   })
 
   it('does not report wall clock accumulated across an OS suspend', async () => {
-    /* Seven sampled events ran 77.8s to 365.5s. `performance.now()` keeps
+    /* 36 events in the full population ran 5.6s to 4852s, and 24 of them carry
+       a `foreground` breadcrumb timestamped after their own settle.
+       `performance.now()` keeps
        advancing while the process is suspended, so a settle that lands on the
        far side of a suspend measures the suspend. In the 291s case the
        `foreground` breadcrumb arrived AFTER the settle. */
@@ -176,11 +204,16 @@ describe('COEXIST-14 resume instrumentation', () => {
   })
 
   it('settles once even when the deadline and a paint both arrive', async () => {
+    /* Hidden, because that is the race this describes: the app is off screen,
+       the deadline wins, and the paint arrives afterwards when the app returns.
+       Left visible, the deadline settle is now a reported hang and this would
+       be asserting that a real hang stays silent. */
     const { useAppLifecycle } = await import('@/hooks/use-app-lifecycle')
     renderHook(() => useAppLifecycle(), { wrapper: Wrapper })
     await flush()
 
     act(() => { listeners.resume!() })
+    setVisibility('hidden')
     now = 5017
     await act(async () => { await vi.advanceTimersByTimeAsync(5000) })
     now = 5200
@@ -221,5 +254,93 @@ describe('COEXIST-14 resume instrumentation', () => {
     unmount()
     expect(removes.resume!.mock.calls.length).toBeGreaterThan(0)
     expect(removes.pause!.mock.calls.length).toBeGreaterThan(0)
+  })
+
+  it('does not report a paint settle whose window was hidden part way through', async () => {
+    /* The artifact the first fix still reported. rAF does not run while the
+       document is hidden, so a paint settle that arrives after the app comes
+       BACK is a stalled frame from the earlier resume, and its duration is
+       mostly time off screen. Event 84a42639 reported 2405ms of which 335ms was
+       the paint. 13 of the 22 sub-5000ms events in the population are this. A
+       visibility check taken at settle time cannot see it: the document is
+       visible again by then, which is why the hook latches the transition. */
+    const { useAppLifecycle } = await import('@/hooks/use-app-lifecycle')
+    renderHook(() => useAppLifecycle(), { wrapper: Wrapper })
+    await flush()
+
+    act(() => { listeners.resume!() })
+    setVisibility('hidden')
+    setVisibility('visible')
+    now = 2405
+    await paint()
+
+    expect(document.visibilityState, 'the document must be visible at settle, which is the point').toBe('visible')
+    expect(
+      captureMessage.mock.calls,
+      'a cross-background rAF settle was reported as a slow resume',
+    ).toEqual([])
+  })
+
+  it('does not report when the resume began with the webview already hidden', async () => {
+    /* The iOS shape: foreground, then background 8ms later, then the resume
+       listener runs. Event 505fbb26. Nothing transitions during the window, so
+       the flag has to be seeded from the state at the start of it. */
+    const { useAppLifecycle } = await import('@/hooks/use-app-lifecycle')
+    renderHook(() => useAppLifecycle(), { wrapper: Wrapper })
+    await flush()
+
+    Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'hidden' })
+    act(() => { listeners.resume!() })
+    now = 2897
+    await paint()
+
+    expect(captureMessage.mock.calls).toEqual([])
+  })
+
+  it('does report a deadline settle whose window stayed visible, which is a real hang', async () => {
+    /* The signal that suppressing every deadline settle would delete. rAF
+       starved for the full 5000ms while the user was looking at the app is
+       frozen UI. It did not happen once in the 237-event population, so this
+       path is silent today and only speaks when something new goes wrong.
+       Distinct message so it groups as its own issue instead of landing back on
+       COEXIST-14. */
+    const { useAppLifecycle } = await import('@/hooks/use-app-lifecycle')
+    renderHook(() => useAppLifecycle(), { wrapper: Wrapper })
+    await flush()
+
+    act(() => { listeners.resume!() })
+    now = 5017
+    await act(async () => { await vi.advanceTimersByTimeAsync(5000) })
+
+    expect(captureMessage).toHaveBeenCalledTimes(1)
+    expect(captureMessage.mock.calls[0][0]).toBe('app resume never painted: visible 5017ms without a frame')
+    expect(captureMessage.mock.calls[0][1]).toBe('error')
+
+    // A frame arriving after the deadline must not file a second report.
+    now = 5200
+    await paint()
+    expect(captureMessage, 'the late paint reported on top of the deadline').toHaveBeenCalledTimes(1)
+    expect(spanEnd).toHaveBeenCalledTimes(1)
+    expect(
+      captureMessage.mock.calls[0][0],
+      'the real-hang message must not group onto the slow-resume issue',
+    ).not.toContain('slow app resume web-rehydrate')
+  })
+
+  it('removes the visibility listener when the effect is torn down before a settle', async () => {
+    /* Defect 2 in this file was a listener that outlived its owner. The
+       visibility listener is per-resume, so it needs its own drain. */
+    const { useAppLifecycle } = await import('@/hooks/use-app-lifecycle')
+    const removeSpy = vi.spyOn(document, 'removeEventListener')
+    const { unmount } = renderHook(() => useAppLifecycle(), { wrapper: Wrapper })
+    await flush()
+
+    act(() => { listeners.resume!() })
+    unmount()
+
+    expect(
+      removeSpy.mock.calls.some(([type]) => type === 'visibilitychange'),
+      'the per-resume visibility listener survived the effect',
+    ).toBe(true)
   })
 })
