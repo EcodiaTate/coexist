@@ -2,11 +2,13 @@ import { describe, it, expect } from 'vitest'
 import fs from 'node:fs'
 import path from 'node:path'
 import {
+  eventRequiresSafetySet,
   guestSafetyPayload,
   hasEmergencyContact,
   hasFourWheelDriveAnswer,
   LIVE_REGISTRATION_STATUSES,
   LIVE_TICKET_STATUSES,
+  SAFETY_SET_EVENT_OR_FILTER,
   safetyGateHeading,
 } from '@/lib/dietary'
 
@@ -312,5 +314,110 @@ describe('every signed-in intake surface asks the whole set', () => {
     // 4WD" for someone who skipped, and no later gate can ever tell.
     const body = fs.readFileSync(path.join(ROOT, file), 'utf8')
     expect(body).not.toMatch(/has_four_wheel_drive\s*[:=]\s*(!!|Boolean\(|.*\?\?\s*false)/)
+  })
+})
+
+
+/* ------------------------------------------------------------------ */
+/*  Which EVENTS the safety set is asked for                           */
+/*                                                                     */
+/*  Added 2026-09-06. Every enforcement surface keyed on is_ticketed    */
+/*  alone, which reads "takes payment" as "carries duty of care".       */
+/*  Measured on production the same day, across every upcoming event:   */
+/*  2 of 66 live registrants on ticketed events had no reachable        */
+/*  emergency contact, against 264 of 471 on non-ticketed ones. A bare  */
+/*  registration is the ONLY way into a non-ticketed event             */
+/*  (useRegisterForEvent rejects ticketed ones), and that path had no   */
+/*  gate at all, so nothing anywhere asked those 264 people.           */
+/* ------------------------------------------------------------------ */
+
+describe('eventRequiresSafetySet', () => {
+  it('requires the set for any ticketed event', () => {
+    expect(eventRequiresSafetySet({ is_ticketed: true, activity_type: 'clean_up' })).toBe(true)
+  })
+
+  // The defect. A camp-out that does not sell tickets is the most remote
+  // thing Co-Exist runs and was the one case nothing asked.
+  it('requires the set for a camp-out even when it is not ticketed', () => {
+    expect(eventRequiresSafetySet({ is_ticketed: false, activity_type: 'camp_out' })).toBe(true)
+  })
+
+  // The deliberate limit. Widening to every event puts a blocking modal in
+  // front of 264 people registered for two-hour clean-ups and hikes; that is
+  // Co-Exist's product call, tracked on status_board d87e8024, not a fix to
+  // make unilaterally. If this test is changed, that decision was taken.
+  it('does NOT require the set for an ordinary non-ticketed activity', () => {
+    expect(eventRequiresSafetySet({ is_ticketed: false, activity_type: 'clean_up' })).toBe(false)
+    expect(eventRequiresSafetySet({ is_ticketed: false, activity_type: 'nature_hike' })).toBe(false)
+    expect(eventRequiresSafetySet({ is_ticketed: false, activity_type: 'ecosystem_restoration' })).toBe(false)
+  })
+
+  it('treats a missing or unknown event as not requiring it', () => {
+    expect(eventRequiresSafetySet(null)).toBe(false)
+    expect(eventRequiresSafetySet(undefined)).toBe(false)
+    expect(eventRequiresSafetySet({})).toBe(false)
+    expect(eventRequiresSafetySet({ is_ticketed: null, activity_type: null })).toBe(false)
+  })
+})
+
+describe('SAFETY_SET_EVENT_OR_FILTER', () => {
+  // The predicate and the query that decides who is even CONSIDERED must
+  // agree. They live in two languages, so this pins the translation: every
+  // disjunct of the filter is a case the predicate answers true for.
+  it('encodes exactly the same rule as the predicate', () => {
+    const disjuncts = SAFETY_SET_EVENT_OR_FILTER.split(',')
+    expect(disjuncts).toContain('is_ticketed.eq.true')
+    expect(disjuncts).toContain('activity_type.eq.camp_out')
+    expect(disjuncts).toHaveLength(2)
+    for (const d of disjuncts) {
+      const [column, , value] = d.split('.')
+      const event = column === 'is_ticketed'
+        ? { is_ticketed: true, activity_type: 'clean_up' }
+        : { is_ticketed: false, activity_type: value }
+      expect(eventRequiresSafetySet(event)).toBe(true)
+    }
+  })
+})
+
+/* ------------------------------------------------------------------ */
+/*  Every seat-taking entry point passes the gate                      */
+/*                                                                     */
+/*  The gate TypeScript cannot be, in the same shape as the guest       */
+/*  checkout scan above. Three RSVP buttons existed in event-detail and */
+/*  one of them (the invited "Accept & Register") called the register    */
+/*  mutation directly, so a gate added to the other two would have      */
+/*  looked complete and left a hole. The rule is that the page's own    */
+/*  register mutation is invoked from exactly one place.               */
+/* ------------------------------------------------------------------ */
+
+describe('registration entry points', () => {
+  const ROOT = path.resolve(__dirname, '../..')
+  const EVENT_DETAIL = path.join(ROOT, 'src/pages/events/event-detail.tsx')
+
+  function body(): string {
+    return fs.readFileSync(EVENT_DETAIL, 'utf8')
+  }
+
+  it('invokes the register mutation from exactly one place', () => {
+    const calls = body().match(/registerMutation\.mutate\(/g) ?? []
+    expect(calls).toHaveLength(1)
+  })
+
+  it('makes that one call site the gated helper, not a button handler', () => {
+    // doRegister is the only caller, and handleRegister is the only thing that
+    // reaches it from the UI. A button wired straight to registerMutation is
+    // what this guards against.
+    const src = body()
+    expect(src).toMatch(/const doRegister = useCallback\(\(asWaitlist: boolean\) => \{/)
+    expect(src).toMatch(/if \(user && registrationBlocked\) \{/)
+    expect(src).not.toMatch(/onClick=\{\(\) => registerMutation\.mutate/)
+  })
+
+  it('re-arms the app-open backstop when a seat is taken', () => {
+    // A gate that only re-evaluates on the next app open never reaches
+    // someone who does not open the app again, which is how three Wild
+    // Mountains ticket-holders reached the campsite un-asked.
+    const hook = fs.readFileSync(path.join(ROOT, 'src/hooks/use-events.ts'), 'utf8')
+    expect(hook).toContain('DIETARY_GATE_QUERY_KEY')
   })
 })

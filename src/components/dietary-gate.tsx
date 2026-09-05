@@ -17,6 +17,7 @@ import {
   NO_DIETARY_SENTINEL,
   NO_MEDICAL_SENTINEL,
   safetyGateHeading,
+  SAFETY_SET_EVENT_OR_FILTER,
 } from '@/lib/dietary'
 
 /* ------------------------------------------------------------------ */
@@ -86,10 +87,16 @@ export function DietaryGate() {
     !!(profile.phone ?? '').trim() &&
     (dietaryEmpty || medicalEmpty || emergencyEmpty || fourWheelDriveEmpty)
 
-  // Does this user hold a live ticket OR registration to an upcoming ticketed
-  // event? Both tables are checked because a ticketed event can carry either
-  // artefact depending on how the user got in (paid checkout, free claim,
-  // admin registration). A single live ticket arms both dietary + medical.
+  // Does this user hold a live ticket OR registration to an upcoming event
+  // that REQUIRES the safety set? Both tables are checked because a ticketed
+  // event can carry either artefact depending on how the user got in (paid
+  // checkout, free claim, admin registration). A single live seat arms every
+  // missing field.
+  //
+  // The event predicate is SAFETY_SET_EVENT_OR_FILTER, not is_ticketed alone.
+  // Filtering on is_ticketed meant a registration to a non-ticketed camp-out
+  // was invisible to this backstop, and a bare registration is the ONLY way
+  // into a non-ticketed event, so nothing anywhere asked those people.
   const { data: eligibility } = useQuery({
     queryKey: [...DIETARY_GATE_QUERY_KEY, user?.id],
     queryFn: async (): Promise<{ ticketed: boolean }> => {
@@ -104,14 +111,14 @@ export function DietaryGate() {
           // Which statuses count as a live seat is defined once in @/lib/dietary
           // (LIVE_TICKET_STATUSES) so this gate and its test cannot drift apart.
           .in('status', LIVE_TICKET_STATUSES)
-          .eq('events.is_ticketed', true)
+          .or(SAFETY_SET_EVENT_OR_FILTER, { referencedTable: 'events' })
           .gte('events.date_start', nowIso),
         supabase
           .from('event_registrations')
           .select('id, events!inner(id)')
           .eq('user_id', user.id)
           .in('status', LIVE_REGISTRATION_STATUSES)
-          .eq('events.is_ticketed', true)
+          .or(SAFETY_SET_EVENT_OR_FILTER, { referencedTable: 'events' })
           .gte('events.date_start', nowIso),
       ])
 
@@ -221,7 +228,7 @@ export function DietaryGate() {
               {heading}
             </h2>
             <p data-eos-id="src/components/dietary-gate.tsx#8" className="text-sm text-neutral-500 leading-relaxed">
-              You have a ticket to an upcoming event. We cater for camp-outs and
+              You have a spot at an upcoming event. We cater for camp-outs and
               ticketed events, and our leaders need to know about allergies,
               medical needs, dietary requirements, who to call in an emergency
               and who can get in on unsealed roads.

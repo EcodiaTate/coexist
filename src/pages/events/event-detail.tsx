@@ -101,7 +101,7 @@ import { ticketTermsCopy } from '@/lib/ticket-terms'
 import { CampoutRequirementsModal } from '@/components/campout-requirements-modal'
 import { TicketQuestionsModal } from '@/components/ticket-questions-modal'
 import { useEventTicketQuestions, type TicketAnswers } from '@/hooks/use-event-ticket-questions'
-import { hasEmergencyContact, hasFourWheelDriveAnswer, isCampoutActivity, LIVE_TICKET_STATUSES } from '@/lib/dietary'
+import { hasEmergencyContact, hasFourWheelDriveAnswer, isCampoutActivity, eventRequiresSafetySet, LIVE_TICKET_STATUSES } from '@/lib/dietary'
 import { useEventCarpools, type EventCarpoolBreakout } from '@/hooks/use-event-carpools'
 import { useSaveSeat } from '@/hooks/use-carpool'
 import { SaveSeatSheet } from '@/components/save-seat-sheet'
@@ -576,7 +576,33 @@ export default function EventDetailPage() {
   const ticketNeedsMedical = isTicketed && medicalMissing
   const ticketNeedsEmergency = isTicketed && emergencyMissing
   const ticketNeedsFourWheelDrive = isTicketed && fourWheelDriveMissing
+
+  // The SAME safety set, on the bare-registration path. A non-ticketed event
+  // is joined only by registering (useRegisterForEvent rejects ticketed ones),
+  // so before this existed the entire non-ticketed population passed no
+  // surface that could ask: measured 2026-09-06 on production, 264 of 471 live
+  // registrants on upcoming non-ticketed events had no reachable emergency
+  // contact, against 2 of 66 on ticketed ones.
+  //
+  // Scoped by eventRequiresSafetySet, so today it means camp-outs and nothing
+  // else. Every upcoming camp-out is ticketed, so no one currently booked is
+  // asked anything new; the gate exists for the free camp-out that has not
+  // been created yet. Widening it to every clean-up and hike is Co-Exist's
+  // product call, not a defect fix, and the numbers for that decision are on
+  // status_board d87e8024.
+  const registrationNeedsSafety = !isTicketed && eventRequiresSafetySet(event)
+  const regNeedsDietary = registrationNeedsSafety && dietaryMissing
+  const regNeedsMedical = registrationNeedsSafety && medicalMissing
+  const regNeedsEmergency = registrationNeedsSafety && emergencyMissing
+  const regNeedsFourWheelDrive = registrationNeedsSafety && fourWheelDriveMissing
+  const registrationBlocked =
+    regNeedsDietary || regNeedsMedical || regNeedsEmergency || regNeedsFourWheelDrive
+
   const [showCampoutReqs, setShowCampoutReqs] = useState(false)
+  // Which action the requirements modal is standing in front of. null = the
+  // ticket path (pendingTicketTypeId carries it); otherwise the registration
+  // the member asked for, resumed verbatim once the fields are saved.
+  const [pendingRegister, setPendingRegister] = useState<null | { asWaitlist: boolean }>(null)
   const [showQuestionsModal, setShowQuestionsModal] = useState(false)
   const [pendingTicketTypeId, setPendingTicketTypeId] = useState<string | null>(null)
   const { data: ticketQuestions = [] } = useEventTicketQuestions(isTicketed ? id : undefined)
@@ -749,16 +775,19 @@ export default function EventDetailPage() {
     return Math.min(100, (spotsFilled / event.capacity) * 100)
   }, [event, spotsFilled])
 
-  const handleRegister = useCallback(() => {
+  // The registration itself, with the gate already satisfied or not required.
+  const doRegister = useCallback((asWaitlist: boolean) => {
     if (!event) return
     registerMutation.mutate(
-      { eventId: event.id, asWaitlist: isAtCapacity },
+      { eventId: event.id, asWaitlist },
       {
         onSuccess: (result) => {
           // The database decides, not the count this page happened to hold.
-          // isAtCapacity is computed from a cached spotsFilled, so on a full
-          // event it can say "registered" while the row on disk is waitlisted.
-          const waitlisted = result?.waitlisted ?? isAtCapacity
+          // The fallback is the intent we actually SENT, not isAtCapacity read
+          // again at callback time: the modal gate can sit between the click
+          // and the write, and a seat taken meanwhile would flip the message
+          // against the row on disk.
+          const waitlisted = result?.waitlisted ?? asWaitlist
           toast.success(waitlisted ? 'Added to waitlist' : "You're registered!")
           // Flag the transient burst animation. Don't fire on waitlist (that
           // path doesn't morph to the "You're going" CTA so the burst would
@@ -773,7 +802,20 @@ export default function EventDetailPage() {
         },
       },
     )
-  }, [event, isAtCapacity, registerMutation, toast, shouldReduceMotion])
+  }, [event, registerMutation, toast, shouldReduceMotion])
+
+  // Every entry point that takes a seat on a non-ticketed event routes through
+  // here, so a new RSVP button cannot be added that skips the safety set.
+  const handleRegister = useCallback((opts?: { asWaitlist?: boolean }) => {
+    if (!event) return
+    const asWaitlist = opts?.asWaitlist ?? isAtCapacity
+    if (user && registrationBlocked) {
+      setPendingRegister({ asWaitlist })
+      setShowCampoutReqs(true)
+      return
+    }
+    doRegister(asWaitlist)
+  }, [event, user, registrationBlocked, isAtCapacity, doRegister])
 
   const handleCancelConfirm = useCallback(() => {
     if (!event) return
@@ -1126,7 +1168,7 @@ export default function EventDetailPage() {
             size="lg"
             fullWidth
             loading={registerMutation.isPending}
-            onClick={() => registerMutation.mutate({ eventId: event.id })}
+            onClick={() => handleRegister({ asWaitlist: false })}
             className={cn('bg-gradient-to-r shadow-sm', accent.gradient, accent.glow)}
           >
             Accept & Register
@@ -1466,7 +1508,7 @@ export default function EventDetailPage() {
             size="md"
             fullWidth
             loading={registerMutation.isPending}
-            onClick={handleRegister}
+            onClick={() => handleRegister()}
           >
             {isAtCapacity ? 'Join Waitlist' : 'Also Register In-App'}
           </Button>
@@ -1481,7 +1523,7 @@ export default function EventDetailPage() {
         size="lg"
         fullWidth
         loading={registerMutation.isPending}
-        onClick={handleRegister}
+        onClick={() => handleRegister()}
         className={cn('bg-gradient-to-r shadow-sm', accent.gradient, accent.glow)}
       >
         {isAtCapacity ? 'Join Waitlist' : 'Register for Event'}
@@ -2478,14 +2520,25 @@ export default function EventDetailPage() {
           until answered. */}
       <CampoutRequirementsModal
         open={showCampoutReqs}
-        needDietary={ticketNeedsDietary}
-        needMedical={ticketNeedsMedical}
-        needEmergency={ticketNeedsEmergency}
-        needFourWheelDrive={ticketNeedsFourWheelDrive}
+        needDietary={pendingRegister ? regNeedsDietary : ticketNeedsDietary}
+        needMedical={pendingRegister ? regNeedsMedical : ticketNeedsMedical}
+        needEmergency={pendingRegister ? regNeedsEmergency : ticketNeedsEmergency}
+        needFourWheelDrive={pendingRegister ? regNeedsFourWheelDrive : ticketNeedsFourWheelDrive}
         isCampout={isCampoutEvent}
-        onClose={() => { setShowCampoutReqs(false); setPendingTicketTypeId(null) }}
+        onClose={() => {
+          setShowCampoutReqs(false)
+          setPendingRegister(null)
+          setPendingTicketTypeId(null)
+        }}
         onSaved={() => {
           setShowCampoutReqs(false)
+          // Resume whichever action the member actually asked for.
+          if (pendingRegister) {
+            const { asWaitlist } = pendingRegister
+            setPendingRegister(null)
+            doRegister(asWaitlist)
+            return
+          }
           const tt = pendingTicketTypeId
           setPendingTicketTypeId(null)
           if (tt) proceedToCheckout(tt)

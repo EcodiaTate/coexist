@@ -90,6 +90,43 @@ export function isCampoutActivity(activityType: string | null | undefined): bool
   return activityType === CAMPOUT_ACTIVITY_TYPE
 }
 
+/** True when an event's own nature makes the safety set required, whether or
+ *  not it sells tickets.
+ *
+ *  Every enforcement surface keyed on is_ticketed alone until 2026-09-06,
+ *  which reads "takes payment" as a proxy for "carries duty of care".
+ *  Measured against production that day, over every upcoming event: 2 of 66
+ *  live registrants on ticketed events had no reachable emergency contact,
+ *  against 264 of 471 on non-ticketed ones. The gate was not failing on the
+ *  ticketed side. It had never been pointed at the other one, and a bare
+ *  registration is the only way into a non-ticketed event
+ *  (useRegisterForEvent rejects ticketed ones outright), so those 264 people
+ *  passed no surface that could ask.
+ *
+ *  Widening to EVERY event is a different change and is not ours to make: it
+ *  puts a blocking modal in front of those 264 people, most of them registered
+ *  for a two-hour beach clean-up, and what Co-Exist asks of a clean-up
+ *  registrant is Co-Exist's call. A camp-out is the case this codebase already
+ *  treats as non-negotiable (hasEmergencyContact: "a remote camp-out with
+ *  nobody to call is not a valid answer"), so the requirement follows the risk
+ *  rather than the payment flag.
+ *
+ *  Every upcoming camp-out is ticketed as at 2026-09-06, so this asks nothing
+ *  of anyone already booked. It closes the hole the moment a free camp-out is
+ *  created, which is the shape the gap would otherwise have returned in. */
+export function eventRequiresSafetySet(
+  event: { is_ticketed?: boolean | null; activity_type?: string | null } | null | undefined,
+): boolean {
+  return event?.is_ticketed === true || isCampoutActivity(event?.activity_type ?? null)
+}
+
+/** eventRequiresSafetySet expressed as a PostgREST `.or()` filter over an
+ *  embedded `events` relation, so the predicate the UI evaluates and the query
+ *  that decides who is even considered cannot drift apart. Passed with
+ *  { referencedTable: 'events' } alongside an `events!inner(...)` select. */
+export const SAFETY_SET_EVENT_OR_FILTER =
+  `is_ticketed.eq.true,activity_type.eq.${CAMPOUT_ACTIVITY_TYPE}`
+
 /** The retreat safety set as the PUBLIC (guest) booking modal collects it.
  *
  *  One home for the shape, because TypeScript cannot catch the thing that

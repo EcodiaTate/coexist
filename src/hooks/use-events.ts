@@ -9,6 +9,7 @@ import { useToast } from '@/components/toast'
 import { queueOfflineAction } from '@/lib/offline-sync'
 import { fetchEventIdsForCollective, fetchEventIdsForCollectives } from '@/lib/collective-event-ids'
 import { formatEventLong, wallClockNow } from '@/lib/date-format'
+import { DIETARY_GATE_QUERY_KEY } from '@/lib/dietary'
 import { classifyAttendance } from '@/lib/event-capacity'
 import { isNativePlatform, shareBlobNative, isShareCancellation } from '@/lib/native-share'
 import type {
@@ -1153,6 +1154,13 @@ export function useRegisterForEvent() {
     onSettled: (_, __, { eventId }) => {
       queryClient.invalidateQueries({ queryKey: ['event', eventId] })
       queryClient.invalidateQueries({ queryKey: ['my-events'] })
+      // Taking a seat can newly arm the app-open safety backstop, exactly as a
+      // ticket purchase does (use-event-tickets does this on both checkout
+      // paths). Without it the gate re-evaluates only on the NEXT app open,
+      // which is the weakness that let three Wild Mountains ticket-holders
+      // reach the campsite un-asked: a gate that runs once per launch never
+      // reaches someone who does not launch the app again.
+      queryClient.invalidateQueries({ queryKey: DIETARY_GATE_QUERY_KEY })
       queryClient.invalidateQueries({ queryKey: ['event-attendees', eventId] })
       queryClient.invalidateQueries({ queryKey: ['event-roster', eventId] })
       queryClient.invalidateQueries({ queryKey: ['event-waitlist', eventId] })
