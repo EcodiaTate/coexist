@@ -421,3 +421,111 @@ describe('registration entry points', () => {
     expect(hook).toContain('DIETARY_GATE_QUERY_KEY')
   })
 })
+
+/* ------------------------------------------------------------------ */
+/*  Seat-taking writes are enumerated, not assumed                     */
+/*                                                                     */
+/*  Added 2026-09-06 by the lane C1 verifier. The guard above          */
+/*  ("registration entry points") reads ONE file and counts calls to   */
+/*  registerMutation. A handler that writes event_registrations        */
+/*  directly is invisible to it by construction, and one did:          */
+/*  chat-message-list.tsx upserted status 'registered' from the chat   */
+/*  invite "Going" button, which is the primary way a camp-out invite  */
+/*  is accepted. The 2026-09-06 fix funnelled the three RSVP entry     */
+/*  points inside event-detail.tsx and this fourth one, in another     */
+/*  file, kept taking seats with no surface that could ask.            */
+/*                                                                     */
+/*  So enumerate the writes instead of watching one call site: every   */
+/*  file that can put a row into event_registrations must be listed    */
+/*  here with a reason it is safe. A new raw write fails this until    */
+/*  someone gates it or consciously allowlists it.                     */
+/* ------------------------------------------------------------------ */
+describe('every write that can take a seat is enumerated and reasoned', () => {
+  const ROOT = path.resolve(__dirname, '../..')
+
+  // The first method chained onto .from('event_registrations') is what the
+  // statement does. Matching the chain rather than scanning a byte window
+  // means a read followed by an unrelated insert cannot read as a write.
+  const WRITE_METHODS = ['insert', 'upsert', 'update']
+
+  function seatWriters(): string[] {
+    const found = new Set<string>()
+    const walk = (dir: string) => {
+      for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+        const full = path.join(dir, entry.name)
+        // This file names the table in order to talk about it. Scanning the
+        // test tree would make the guard discover itself.
+        if (entry.isDirectory()) { if (entry.name !== 'test') walk(full) }
+        else if (/\.tsx?$/.test(entry.name) && !/\.(test|spec)\.tsx?$/.test(entry.name)) {
+          const body = fs.readFileSync(full, 'utf8')
+          const re = /\.from\('event_registrations'\)\s*\.\s*(\w+)\(/g
+          let m: RegExpExecArray | null
+          while ((m = re.exec(body))) {
+            if (WRITE_METHODS.includes(m[1])) {
+              found.add(path.relative(ROOT, full).split(path.sep).join('/'))
+            }
+          }
+        }
+      }
+    }
+    walk(path.join(ROOT, 'src'))
+    return [...found].sort()
+  }
+
+  // Why each of these is allowed to put someone in the going set.
+  const ALLOWED: Record<string, string> = {
+    'src/hooks/use-events.ts':
+      'the gated useRegisterForEvent mutation, plus waitlist promotion of someone who already passed the gate to be waitlisted, plus bulk invite which writes status invited and is not a seat',
+    'src/hooks/use-event-tickets.ts':
+      'registration derived from a ticket that has already been bought, and the pre-checkout gate ran before the purchase',
+    'src/pages/chat/chat-message-list.tsx':
+      'routes a ticketed or safety-set event to the event page instead of upserting, and refuses to write while the event is still loading',
+    'src/pages/onboarding/steps/step-first-event.tsx':
+      'lists only events that need no safety set, so its one-tap RSVP cannot reach one',
+    'src/pages/events/event-day.tsx':
+      'a leader adding someone in front of them on the day and marking them attended, not a self-serve seat; capture at check-in is the open follow-up on status_board d87e8024',
+    'src/pages/events/check-in.tsx':
+      'check-in of someone already holding a seat, and check-in-form.tsx requires an emergency contact before it will complete',
+    'src/lib/offline-sync.ts':
+      'replay of check-in actions already taken while offline, never a new seat decision',
+    'src/pages/admin/dev-tools.tsx':
+      'admin dev tooling, not a member-reachable surface',
+  }
+
+  it('finds the seat-taking writes it is meant to be guarding', () => {
+    // Without this the walk could silently break and every assertion below
+    // would pass vacuously over an empty list.
+    const writers = seatWriters()
+    expect(writers.length).toBeGreaterThan(0)
+    // The two the 2026-09-06 verifier fixed must both still be discovered,
+    // so a regression that removes the gate is caught rather than the file
+    // simply dropping off the list.
+    expect(writers).toContain('src/pages/chat/chat-message-list.tsx')
+    expect(writers).toContain('src/pages/onboarding/steps/step-first-event.tsx')
+  })
+
+  it.each(seatWriters())('%s is a known seat-taking path with a stated reason', (file) => {
+    expect(Object.keys(ALLOWED)).toContain(file)
+    expect(ALLOWED[file].length).toBeGreaterThan(20)
+  })
+
+  it('the chat RSVP decides on the shared predicate, not on is_ticketed alone', () => {
+    const body = fs.readFileSync(path.join(ROOT, 'src/pages/chat/chat-message-list.tsx'), 'utf8')
+    expect(body).toContain('eventRequiresSafetySet(eventDetail)')
+    // The pre-fix shape: one branch keyed on is_ticketed, so every
+    // non-ticketed event fell through to the raw upsert below it.
+    expect(body).not.toMatch(/isEventType && eventId && eventDetail\?\.is_ticketed/)
+  })
+
+  it('the chat RSVP will not take a seat before it knows what the event is', () => {
+    const body = fs.readFileSync(path.join(ROOT, 'src/pages/chat/chat-message-list.tsx'), 'utf8')
+    // eventDetail undefined and a raw upsert below is a seat taken before
+    // either the ticket question or the safety question could be asked.
+    expect(body).toMatch(/if \(!eventDetail\) \{/)
+  })
+
+  it('the onboarding one-tap list cannot offer an event that needs the safety set', () => {
+    const body = fs.readFileSync(path.join(ROOT, 'src/pages/onboarding/steps/step-first-event.tsx'), 'utf8')
+    expect(body).toContain("neq('activity_type', CAMPOUT_ACTIVITY_TYPE)")
+  })
+})

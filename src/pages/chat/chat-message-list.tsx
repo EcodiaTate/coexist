@@ -28,6 +28,7 @@ import {
   type ChatMessageWithSender,
 } from '@/hooks/use-chat'
 import type { ChannelMessageWithSender } from '@/hooks/use-staff-channels'
+import { eventRequiresSafetySet } from '@/lib/dietary'
 import { useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useEventDetail, type EventDetailData } from '@/hooks/use-events'
@@ -208,11 +209,38 @@ function InlineAnnouncement({
     // refuses the write outright (trg_enforce_ticket_backed_registration); this
     // branch exists so the member is sent to checkout instead of hitting a raw
     // constraint error.
-    if (response === 'going' && isEventType && eventId && eventDetail?.is_ticketed) {
-      respond.mutate({ announcementId, response })
-      toast.info('This campout needs a ticket. Opening it now.')
-      navigate(`/events/${eventId}`)
-      return
+    if (response === 'going' && isEventType && eventId) {
+      // eventDetail is still in flight. Nothing here can tell whether the event
+      // needs a ticket or needs the safety set, and the raw upsert below would
+      // take the seat before either question was asked, so hand the tap to the
+      // page that knows rather than guessing on a null.
+      if (!eventDetail) {
+        respond.mutate({ announcementId, response })
+        navigate(`/events/${eventId}`)
+        return
+      }
+
+      if (eventDetail.is_ticketed) {
+        respond.mutate({ announcementId, response })
+        toast.info('This campout needs a ticket. Opening it now.')
+        navigate(`/events/${eventId}`)
+        return
+      }
+
+      // A non-ticketed event that still carries duty of care (a free camp-out)
+      // was joined here by the raw upsert below, which no safety surface can
+      // see: this handler never calls useRegisterForEvent, so the gated helper
+      // in event-detail and the entry-point guard watching it were both blind
+      // to this path by construction. The 2026-09-06 fix funnelled the three
+      // RSVP entry points inside event-detail and left this fourth one, in
+      // another file, taking seats the same way the ghost-RSVP bug did.
+      // Route to the event page, where registrationNeedsSafety asks first.
+      if (eventRequiresSafetySet(eventDetail)) {
+        respond.mutate({ announcementId, response })
+        toast.info('This one needs your safety details first. Opening it now.')
+        navigate(`/events/${eventId}`)
+        return
+      }
     }
 
     respond.mutate({ announcementId, response })

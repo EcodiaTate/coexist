@@ -10,6 +10,7 @@ import { Button } from '@/components/button'
 import { Card } from '@/components/card'
 import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
+import { CAMPOUT_ACTIVITY_TYPE } from '@/lib/dietary'
 import type { Database } from '@/types/database.types'
 import { adminStagger as stagger, fadeUp } from '@/lib/admin-motion'
 
@@ -41,6 +42,15 @@ export function StepFirstEvent({ collectiveId, onNext, onSkip }: StepFirstEventP
         // one-tap RSVP is for free events only; ticketed events are found and
         // bought on the event page.
         .eq('is_ticketed', false)
+        // And not a camp-out. A free camp-out is non-ticketed, so it would
+        // otherwise appear here and be joined by a one-tap RSVP that asks for
+        // no emergency contact, mid-onboarding, from someone who has not
+        // reached the safety step yet. The safety step is skippable by design
+        // (step-safety.tsx) and hard-requiring it here would be the wrong fix;
+        // excluding the events that need it keeps both decisions intact.
+        // Today this matches nothing: every upcoming camp-out is ticketed and
+        // already excluded by the line above.
+        .neq('activity_type', CAMPOUT_ACTIVITY_TYPE)
         .gte('date_start', wallClockNow().toISOString())
         .order('date_start', { ascending: true })
         .limit(5)
