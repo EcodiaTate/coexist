@@ -59,6 +59,7 @@ import {
   useEmailMarketingStats,
   sanitizeHtml,
 } from './shared'
+import { uniqueSuffix } from '@/lib/unique-suffix'
 
 /* ================================================================== */
 /*  Suggestion pills - one-click prompts that wire up to the AI draft */
@@ -154,7 +155,7 @@ export function QuickSendTab() {
     setUploadingHero(true)
     try {
       const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
-      const slug = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
+      const slug = `${uniqueSuffix()}.${ext}`
       const path = `email-heroes/${slug}`
       const { error: upErr } = await supabase.storage.from('app-images').upload(path, file, {
         cacheControl: '3600',

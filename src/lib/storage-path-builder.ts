@@ -7,6 +7,8 @@
  * @param prefix  - Optional sub-folder within the user's directory
  * @param ext     - File extension without dot (default "jpg")
  */
+
+import { uniqueSuffix } from './unique-suffix'
 export function buildStoragePath(
   userId: string | undefined,
   prefix?: string,
@@ -14,7 +16,5 @@ export function buildStoragePath(
 ): string {
   const uid = userId ?? 'anon'
   const dir = prefix ? `${prefix}/` : ''
-  const ts = Date.now()
-  const rand = Math.random().toString(36).slice(2, 8)
-  return `${uid}/${dir}${ts}-${rand}.${ext}`
+  return `${uid}/${dir}${uniqueSuffix()}.${ext}`
 }

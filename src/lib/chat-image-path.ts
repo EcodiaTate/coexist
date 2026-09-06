@@ -9,12 +9,12 @@
  *
  * The render layer signs on demand via useSignedChatImage(path).
  */
+
+import { uniqueSuffix } from './unique-suffix'
 export function buildChatImagePath(
   contextId: string,
   userId: string,
   ext = 'jpg',
 ): string {
-  const ts = Date.now()
-  const rand = Math.random().toString(36).slice(2, 8)
-  return `${contextId}/${userId}/${ts}-${rand}.${ext}`
+  return `${contextId}/${userId}/${uniqueSuffix()}.${ext}`
 }

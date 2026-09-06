@@ -2,6 +2,7 @@ import { supabase } from '@/lib/supabase'
 import { invokeAndReport } from '@/lib/invoke-report'
 import type { Database } from '@/types/database.types'
 import { formatEventLong } from '@/lib/date-format'
+import { uniqueSuffix } from './unique-suffix'
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -230,7 +231,7 @@ export function queueOfflineAction(
   payload: Record<string, unknown>,
 ) {
   const queue = getActionQueue()
-  const id = `${type}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+  const id = `${type}-${uniqueSuffix()}`
   // Stamp idempotency key onto payload at enqueue time so retries reuse it.
   const stampedPayload =
     'client_action_id' in payload && payload.client_action_id

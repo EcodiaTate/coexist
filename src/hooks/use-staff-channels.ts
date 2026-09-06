@@ -5,6 +5,7 @@ import { invokeAndReport } from '@/lib/invoke-report'
 import { subscribeWithReconnect } from '@/lib/realtime'
 import { useAuth } from '@/hooks/use-auth'
 import type { Tables } from '@/types/database.types'
+import { uniqueSuffix } from '@/lib/unique-suffix'
 
 type Profile = Tables<'profiles'>
 
@@ -401,7 +402,7 @@ export function useSendChannelMessage() {
       await queryClient.cancelQueries({ queryKey: ['channel-messages', channelId] })
 
       const optimisticMessage: ChannelMessageWithSender = {
-        id: `optimistic-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        id: `optimistic-${uniqueSuffix(4)}`,
         channel_id: channelId,
         collective_id: collectiveId || null,
         user_id: user!.id,

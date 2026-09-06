@@ -11,6 +11,7 @@ import type { Database } from '@/types/database.types'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
 import { useImageUpload } from '@/hooks/use-image-upload'
+import { uniqueSuffix } from '@/lib/unique-suffix'
 
 export interface EventPhoto {
   id: string
@@ -140,7 +141,21 @@ export function useUploadEventPhoto(eventId: string | undefined) {
 
       if (isVideo) {
         // Skip image compression for videos - just stream the raw blob to storage.
-        // Path mirrors useImageUpload's layout: <eventId>/<userId>/<rand>.<ext>.
+        //
+        // This path does NOT mirror useImageUpload's layout, despite what this
+        // comment claimed until CA3 5a.F5 measured it. useImageUpload here is
+        // configured pathPrefix=eventId, so buildStoragePath produces
+        // <userId>/<eventId>/<stem>.<ext>: the USER folder first. The video
+        // branch below has always written <eventId>/<userId>/<stem>.<ext>, the
+        // other way round. Both orders are live in this one bucket.
+        //
+        // The order is left exactly as it is on purpose. This bucket's storage
+        // RLS is Studio-managed and is not in supabase/migrations (the
+        // event_photos migration says so in its header), so which folder order
+        // the policy accepts cannot be re-derived from this repo, and swapping
+        // it blind is a storage write that could start failing for every
+        // uploader. Only the suffix is shared here. The folder-order split is
+        // logged for the spine/storage audit.
         // Derive the extension + content-type from the filename first so an
         // empty-MIME .mov is stored + served correctly (not mislabelled mp4).
         const nameExt = name.match(VIDEO_EXT_RE)?.[1]?.toLowerCase()
@@ -150,8 +165,9 @@ export function useUploadEventPhoto(eventId: string | undefined) {
           : 'mp4')
         const contentType = blob.type
           || (ext === 'mov' ? 'video/quicktime' : ext === 'webm' ? 'video/webm' : 'video/mp4')
-        const rand = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
-        const path = `${eventId}/${user.id}/${rand}.${ext}`
+        // 7, not the default 6: this site shipped a 7-character random part
+        // and the consolidation is not the place to change a stored key.
+        const path = `${eventId}/${user.id}/${uniqueSuffix(7)}.${ext}`
         const { error: upErr } = await supabase.storage.from(BUCKET).upload(path, blob, {
           contentType,
           upsert: false,
