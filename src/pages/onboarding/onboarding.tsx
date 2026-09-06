@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import type { Tables } from '@/types/database.types'
 import { useAuth } from '@/hooks/use-auth'
 import { useUserLocation } from '@/hooks/use-nearby'
+import { reverseGeocodeLocality } from '@/hooks/use-location-sync'
 import { cn } from '@/lib/cn'
 import { Button } from '@/components/button'
 import { takePendingClaim } from '@/lib/pending-claim'
@@ -257,6 +258,12 @@ export default function OnboardingPage() {
               if (point) updateData({ locationPoint: point })
               return point ?? null
             }}
+            // Fill the suburb text too. Before this, tapping "Use my current
+            // location" captured coordinates for collective ranking and left
+            // the field empty, on a step whose Continue is disabled until the
+            // field has text: the button read as doing nothing. A failed
+            // lookup still keeps the coordinates and leaves the text alone.
+            resolvePlaceName={(point) => reverseGeocodeLocality(point.lat, point.lng)}
             locating={locationQuery.isFetching}
             onNext={goNext}
             onSkip={goNext}

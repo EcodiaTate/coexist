@@ -198,6 +198,47 @@ export async function forwardGeocodeTopResult(
   }
 }
 
+/**
+ * A locality-level place name for a set of coordinates, for the
+ * "use my current location" affordance on a profile-style address field.
+ *
+ * Deliberately COARSER than reverseGeocodeCoords, which is built for the
+ * draggable event pin and returns a street line. A member answering "where are
+ * you based" is telling us their suburb, not their doorstep, so this asks
+ * Nominatim at zoom 14 and keeps only locality + state. Returns null on any
+ * failure, and every caller must treat null as "leave the field alone" rather
+ * than as an error worth showing: the coordinates are still useful without it.
+ */
+export async function reverseGeocodeLocality(
+  lat: number,
+  lng: number,
+  signal?: AbortSignal,
+): Promise<string | null> {
+  const params = new URLSearchParams({
+    lat: String(lat),
+    lon: String(lng),
+    format: 'json',
+    addressdetails: '1',
+    zoom: '14',
+  })
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?${params}`,
+      { signal, headers: NOMINATIM_HEADERS },
+    )
+    if (!res.ok) return null
+    const data = (await res.json()) as NominatimReverseResult
+    const addr = data?.address
+    if (!addr) return null
+    const locality =
+      addr.suburb || addr.city || addr.town || addr.village || addr.hamlet || addr.neighbourhood || ''
+    const parts = [locality, addr.state || ''].filter(Boolean)
+    return parts.length ? parts.join(', ') : null
+  } catch {
+    return null
+  }
+}
+
 async function reverseGeocodeCoords(
   lat: number,
   lng: number,

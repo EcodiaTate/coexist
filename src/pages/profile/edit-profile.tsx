@@ -28,7 +28,11 @@ import { useProfile, useUpdateProfile } from '@/hooks/use-profile'
 import { useCamera } from '@/hooks/use-camera'
 import { useImageUpload } from '@/hooks/use-image-upload'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
-import { PlaceAutocomplete } from '@/components/place-autocomplete'
+import { DisplayNameField, PhoneField, LocationField } from '@/components/profile-fields'
+import { useLiveFieldValue } from '@/hooks/use-live-field-value'
+import { useUserLocation } from '@/hooks/use-nearby'
+import { reverseGeocodeLocality } from '@/hooks/use-location-sync'
+import { isValidPhone } from '@/lib/validation'
 import { calculateAge } from '@/lib/date-format'
 
 const INTEREST_OPTIONS = [
@@ -137,6 +141,18 @@ export default function EditProfilePage() {
   const [location, setLocation] = useState('')
   const [phone, setPhone] = useState('')
   const [interests, setInterests] = useState<string[]>([])
+  // Inline, beside the field, rather than only a toast: a toast names the
+  // problem somewhere other than where the problem is, and on a form this long
+  // that means scrolling to find it.
+  const [phoneError, setPhoneError] = useState<string | null>(null)
+  const [displayNameError, setDisplayNameError] = useState<string | null>(null)
+  // Read the LIVE DOM value on save so an open iOS IME composition cannot
+  // strand a name or number the member can plainly see in the field. This is
+  // the guard onboarding has carried since 2026-07-26 and this page never got.
+  const [displayNameRef, readDisplayName] = useLiveFieldValue(displayName)
+  const [phoneRef, readPhone] = useLiveFieldValue(phone)
+  // Disabled until an explicit tap, exactly as onboarding uses it.
+  const locationQuery = useUserLocation(false)
 
   // New fields
   const [firstName, setFirstName] = useState('')
@@ -266,19 +282,38 @@ export default function EditProfilePage() {
   }
 
   const handleSave = async () => {
+    // Read what is actually in the two fields, not what React last heard about.
+    const liveName = readDisplayName()
+    const livePhoneValue = readPhone()
+    if (liveName !== displayName) setDisplayName(liveName)
+    if (livePhoneValue !== phone) setPhone(livePhoneValue)
+
     // Mobile number is required for every member - leaders read it on event day.
-    if (!phone.trim()) {
+    if (!livePhoneValue) {
+      setPhoneError('Mobile number is required')
       toast.error('Mobile number is required')
       return
     }
+    // 6.F2: the SAME rule onboarding and the phone-gate enforce. Before this,
+    // handleSave checked only that the field was non-empty, so a member could
+    // save "asdf" over a working number through Settings and quietly become
+    // unreachable on event day, while the identical field was strictly
+    // validated during onboarding.
+    if (!isValidPhone(livePhoneValue)) {
+      setPhoneError('Please enter a valid mobile number')
+      toast.error('Please enter a valid mobile number')
+      return
+    }
+    setPhoneError(null)
+    setDisplayNameError(null)
     try {
       await updateProfile.mutateAsync({
-        display_name: displayName || null,
+        display_name: liveName || null,
         pronouns: pronouns || null,
         bio: bio || null,
         instagram_handle: instagramHandle || null,
         location: location || null,
-        phone: phone || null,
+        phone: livePhoneValue,
         interests,
         first_name: firstName || null,
         last_name: lastName || null,
@@ -493,12 +528,11 @@ export default function EditProfilePage() {
                   className={inputStyle}
                 />
               </div>
-              <Input
-                label="Display Name"
+              <DisplayNameField
+                ref={displayNameRef}
                 value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                placeholder="How you appear to others"
-                maxLength={50}
+                onChange={(v) => { setDisplayName(v); if (displayNameError) setDisplayNameError(null) }}
+                error={displayNameError ?? undefined}
                 className={inputStyle}
               />
               <Input
@@ -573,24 +607,23 @@ export default function EditProfilePage() {
                 maxLength={30}
                 className={inputStyle}
               />
-              <PlaceAutocomplete
-                label="Location"
+              <LocationField
                 value={location}
                 onChange={(val) => setLocation(val)}
-                placeholder="e.g. Byron Bay, NSW"
+                onUseCurrentLocation={async () => {
+                  const { data: point } = await locationQuery.refetch()
+                  return point ?? null
+                }}
+                resolvePlaceName={(point) => reverseGeocodeLocality(point.lat, point.lng)}
+                locating={locationQuery.isFetching}
                 className={inputStyle}
               />
-              <Input
-                label="Mobile number"
+              <PhoneField
+                ref={phoneRef}
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="0400 000 000 or +44 7911 123456"
-                type="tel"
-                inputMode="tel"
-                autoComplete="tel"
-                maxLength={20}
+                onChange={(v) => { setPhone(v); if (phoneError) setPhoneError(null) }}
+                error={phoneError ?? undefined}
                 required
-                helperText="Any country's number works (include the country code, like +44, if outside Australia). Event leaders reach you on the day."
                 className={inputStyle}
               />
             </SectionCard>

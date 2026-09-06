@@ -1,7 +1,8 @@
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { Phone } from 'lucide-react'
-import { Input } from '@/components/input'
+import { PhoneField } from '@/components/profile-fields'
+import { useLiveFieldValue } from '@/hooks/use-live-field-value'
 import { Button } from '@/components/button'
 import { isValidPhone } from '@/lib/validation'
 import { adminStagger as stagger, fadeUp } from '@/lib/admin-motion'
@@ -23,13 +24,13 @@ interface StepPhoneProps {
  */
 export function StepPhone({ phone, onChange, onNext }: StepPhoneProps) {
   const shouldReduceMotion = useReducedMotion()
-  const inputRef = useRef<HTMLInputElement>(null)
+  const [inputRef, readLive] = useLiveFieldValue(phone)
   const [error, setError] = useState<string | null>(null)
 
   function handleContinue() {
     // Read the live DOM value (belt-and-braces vs any pending IME state) so a
     // valid number can never be stranded behind a stale parent value.
-    const live = (inputRef.current?.value ?? phone).trim()
+    const live = readLive()
     if (!isValidPhone(live)) {
       setError('Please enter a valid mobile number')
       inputRef.current?.focus()
@@ -64,21 +65,14 @@ export function StepPhone({ phone, onChange, onNext }: StepPhoneProps) {
         </motion.p>
 
         <motion.div variants={fadeUp} className="mt-8">
-          <Input
+          <PhoneField
             ref={inputRef}
-            type="tel"
-            label="Mobile number"
             value={phone}
-            onChange={(e) => {
-              onChange(e.target.value)
+            onChange={(v) => {
+              onChange(v)
               if (error) setError(null)
             }}
-            placeholder="0400 000 000 or +44 7911 123456"
-            helperText="Any country's number works. Include the country code (like +44) if you're outside Australia."
-            inputMode="tel"
-            autoComplete="tel"
             enterKeyHint="done"
-            maxLength={20}
             error={error ?? undefined}
           />
         </motion.div>

@@ -1,7 +1,7 @@
-import { useRef } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
-import { Input } from '@/components/input'
 import { Button } from '@/components/button'
+import { DisplayNameField } from '@/components/profile-fields'
+import { useLiveFieldValue } from '@/hooks/use-live-field-value'
 import { adminStagger as stagger, fadeUp } from '@/lib/admin-motion'
 
 interface StepNameHandleProps {
@@ -13,7 +13,7 @@ interface StepNameHandleProps {
 
 export function StepNameHandle({ displayName, onChange, onNext }: StepNameHandleProps) {
   const shouldReduceMotion = useReducedMotion()
-  const inputRef = useRef<HTMLInputElement>(null)
+  const [inputRef, readLive] = useLiveFieldValue(displayName)
 
   // iOS autocorrect keeps a one-word entry (like a first name) in an OPEN IME
   // composition until a space/punctuation is typed or the field blurs. The
@@ -26,7 +26,7 @@ export function StepNameHandle({ displayName, onChange, onNext }: StepNameHandle
   // LIVE DOM value on tap so a pending composition can't strand us, and flush
   // it upward before advancing.
   function handleContinue() {
-    const live = (inputRef.current?.value ?? displayName).trim()
+    const live = readLive()
     if (!live) {
       inputRef.current?.focus()
       return
@@ -51,13 +51,10 @@ export function StepNameHandle({ displayName, onChange, onNext }: StepNameHandle
         </motion.p>
 
         <motion.div variants={fadeUp} className="mt-8 space-y-4">
-          <Input
+          <DisplayNameField
             ref={inputRef}
-            label="Display name"
             value={displayName}
-            onChange={(e) => onChange(e.target.value)}
-            autoComplete="name"
-            autoCapitalize="words"
+            onChange={(v) => onChange(v)}
             enterKeyHint="done"
           />
         </motion.div>
