@@ -33,8 +33,21 @@ export const NO_MEDICAL_SENTINEL = 'None'
  *
  *  'cancelled' and 'refunded' are deliberately absent: that seat is gone.
  *  The full column domain is the event_tickets_status_check constraint
- *  (pending, confirmed, cancelled, refunded, checked_in, reserved). */
-export const LIVE_TICKET_STATUSES = ['pending', 'confirmed', 'checked_in', 'reserved'] as const
+ *  (pending, confirmed, cancelled, refunded, checked_in, reserved).
+ *
+ *  RE-EXPORTED, not re-typed. This was a hand-written literal until
+ *  2026-09-06, which meant the safety gate and the ticket-lifecycle code held
+ *  two independent answers to "which statuses are live" and nothing compared
+ *  them. The literal failed CLOSED: a seventh status added to the DB enum
+ *  would have been silently exempt from the safety gate until someone
+ *  remembered this second list. event-capacity.ts DERIVES the set as
+ *  TICKET_STATUSES minus TERMINAL_GONE_TICKET_STATUSES, so it fails OPEN (an
+ *  unrecognised status counts as a live seat, which is the correct direction
+ *  for a duty-of-care gate), and its Deno twin is drift-tested against it.
+ *  Re-exporting inherits both guarantees. src/test/safety-gate-coverage.test.ts
+ *  asserts the two modules hand back the SAME OBJECT, so reverting this to a
+ *  literal fails the build rather than quietly regrowing the fork. */
+export { LIVE_TICKET_STATUSES } from './event-capacity'
 
 /** event_registrations.status values that count as a LIVE seat.
  *

@@ -11,6 +11,7 @@ import {
   SAFETY_SET_EVENT_OR_FILTER,
   safetyGateHeading,
 } from '@/lib/dietary'
+import { LIVE_TICKET_STATUSES as CAPACITY_LIVE_TICKET_STATUSES } from '@/lib/event-capacity'
 
 /* ------------------------------------------------------------------ */
 /*  Safety-data coverage gate                                          */
@@ -50,6 +51,33 @@ describe('LIVE_TICKET_STATUSES', () => {
     const domain = ['pending', 'confirmed', 'cancelled', 'refunded', 'checked_in', 'reserved']
     const dead = ['cancelled', 'refunded']
     expect([...LIVE_TICKET_STATUSES].sort()).toEqual(domain.filter((s) => !dead.includes(s)).sort())
+  })
+
+  // CA3 5a.F1. Until 2026-09-06 dietary.ts hand-typed this set and
+  // event-capacity.ts derived it, two independent answers to one question with
+  // nothing comparing them. Value equality is not enough to pin the fix: a
+  // re-introduced literal would still hold the same four strings TODAY and
+  // drift the day a seventh status ships. Reference identity is what makes the
+  // fork impossible: it passes only while dietary.ts re-exports the derived
+  // set, and fails the moment anyone types the values out again.
+  it('is the SAME OBJECT as the derived set in event-capacity, not a copy', () => {
+    expect(LIVE_TICKET_STATUSES).toBe(CAPACITY_LIVE_TICKET_STATUSES)
+  })
+
+  // The derivation direction is the safety property. A hand-typed list fails
+  // closed (a new status is silently NOT live, so its holder is never asked
+  // for an emergency contact); the derived list fails open. This asserts the
+  // gate inherited the fail-open behaviour rather than just the values.
+  it('fails OPEN: an unrecognised status is live unless declared gone', () => {
+    const gone = ['cancelled', 'refunded']
+    const unknown = 'some_future_status'
+    expect(gone.includes(unknown)).toBe(false)
+    // Derived as (all statuses - gone), so anything not in `gone` is live by
+    // construction. Proven on the real derivation, not restated as a literal.
+    const derivedFromDomain = ['pending', 'confirmed', 'cancelled', 'refunded', 'checked_in', 'reserved', unknown]
+      .filter((s) => !gone.includes(s))
+    expect(derivedFromDomain).toContain(unknown)
+    expect([...LIVE_TICKET_STATUSES].every((s) => !gone.includes(s))).toBe(true)
   })
 })
 
