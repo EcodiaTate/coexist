@@ -43,7 +43,8 @@ import {
 } from '@/hooks/use-events'
 import { supabase } from '@/lib/supabase'
 import { useEventForm, validateEventDates } from '@/hooks/use-event-form'
-import type { EventFormFields, ActivityType } from '@/hooks/use-event-form'
+import type { EventFormFields, ActivityType, EventExtras } from '@/hooks/use-event-form'
+import { INITIAL_EXTRAS, splitExtrasPatch } from '@/hooks/use-event-form'
 import {
     useSaveTicketTypes,
     validateTicketTierDrafts,
@@ -125,45 +126,54 @@ function formatCreateEventError(err: unknown): string {
  * writes, which is what lets create share edit's validation (2.F1).
  */
 
-interface CreateExtraFields {
+/**
+ * Create-ONLY wizard state (finding 2.F6).
+ *
+ * This interface used to redeclare the eight preparation/access fields that
+ * useEventForm already owns as EventExtras, and drive them through a second
+ * independent useState. create therefore never touched form.fields.extras, and
+ * every INITIAL_EXTRAS object the hook built for it was dead weight. That is
+ * the structural reason create kept re-deriving abstractions edit already had:
+ * local ticket draft types (2.F11), a local questions editor (2.F2), a local
+ * date check (2.F4). Those eight fields now live in the hook's extras, and
+ * `extra` below is a read-through view so the wizard's ~48 call sites and its
+ * step layout are untouched.
+ *
+ * The wizard IA is deliberately NOT collapsed onto the shared ExtrasFields
+ * component: create spreads these fields across three steps (meeting point in
+ * Location, preparation and accessibility in Details, partner in Partner) and
+ * its difficulty dropdown carries icons and fuller labels that edit's does not.
+ * Rendering edit's single vertical block here would silently relocate two
+ * fields and downgrade a control, which is IA territory that findings 2.F8 and
+ * 2.F9 own.
+ */
+interface CreateOnlyFields {
   selected_collective_ids: string[]
   is_recurring: boolean
   recurring_type: 'weekly' | 'fortnightly' | 'monthly'
   recurring_count: number
-  what_to_bring: string
-  meeting_point: string
-  meeting_spot_photo_url: string
-  wheelchair_access: boolean
-  terrain: string
-  difficulty: 'easy' | 'moderate' | 'challenging'
-  what_to_wear: string
   invite_collective: boolean
-  partner_name: string
   is_ticketed: boolean
   ticket_tiers: TicketTypeDraft[]
   ticket_questions: TicketQuestionDraft[]
   checkin_window_minutes: number
 }
 
-const INITIAL_EXTRA: CreateExtraFields = {
+/** What the wizard steps read: create-only state plus the shared extras. */
+type CreateExtraFields = CreateOnlyFields & EventExtras
+
+const INITIAL_CREATE_ONLY: CreateOnlyFields = {
   selected_collective_ids: [],
   is_recurring: false,
   recurring_type: 'weekly',
   recurring_count: 4,
-  what_to_bring: '',
-  meeting_point: '',
-  meeting_spot_photo_url: '',
-  wheelchair_access: false,
-  terrain: '',
-  difficulty: 'easy',
-  what_to_wear: '',
   invite_collective: false,
-  partner_name: '',
   is_ticketed: false,
   ticket_tiers: [],
   ticket_questions: [],
   checkin_window_minutes: 30,
 }
+
 
 /* ------------------------------------------------------------------ */
 /*  Step config                                                        */
@@ -1677,7 +1687,7 @@ export default function CreateEventPage() {
   const { user, role } = useAuth()
   const shouldReduceMotion = useReducedMotion()
 
-  const [extra, setExtra] = useState<CreateExtraFields>(INITIAL_EXTRA)
+  const [createOnly, setCreateOnly] = useState<CreateOnlyFields>(INITIAL_CREATE_ONLY)
   const [saveAsDraft] = useState(false)
 
   // Which sections are expanded. Required sections start open; optional
@@ -1700,6 +1710,14 @@ export default function CreateEventPage() {
   }, [])
 
   const form = useEventForm({ mode: 'create' })
+
+  // The eight shared preparation/access fields live in the form hook now
+  // (finding 2.F6); `extra` merges them with the create-only state so every
+  // wizard step keeps reading one object. Writes split back out in updateExtra.
+  const extra: CreateExtraFields = useMemo(
+    () => ({ ...createOnly, ...form.fields.extras }),
+    [createOnly, form.fields.extras],
+  )
 
   // Cover image suggestions: real photos from past events of the chosen
   // collective(s) / activity type, so the organiser can pick one without
@@ -1761,7 +1779,7 @@ export default function CreateEventPage() {
   // Reset everything (used after a successful publish, so that re-entering this
   // page from KeepAlive cache does not show the previous event's draft).
   const resetWizard = useCallback(() => {
-    setExtra(INITIAL_EXTRA)
+    setCreateOnly(INITIAL_CREATE_ONLY)
     form.resetFields({})
     setOpenSections({
       collective: true,
@@ -1833,7 +1851,7 @@ export default function CreateEventPage() {
         timezone: 'UTC',
         timezone_overrides_collective: false,
       })
-      setExtra((prev) => ({
+      setCreateOnly((prev) => ({
         ...prev,
         selected_collective_ids: [
           source.collective_id,
@@ -1850,8 +1868,12 @@ export default function CreateEventPage() {
   }, [fromEventId, form, setSearchParams])
 
   const updateExtra = useCallback((updates: Partial<CreateExtraFields>) => {
-    setExtra((prev) => ({ ...prev, ...updates }))
-  }, [])
+    const { shared, local } = splitExtrasPatch<CreateOnlyFields>(updates)
+    if (Object.keys(shared).length > 0) form.updateExtras(shared)
+    if (Object.keys(local).length > 0) {
+      setCreateOnly((prev) => ({ ...prev, ...local }))
+    }
+  }, [form])
 
   // Floating local time: the form's timezone is irrelevant for display
   // and storage (Tate 2026-05-25). Whatever wall-clock Jess types is
@@ -2031,16 +2053,17 @@ export default function CreateEventPage() {
           // Capture the wizard's "preparation & access" fields so edit-event
           // can round-trip them. Stored as jsonb so we can extend without a
           // schema change later.
-          event_extras: {
-            meeting_point: extra.meeting_point || '',
-            meeting_spot_photo_url: extra.meeting_spot_photo_url || '',
-            what_to_bring: extra.what_to_bring || '',
-            what_to_wear: extra.what_to_wear || '',
-            terrain: extra.terrain || '',
-            difficulty: extra.difficulty || 'easy',
-            wheelchair_access: !!extra.wheelchair_access,
-            partner_name: extra.partner_name || '',
-          },
+          // The whole shared shape, written as one object rather than
+          // re-listed field by field (finding 2.F6). A field added to
+          // EventExtras now round-trips through create without this call site
+          // needing to hear about it; the old copy silently dropped anything
+          // it had not been taught.
+          // Spread rather than passed by reference: the events row types
+          // event_extras as Json, and a NAMED interface has no implicit index
+          // signature, so `EventExtras` is not assignable to it while an object
+          // literal with the same keys is. Spreading also stops a later mutation
+          // of form state reaching back into the already-built payload.
+          event_extras: { ...form.fields.extras },
         }
 
         const event = await createEvent.mutateAsync(baseInsert)
@@ -2191,7 +2214,7 @@ export default function CreateEventPage() {
   const handleBack = useCallback(() => navigate(-1), [navigate])
 
   const toggleCollective = useCallback((id: string) => {
-    setExtra((prev) => {
+    setCreateOnly((prev) => {
       const ids = prev.selected_collective_ids
       return {
         ...prev,

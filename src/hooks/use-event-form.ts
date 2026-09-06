@@ -151,6 +151,30 @@ export function validateEventDates({
   return null
 }
 
+/**
+ * Route one patch object to whichever state owns each key (finding 2.F6).
+ *
+ * create-event's wizard steps write a single `extra` object that spans the
+ * shared EventExtras and the page's own create-only state, and StepDetails
+ * patches across both halves in one call. Exported and tested rather than
+ * inlined in the page, because the failure mode is silent: a key routed to the
+ * wrong half, or skipped for being falsy, just stops persisting. Clearing a
+ * text field and turning a toggle off are both falsy writes.
+ */
+export function splitExtrasPatch<L>(
+  updates: Partial<EventExtras & L>,
+): { shared: Partial<EventExtras>; local: Partial<L> } {
+  const shared: Record<string, unknown> = {}
+  const local: Record<string, unknown> = {}
+  for (const [key, value] of Object.entries(updates)) {
+    // Key presence, never truthiness: `if (value)` here would silently refuse
+    // to clear a field or switch a toggle off.
+    if (Object.prototype.hasOwnProperty.call(INITIAL_EXTRAS, key)) shared[key] = value
+    else local[key] = value
+  }
+  return { shared: shared as Partial<EventExtras>, local: local as Partial<L> }
+}
+
 export function useEventForm({ mode, initial }: UseEventFormOptions) {
   const [fields, setFields] = useState<EventFormFields>(() => ({
     ...INITIAL_FORM_FIELDS,
