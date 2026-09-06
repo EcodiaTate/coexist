@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useCallback, useMemo } from 'react
 import { useAuth } from '@/hooks/use-auth'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
+import { LEADER_ROLES } from '@/lib/constants'
 import type { Database } from '@/types/database.types'
 
 type CollectiveRole = Database['public']['Enums']['collective_role']
@@ -38,9 +39,10 @@ export type { LeaderCollectiveScopeValue, CollectiveOption }
 
 /* ------------------------------------------------------------------ */
 /*  Leader roles that grant leader-suite access                        */
+/*                                                                     */
+/*  Imported, not re-declared. route-guard.tsx held a byte-identical    */
+/*  copy of this array under a different name.                          */
 /* ------------------------------------------------------------------ */
-
-const LEADER_ROLES: CollectiveRole[] = ['assist_leader', 'co_leader', 'leader']
 
 /* ------------------------------------------------------------------ */
 /*  Provider hook                                                      */
@@ -54,7 +56,7 @@ export function useLeaderCollectiveScopeProvider(): LeaderCollectiveScopeValue {
   const ownLeaderCollectiveIds = useMemo(
     () =>
       collectiveRoles
-        .filter((m) => LEADER_ROLES.includes(m.role))
+        .filter((m) => (LEADER_ROLES as readonly string[]).includes(m.role))
         .map((m) => m.collective_id),
     [collectiveRoles],
   )

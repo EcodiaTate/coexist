@@ -18,22 +18,16 @@
  */
 
 import type { Database } from '@/types/database.types'
+import { STAFF_ROLES } from '@/lib/constants'
 
 export type UserRole = Database['public']['Enums']['user_role']
 
-// String-keyed set so we are tolerant of database.types.ts being slightly
-// stale relative to live enum values (the generated types are known to lag
-// behind migration-time renames). The DB enum after migrations 074/076 +
-// unified_roles is: participant, assist_leader, co_leader, leader,
-// national_leader, manager, admin.
-const STAFF_ROLES: ReadonlySet<string> = new Set<string>([
-  'assist_leader',
-  'co_leader',
-  'leader',
-  'national_leader',
-  'manager',
-  'admin',
-])
+// STAFF_ROLES now lives in constants.ts beside ROLE_RANK, so the role
+// hierarchy has one home instead of seven. Still a string-keyed set, for the
+// original reason: database.types.ts is known to lag behind migration-time
+// renames, so matching on the generated union would miss a live enum value.
+// The DB enum after migrations 074/076 + unified_roles is: participant,
+// assist_leader, co_leader, leader, national_leader, manager, admin.
 
 /**
  * True if the viewer (any role at or above assist_leader) is allowed to

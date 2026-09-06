@@ -4,7 +4,7 @@ import { AlertCircle } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
 import { useCollectiveRole } from '@/hooks/use-collective-role'
 import type { Database } from '@/types/database.types'
-import { GLOBAL_ROLE_RANK as _GLOBAL_RANK } from '@/lib/constants'
+import { GLOBAL_ROLE_RANK as _GLOBAL_RANK, LEADER_ROLES } from '@/lib/constants'
 import { EmptyState } from '@/components/empty-state'
 import { Button } from '@/components/button'
 
@@ -151,7 +151,6 @@ export function RequireRole({ minRole, children }: RequireRoleProps) {
 /*  RequireLeaderAccess - collective leader roles OR national staff+    */
 /* ------------------------------------------------------------------ */
 
-const _LEADER_ROLES: CollectiveRole[] = ['assist_leader', 'co_leader', 'leader']
 
 interface RequireLeaderAccessProps {
   children: ReactNode
@@ -181,7 +180,7 @@ export function RequireLeaderAccess({ children }: RequireLeaderAccessProps) {
   const isManagerWithCollectives = _GLOBAL_RANK[role] >= _GLOBAL_RANK.manager && managedCollectiveIds.length > 0
 
   // Check if user holds a qualifying collective role
-  const hasLeaderRole = collectiveRoles.some((m) => _LEADER_ROLES.includes(m.role as CollectiveRole))
+  const hasLeaderRole = collectiveRoles.some((m) => (LEADER_ROLES as readonly string[]).includes(m.role))
 
   if (!isStaffPlus && !isManagerWithCollectives && !hasLeaderRole) {
     return (

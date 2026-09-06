@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { subscribeWithReconnect } from '@/lib/realtime'
 import { useAuth } from '@/hooks/use-auth'
+import { highestRankedRole } from '@/lib/constants'
 import type {
   Tables,
   Enums,
@@ -72,12 +73,7 @@ export function useUpdates() {
   const queryClient = useQueryClient()
 
   const collectiveIds = collectiveRoles.map((m) => m.collective_id)
-  const highestCollectiveRole = collectiveRoles.length > 0
-    ? collectiveRoles.reduce((best, m) => {
-        const rank: Record<string, number> = { member: 0, assist_leader: 1, co_leader: 2, leader: 3 }
-        return (rank[m.role] ?? 0) > (rank[best.role] ?? 0) ? m : best
-      }, collectiveRoles[0]).role
-    : null
+  const highestCollectiveRole = highestRankedRole(collectiveRoles)
 
   const query = useQuery({
     queryKey: ['updates', user?.id],
@@ -158,12 +154,7 @@ export function useUnreadUpdateCount() {
   const { user, profile, collectiveRoles } = useAuth()
 
   const collectiveIds = collectiveRoles.map((m) => m.collective_id)
-  const highestCollectiveRole = collectiveRoles.length > 0
-    ? collectiveRoles.reduce((best, m) => {
-        const rank: Record<string, number> = { member: 0, assist_leader: 1, co_leader: 2, leader: 3 }
-        return (rank[m.role] ?? 0) > (rank[best.role] ?? 0) ? m : best
-      }, collectiveRoles[0]).role
-    : null
+  const highestCollectiveRole = highestRankedRole(collectiveRoles)
 
   return useQuery({
     queryKey: ['updates-unread', user?.id],
