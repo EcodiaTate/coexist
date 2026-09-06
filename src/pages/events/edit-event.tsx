@@ -764,7 +764,7 @@ export default function EditEventPage() {
                           <input
                             type="number"
                             inputMode="decimal"
-                            min="0"
+                            min="0.50"
                             step="0.01"
                             value={tier.price_dollars}
                             onChange={(e) =>

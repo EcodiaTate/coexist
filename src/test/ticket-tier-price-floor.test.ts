@@ -138,6 +138,27 @@ describe('create-event reaches the shared validation', () => {
     expect(readSrc(CREATE)).toContain('buildTicketTypeRow(t, idx)')
   })
 
+  /* Visual verify caught this, not a unit test: the wizard told the user to
+     "Set price to $0 for free tiers" while the save refused exactly that, and
+     the price input advertised min="0". A rule the UI contradicts is a rule
+     the user meets as a mysterious error after filling the form in. */
+  it('does not tell the user to do the thing the save now refuses', () => {
+    // Collapse JSX line wrapping first: the sentence spans three source lines,
+    // so a contiguous match against raw source is testing the formatter.
+    const rendered = readSrc(CREATE).replace(/\s+/g, ' ')
+    expect(rendered).not.toContain('Set price to $0')
+    expect(rendered).toContain('needs a price of at least $0.50')
+  })
+
+  it.each([
+    ['src/pages/events/create-event.tsx'],
+    ['src/pages/events/edit-event.tsx'],
+  ])('%s price input advertises the real floor', (page) => {
+    const body = readFileSync(resolve(ROOT, page), 'utf8')
+    const priceInput = body.slice(body.indexOf('inputMode="decimal"'), body.indexOf('inputMode="decimal"') + 200)
+    expect(priceInput).toContain('min="0.50"')
+  })
+
   it('no longer hand-rolls a price_cents row anywhere', () => {
     // price_cents appears only inside buildTicketTypeRow now. A call site
     // computing it again is how the floor gets bypassed a third time.

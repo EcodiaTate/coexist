@@ -1001,7 +1001,9 @@ function StepTicketing({
           <StepCard>
             <SectionLabel>Ticket tiers</SectionLabel>
             <p className="text-xs text-neutral-500 mb-3">
-              Add one or more ticket types. Set price to $0 for free tiers.
+              Add one or more ticket types. Every ticketed tier needs a price of at
+              least $0.50, because Stripe rejects a $0 charge; free events use the
+              claim and invite flow instead.
             </p>
 
             <div className="space-y-3">
@@ -1050,7 +1052,7 @@ function StepTicketing({
                         <input
                           type="number"
                           inputMode="decimal"
-                          min="0"
+                          min="0.50"
                           step="0.01"
                           value={tier.price_dollars}
                           onChange={(e) => updateTier(tier.id, { price_dollars: e.target.value })}
