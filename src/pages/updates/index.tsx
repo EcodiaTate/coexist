@@ -4,6 +4,7 @@ import { motion, useReducedMotion, type Variants } from 'framer-motion'
 import { Pin, Megaphone, AlertTriangle, ChevronRight, Images } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
+import { formatRelative } from '@/lib/date-format'
 import { Avatar } from '@/components/avatar'
 import { EmptyState } from '@/components/empty-state'
 import { OptimizedImage } from '@/components/optimized-image'
@@ -36,25 +37,6 @@ const stagger: Variants = {
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 12 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] } },
-}
-
-/* ------------------------------------------------------------------ */
-/*  Time helper                                                        */
-/* ------------------------------------------------------------------ */
-
-function formatDate(dateStr: string): string {
-  const date = new Date(dateStr)
-  const now = Date.now()
-  const diff = Math.floor((now - date.getTime()) / 1000)
-
-  if (diff < 60) return 'Just now'
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`
-  return date.toLocaleDateString('en-AU', {
-    day: 'numeric',
-    month: 'short',
-    year: diff > 31536000 ? 'numeric' : undefined,
-  })
 }
 
 /* ------------------------------------------------------------------ */
@@ -192,7 +174,7 @@ function UpdateDetailView({ update }: { update: UpdateWithAuthor }) {
               {update.author?.display_name ?? 'Co-Exist Team'}
             </span>
             <p className="text-xs text-neutral-400 mt-0.5">
-              {formatDate(update.created_at ?? '')}
+              {formatRelative(update.created_at ?? '')}
             </p>
           </div>
         </div>
@@ -314,7 +296,7 @@ function AnnouncementTile({
               {update.author?.display_name ?? 'Co-Exist Team'}
             </span>
             <span className="text-[11px] text-white/60 shrink-0">
-              {formatDate(update.created_at ?? '')}
+              {formatRelative(update.created_at ?? '')}
             </span>
           </div>
         </div>
@@ -371,7 +353,7 @@ function NotificationRow({ n, onTap }: { n: AppNotification; onTap: () => void }
         )}
       </div>
       <span className="text-[11px] text-neutral-400 shrink-0">
-        {formatDate(n.created_at ?? '')}
+        {formatRelative(n.created_at ?? '')}
       </span>
       {isUnread && (
         <span className="shrink-0 w-2 h-2 rounded-full bg-primary-500" aria-label="Unread" />

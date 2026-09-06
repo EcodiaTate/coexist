@@ -4,6 +4,7 @@ import { motion, AnimatePresence, useReducedMotion, type PanInfo, type Variants 
 import { CheckCheck, Bell, Check } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
+import { formatRelative } from '@/lib/date-format'
 import { EmptyState } from '@/components/empty-state'
 import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
@@ -30,23 +31,6 @@ const stagger: Variants = {
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 16 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] } },
-}
-
-/* ------------------------------------------------------------------ */
-/*  Time helpers                                                       */
-/* ------------------------------------------------------------------ */
-
-function timeAgo(dateStr: string | null): string {
-  if (!dateStr) return 'just now'
-  const now = Date.now()
-  const then = new Date(dateStr).getTime()
-  const diff = Math.floor((now - then) / 1000)
-
-  if (diff < 60) return 'just now'
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`
-  if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`
-  return new Date(dateStr).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })
 }
 
 /* ------------------------------------------------------------------ */
@@ -162,7 +146,7 @@ function NotificationRow({
             'text-xs mt-1.5 block font-medium',
             isUnread ? 'text-neutral-500' : 'text-neutral-400',
           )}>
-            {timeAgo(notification.created_at)}
+            {notification.created_at ? formatRelative(notification.created_at) : 'Just now'}
           </span>
         </div>
 

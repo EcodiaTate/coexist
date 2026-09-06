@@ -4,6 +4,7 @@ import { BottomSheet } from '@/components/bottom-sheet'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { Avatar } from '@/components/avatar'
+import { formatRelative } from '@/lib/date-format'
 import type { BroadcastLogEntry } from '@/hooks/use-chat'
 
 interface BroadcastNotificationSheetProps {
@@ -13,20 +14,6 @@ interface BroadcastNotificationSheetProps {
   loading?: boolean
   recentBroadcasts?: BroadcastLogEntry[]
   collectiveName?: string
-}
-
-function relativeTime(dateStr: string): string {
-  const now = Date.now()
-  const then = new Date(dateStr).getTime()
-  const diffMs = now - then
-  const diffMin = Math.floor(diffMs / 60000)
-  if (diffMin < 1) return 'Just now'
-  if (diffMin < 60) return `${diffMin}m ago`
-  const diffHr = Math.floor(diffMin / 60)
-  if (diffHr < 24) return `${diffHr}h ago`
-  const diffDays = Math.floor(diffHr / 24)
-  if (diffDays < 7) return `${diffDays}d ago`
-  return new Date(dateStr).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })
 }
 
 export function BroadcastNotificationSheet({
@@ -91,7 +78,7 @@ export function BroadcastNotificationSheet({
                       {b.profiles?.display_name ?? 'Staff'}: {b.title}
                     </p>
                     <p data-eos-id="src/components/broadcast-notification-sheet.tsx#16" data-eos-var="b.created_at,b.recipient_count,b.recipient_count" data-eos-var-label="Created at, Recipient count, Recipient count" data-eos-var-scope="item" className="text-[11px] text-warning-500">
-                      {relativeTime(b.created_at)} &middot; sent to {b.recipient_count} member{b.recipient_count !== 1 ? 's' : ''}
+                      {formatRelative(b.created_at)} &middot; sent to {b.recipient_count} member{b.recipient_count !== 1 ? 's' : ''}
                     </p>
                   </div>
                 </div>
