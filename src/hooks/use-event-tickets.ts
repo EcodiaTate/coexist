@@ -527,6 +527,50 @@ export interface TicketTypeDraft {
   _persisted?: boolean
 }
 
+/**
+ * The one place a ticket tier is judged valid, and the one place its DB row is
+ * shaped. Exported (rather than living inside useSaveTicketTypes) so the create
+ * wizard can run the SAME rules BEFORE it inserts the event row: the hook can
+ * only run after an event id exists, and a tier rejected at that point would
+ * leave an orphan published event behind. create-event.tsx validates up-front
+ * with this, then persists through the hook.
+ *
+ * A fully-blank row the leader added and never filled is ignored; a row with
+ * ANY content must be complete. This replaces the old silent name-filter that
+ * dropped half-filled tiers on save while toasting success, and blocks the $0
+ * tier that dead-ends guest checkout (Stripe rejects unit_amount 0). Ticketed
+ * tiers must be >= A$0.50.
+ *
+ * @throws Error with a user-facing message on the first offending tier.
+ */
+export function validateTicketTierDrafts(tiers: TicketTypeDraft[]): TicketTypeDraft[] {
+  const isBlankRow = (t: TicketTypeDraft) =>
+    !t.name.trim() && !(t.price_dollars || '').trim() && !(t.capacity || '').trim() && !(t.description || '').trim()
+  const validTiers = tiers.filter((t) => !isBlankRow(t))
+  for (const t of validTiers) {
+    if (!t.name.trim()) {
+      throw new Error('Give every ticket tier a name, or clear the empty row before saving.')
+    }
+    const cents = Math.round(parseFloat(t.price_dollars || '0') * 100)
+    if (!Number.isFinite(cents) || cents < 50) {
+      throw new Error(`"${t.name.trim()}" needs a price of at least $0.50 (free tiers use the claim/invite flow).`)
+    }
+  }
+  return validTiers
+}
+
+/** Shape one validated draft into an event_ticket_types row (no event_id). */
+export function buildTicketTypeRow(t: TicketTypeDraft, idx: number) {
+  return {
+    name: t.name.trim(),
+    description: t.description.trim() || null,
+    price_cents: Math.round(parseFloat(t.price_dollars || '0') * 100),
+    capacity: t.capacity ? parseInt(t.capacity, 10) : null,
+    sort_order: idx,
+    is_active: t.is_active,
+  }
+}
+
 export function useSaveTicketTypes() {
   const queryClient = useQueryClient()
 
@@ -558,33 +602,12 @@ export function useSaveTicketTypes() {
         if (delErr) throw delErr
       }
 
-      // A fully-blank row the leader added and never filled is ignored; a row
-      // with ANY content must be complete. This replaces the old silent
-      // name-filter that dropped half-filled tiers on save while toasting
-      // success, and blocks the $0 tier that dead-ends guest checkout (Stripe
-      // rejects unit_amount 0). Ticketed tiers must be >= A$0.50.
-      const isBlankRow = (t: typeof tiers[number]) =>
-        !t.name.trim() && !(t.price_dollars || '').trim() && !(t.capacity || '').trim() && !(t.description || '').trim()
-      const validTiers = tiers.filter((t) => !isBlankRow(t))
-      for (const t of validTiers) {
-        if (!t.name.trim()) {
-          throw new Error('Give every ticket tier a name, or clear the empty row before saving.')
-        }
-        const cents = Math.round(parseFloat(t.price_dollars || '0') * 100)
-        if (!Number.isFinite(cents) || cents < 50) {
-          throw new Error(`"${t.name.trim()}" needs a price of at least $0.50 (free tiers use the claim/invite flow).`)
-        }
-      }
+      // Blank-row + $0-floor rules live in validateTicketTierDrafts so create
+      // and edit share one validation surface (finding 2.F1).
+      const validTiers = validateTicketTierDrafts(tiers)
       for (let idx = 0; idx < validTiers.length; idx++) {
         const t = validTiers[idx]
-        const row = {
-          name: t.name.trim(),
-          description: t.description.trim() || null,
-          price_cents: Math.round(parseFloat(t.price_dollars || '0') * 100),
-          capacity: t.capacity ? parseInt(t.capacity, 10) : null,
-          sort_order: idx,
-          is_active: t.is_active,
-        }
+        const row = buildTicketTypeRow(t, idx)
 
         if (t._persisted) {
           const { error } = await supabase

@@ -44,6 +44,17 @@ import {
 import { supabase } from '@/lib/supabase'
 import { useEventForm } from '@/hooks/use-event-form'
 import type { EventFormFields, ActivityType } from '@/hooks/use-event-form'
+import {
+    useSaveTicketTypes,
+    validateTicketTierDrafts,
+    buildTicketTypeRow,
+    type TicketTypeDraft,
+} from '@/hooks/use-event-tickets'
+import {
+    useSaveTicketQuestions,
+    type TicketQuestionDraft,
+    type TicketQuestionType,
+} from '@/hooks/use-event-ticket-questions'
 import { useActivityTypeDefaults } from '@/hooks/use-activity-defaults'
 import { parseLocationPoint, resolveCollectiveCoords } from '@/lib/geo'
 import type { MapCenter } from '@/components/map/use-map'
@@ -105,23 +116,14 @@ function formatCreateEventError(err: unknown): string {
 /*  Create-only form data (extends shared fields)                      */
 /* ------------------------------------------------------------------ */
 
-interface TicketTierDraft {
-  id: string
-  name: string
-  description: string
-  price_dollars: string
-  capacity: string
-}
-
-type TicketQuestionType = 'short_text' | 'long_text' | 'boolean' | 'single_select' | 'multi_select'
-
-interface TicketQuestionDraft {
-  id: string
-  prompt: string
-  question_type: TicketQuestionType
-  options: string[]
-  required: boolean
-}
+/*
+ * Ticket tier + question draft shapes are NOT declared here. create-event used
+ * to carry its own narrower copies (findings 2.F11 / 5a.F7): the tier copy was
+ * missing is_active/_persisted, and the question copy was missing help_text and
+ * sort_order while the page itself wrote sort_order, so no UI anywhere could
+ * ever set a question's help text. Both now come from the hooks that own the
+ * writes, which is what lets create share edit's validation (2.F1).
+ */
 
 const QUESTION_TYPE_LABELS: { value: TicketQuestionType; label: string }[] = [
   { value: 'short_text', label: 'Short text' },
@@ -147,7 +149,7 @@ interface CreateExtraFields {
   invite_collective: boolean
   partner_name: string
   is_ticketed: boolean
-  ticket_tiers: TicketTierDraft[]
+  ticket_tiers: TicketTypeDraft[]
   ticket_questions: TicketQuestionDraft[]
   checkin_window_minutes: number
 }
@@ -1142,12 +1144,13 @@ function StepTicketing({
           description: '',
           price_dollars: '',
           capacity: '',
+          is_active: true,
         },
       ],
     })
   }
 
-  const updateTier = (id: string, patch: Partial<TicketTierDraft>) => {
+  const updateTier = (id: string, patch: Partial<TicketTypeDraft>) => {
     onExtraChange({
       ticket_tiers: extra.ticket_tiers.map((t) => (t.id === id ? { ...t, ...patch } : t)),
     })
@@ -1161,7 +1164,15 @@ function StepTicketing({
     onExtraChange({
       ticket_questions: [
         ...extra.ticket_questions,
-        { id: crypto.randomUUID(), prompt: '', question_type: 'short_text', options: [], required: false },
+        {
+          id: crypto.randomUUID(),
+          prompt: '',
+          help_text: '',
+          question_type: 'short_text',
+          options: [],
+          required: false,
+          sort_order: extra.ticket_questions.length,
+        },
       ],
     })
   }
@@ -1321,6 +1332,13 @@ function StepTicketing({
                       <Trash2 size={14} />
                     </button>
                   </div>
+
+                  <Input
+                    value={q.help_text}
+                    onChange={(e) => updateQuestion(q.id, { help_text: e.target.value })}
+                    placeholder="Help text (optional, shown under the question)"
+                    compact
+                  />
 
                   <div className="flex items-center gap-2">
                     <Dropdown
@@ -1806,6 +1824,11 @@ export default function CreateEventPage() {
   )
 
   const createEvent = useCreateEvent()
+  // Ticket persistence goes through the same mutations edit-event uses, so the
+  // $0-tier floor and blank-row rules cannot diverge between the two pages
+  // (finding 2.F1).
+  const saveTickets = useSaveTicketTypes()
+  const saveQuestions = useSaveTicketQuestions()
   const { data: activityDefaults } = useActivityTypeDefaults()
 
   // Auto-populate the cover image preview the moment an admin picks an
@@ -2004,6 +2027,19 @@ export default function CreateEventPage() {
         return
       }
 
+      // Ticket tiers are validated BEFORE the event row is inserted. The save
+      // hook can only run once an event id exists, so validating inside it
+      // would leave an orphan published event behind whenever a tier is
+      // rejected. Same rules, applied early (finding 2.F1).
+      if (extra.is_ticketed && extra.ticket_tiers.length > 0) {
+        try {
+          validateTicketTierDrafts(extra.ticket_tiers)
+        } catch (err) {
+          toastApi.error(formatCreateEventError(err))
+          return
+        }
+      }
+
       try {
         const selectedIds = extra.selected_collective_ids
         if (selectedIds.length === 0) {
@@ -2096,45 +2132,25 @@ export default function CreateEventPage() {
 
         const event = await createEvent.mutateAsync(baseInsert)
 
-        // Insert ticket types if ticketed
+        // Ticket tiers + attendee questions persist through the SAME hooks
+        // edit-event calls, rather than the raw inserts that used to live here
+        // with no price floor and no blank-row rule (findings 2.F1, 2.F2).
+        // These now throw on failure instead of console.error-ing and carrying
+        // on, so a persistence failure reaches the user via the catch below.
         if (extra.is_ticketed && extra.ticket_tiers.length > 0) {
-          const ticketTypeRows = extra.ticket_tiers
-            .filter((t) => t.name.trim())
-            .map((t, idx) => ({
-              event_id: event.id,
-              name: t.name.trim(),
-              description: t.description.trim() || null,
-              price_cents: Math.round(parseFloat(t.price_dollars || '0') * 100),
-              capacity: t.capacity ? parseInt(t.capacity, 10) : null,
-              sort_order: idx,
-              is_active: true,
-            }))
-
-          if (ticketTypeRows.length > 0) {
-            const { error: ttErr } = await supabase
-              .from('event_ticket_types')
-              .insert(ticketTypeRows)
-            if (ttErr) console.error('[create-event] ticket type insert error:', ttErr)
-          }
-
-          // Custom attendee questions (optional): answered at checkout, exported.
-          const questionRows = extra.ticket_questions
-            .filter((q) => q.prompt.trim())
-            .map((q, idx) => ({
-              event_id: event.id,
-              prompt: q.prompt.trim(),
-              question_type: q.question_type,
-              options: QUESTION_SELECT_TYPES.includes(q.question_type)
-                ? q.options.map((o) => o.trim()).filter(Boolean)
-                : [],
-              required: q.required,
-              sort_order: idx,
-              is_active: true,
-            }))
-          if (questionRows.length > 0) {
-            const { error: qErr } = await supabase.from('event_ticket_questions').insert(questionRows)
-            if (qErr) console.error('[create-event] ticket question insert error:', qErr)
-          }
+          await saveTickets.mutateAsync({
+            eventId: event.id,
+            tiers: extra.ticket_tiers,
+            removedIds: [],
+            isTicketed: true,
+          })
+        }
+        if (extra.is_ticketed && extra.ticket_questions.length > 0) {
+          await saveQuestions.mutateAsync({
+            eventId: event.id,
+            questions: extra.ticket_questions,
+            removedIds: [],
+          })
         }
 
         // Recurring events: fan out N-1 additional occurrences sharing the
@@ -2178,18 +2194,16 @@ export default function CreateEventPage() {
               console.error('[create-event] recurring insert error:', recErr)
             } else if (extraEvents && extra.is_ticketed && extra.ticket_tiers.length > 0) {
               // Replicate ticket tiers to each new occurrence
+              // Same validated drafts, same row builder as the hook uses, so a
+              // fanned-out occurrence can never carry a tier the primary event
+              // would have refused (finding 2.F1). Validation already ran
+              // before the event insert; this is shaping only.
+              const validTiers = validateTicketTierDrafts(extra.ticket_tiers)
               const tierRows = extraEvents.flatMap((ev) =>
-                extra.ticket_tiers
-                  .filter((t) => t.name.trim())
-                  .map((t, idx) => ({
-                    event_id: ev.id,
-                    name: t.name.trim(),
-                    description: t.description.trim() || null,
-                    price_cents: Math.round(parseFloat(t.price_dollars || '0') * 100),
-                    capacity: t.capacity ? parseInt(t.capacity, 10) : null,
-                    sort_order: idx,
-                    is_active: true,
-                  })),
+                validTiers.map((t, idx) => ({
+                  ...buildTicketTypeRow(t, idx),
+                  event_id: ev.id,
+                })),
               )
               if (tierRows.length > 0) {
                 await supabase.from('event_ticket_types').insert(tierRows)
@@ -2258,7 +2272,7 @@ export default function CreateEventPage() {
         )
       }
     },
-    [user, role, form, extra, saveAsDraft, createEvent, inviteCollective, navigate, toastApi, resetWizard, activityDefaults],
+    [user, role, form, extra, saveAsDraft, createEvent, saveTickets, saveQuestions, inviteCollective, navigate, toastApi, resetWizard, activityDefaults],
   )
 
   const handleBack = useCallback(() => navigate(-1), [navigate])
