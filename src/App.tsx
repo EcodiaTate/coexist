@@ -2,6 +2,7 @@ import { Routes, Route, Navigate, useLocation, type Location } from 'react-route
 import { Suspense, useState, useCallback, useEffect } from 'react'
 import { lazyWithRetry as lazy, clearChunkReloadGuard } from '@/lib/lazy-with-retry'
 import { ErrorBoundary } from '@/components/error-boundary'
+import { SentryErrorBoundary } from '@/lib/sentry'
 import { RequireAuth, RequireRole, RequireLeaderAccess, RequireCapability } from '@/components/route-guard'
 import { FEATURE_MEMBERSHIPS } from '@/lib/flags'
 import { AppShell } from '@/components/app-shell'
@@ -759,7 +760,15 @@ function App() {
       )}
     </Suspense>
     </ErrorBoundary>
-    <BirthdayPromptGate />
+    {/* Blocking date-of-birth gate. Wrapped in its own boundary with a null
+        fallback, matching PhoneGate and DietaryGate in app-shell.tsx: it
+        mounts OUTSIDE the app's ErrorBoundary above, so before this wrapper a
+        throw anywhere in the gate subtree took the whole app down for every
+        member with a null date_of_birth, which is precisely the population it
+        renders for. Degrades to "no gate" instead. */}
+    <SentryErrorBoundary fallback={null}>
+      <BirthdayPromptGate />
+    </SentryErrorBoundary>
     </>
   )
 }
