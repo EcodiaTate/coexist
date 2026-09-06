@@ -8,6 +8,7 @@ import {
   Users,
   UserCheck,
   UserPlus,
+  UserMinus,
   ChevronRight,
   Phone,
   AlertTriangle,
@@ -43,6 +44,7 @@ import {
   useCheckIn,
   useUncheckIn,
   usePromoteFromWaitlist,
+  useRemoveFromEvent,
   formatEventDate,
   type EventWalkIn,
   type RosterPerson,
@@ -293,10 +295,15 @@ function AttendeeSafetySheet({
   attendee,
   open,
   onClose,
+  onRemove,
 }: {
   attendee: AttendeeWithStatus | null
   open: boolean
   onClose: () => void
+  /** Leader-only, non-ticketed events, rows not yet checked in. Opens the
+      remove confirmation (Anthea Sheriff's ask 2026-09-06: clear no-shows so
+      the waitlist can move). */
+  onRemove?: () => void
 }) {
   if (!attendee?.profiles) return null
 
@@ -422,6 +429,20 @@ function AttendeeSafetySheet({
             <p className="text-sm text-warning-600 italic">No emergency contact provided</p>
           )}
         </div>
+
+        {/* Remove from event (leader action, free events only). The freed
+            seat goes straight to the next waitlisted person via the
+            cancel-backfill trigger. */}
+        {onRemove && (
+          <Button
+            variant="danger"
+            fullWidth
+            icon={<UserMinus size={16} />}
+            onClick={onRemove}
+          >
+            Remove from event
+          </Button>
+        )}
       </div>
     </BottomSheet>
   )
@@ -463,6 +484,8 @@ export default function EventDayPage() {
   const [walkInToDelete, setWalkInToDelete] = useState<EventWalkIn | null>(null)
   // bulkCheckIn removed with the "Mark all present" footer button
   const promote = usePromoteFromWaitlist()
+  const removeFromEvent = useRemoveFromEvent()
+  const [removeTarget, setRemoveTarget] = useState<AttendeeWithStatus | null>(null)
 
   // Mid-event offline visibility - leaders need to know whether actions are
   // queued vs synced. Origin: Tate verbatim 17:11 AEST 9 May 2026.
@@ -636,6 +659,65 @@ export default function EventDayPage() {
     },
     [eventId, promote],
   )
+
+  // Remove a registered / invited / waitlisted person from a free event
+  // (Anthea Sheriff 2026-09-06). Their seat backfills from the waitlist
+  // instantly via handle_registration_cancel unless sign-ups are closed.
+  const handleRemoveConfirm = useCallback(() => {
+    if (!eventId || !removeTarget) return
+    const displayName = attendeeName(removeTarget.profiles, 'Attendee')
+    removeFromEvent.mutate(
+      { eventId, userId: removeTarget.user_id },
+      {
+        onSuccess: () => {
+          const waitlistWaiting = (roster?.groups.waitlist.length ?? 0) > 0
+          toast.success(
+            waitlistWaiting
+              ? `${displayName} removed - their spot goes to the next person on the waitlist`
+              : `${displayName} removed from the event`,
+          )
+        },
+        onError: (err) => {
+          toast.error(err instanceof Error ? err.message : 'Failed to remove')
+        },
+        onSettled: () => {
+          setRemoveTarget(null)
+          setSelectedAttendee(null)
+        },
+      },
+    )
+  }, [eventId, removeTarget, removeFromEvent, roster, toast])
+
+  // Sign-ups open/closed (events.registrations_closed). This flag existed in
+  // the DB since 2026-09-02 with NO app surface: an organiser lifted Merri
+  // Mornings' capacity on 2026-09-06 trying to admit 74 waitlisted people and
+  // the invisible freeze silently kept them all out. Leaders can now see and
+  // flip it. While closed, nobody new can take a seat and the waitlist holds.
+  const registrationsClosed =
+    ((event as unknown as Record<string, unknown> | null)?.registrations_closed as boolean | undefined) ?? false
+  const [togglingRegistrations, setTogglingRegistrations] = useState(false)
+  const handleToggleRegistrations = useCallback(async () => {
+    if (!eventId) return
+    const next = !registrationsClosed
+    setTogglingRegistrations(true)
+    try {
+      const { error } = await supabase
+        .from('events')
+        .update({ registrations_closed: next })
+        .eq('id', eventId)
+      if (error) throw error
+      await queryClient.invalidateQueries({ queryKey: ['event', eventId] })
+      toast.success(
+        next
+          ? 'Sign-ups closed - new people will join the waitlist'
+          : 'Sign-ups reopened - free spots will fill from the waitlist',
+      )
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Could not update sign-ups')
+    } finally {
+      setTogglingRegistrations(false)
+    }
+  }, [eventId, registrationsClosed, queryClient, toast])
 
   // Add an all-app-member to the event and mark them attended immediately
   const handleAddAndCheckIn = useCallback(
@@ -1007,6 +1089,45 @@ export default function EventDayPage() {
             classifyAttendance working as intended); this panel is the only
             place they are visible, and the only place the unmet demand is. */}
         {isTicketed && eventId && <TicketWaitlistPanel eventId={eventId} />}
+
+        {/* Sign-ups open/closed (free events). Surfaced because this flag
+            lived DB-only from 2026-09-02 and an invisible freeze defeated an
+            organiser's capacity change on 2026-09-06. */}
+        {!isTicketed && (
+          <motion.div variants={fadeUp} className="mb-5">
+            <button
+              type="button"
+              onClick={handleToggleRegistrations}
+              disabled={togglingRegistrations}
+              className={cn(
+                'w-full flex items-center justify-between px-4 py-3 rounded-sm transition-colors duration-150',
+                registrationsClosed
+                  ? 'bg-warning-50 ring-1 ring-warning-200'
+                  : 'bg-white ring-1 ring-neutral-200 shadow-sm',
+                'disabled:opacity-60',
+              )}
+            >
+              <div className="flex items-center gap-2">
+                <Users size={18} className={registrationsClosed ? 'text-warning-600' : 'text-neutral-500'} />
+                <div className="text-left">
+                  <p className={cn('text-sm font-semibold', registrationsClosed ? 'text-warning-700' : 'text-neutral-700')}>
+                    {registrationsClosed ? 'Sign-ups closed' : 'Accepting sign-ups'}
+                  </p>
+                  <p className="text-xs text-neutral-500">
+                    {registrationsClosed
+                      ? 'New people join the waitlist and spots do not refill'
+                      : 'Free spots fill from the waitlist automatically'}
+                  </p>
+                </div>
+              </div>
+              {registrationsClosed ? (
+                <ToggleLeft size={24} className="text-warning-500 shrink-0" />
+              ) : (
+                <ToggleRight size={24} className="text-success-500 shrink-0" />
+              )}
+            </button>
+          </motion.div>
+        )}
 
         {/* Live count bar - checked in / going */}
         {goingCount > 0 && (
@@ -1398,6 +1519,25 @@ export default function EventDayPage() {
         attendee={selectedAttendee}
         open={!!selectedAttendee}
         onClose={() => setSelectedAttendee(null)}
+        onRemove={
+          !isTicketed &&
+          (isAssistLeader || isStaff) &&
+          selectedAttendee &&
+          ['registered', 'invited', 'waitlisted'].includes(selectedAttendee.status)
+            ? () => setRemoveTarget(selectedAttendee)
+            : undefined
+        }
+      />
+
+      {/* Remove-from-event confirmation (Anthea Sheriff ask, 2026-09-06) */}
+      <ConfirmationSheet
+        open={!!removeTarget}
+        onClose={() => setRemoveTarget(null)}
+        onConfirm={handleRemoveConfirm}
+        title="Remove from this event?"
+        description={`${attendeeName(removeTarget?.profiles, 'This person')} will be taken off the event${(roster?.groups.waitlist.length ?? 0) > 0 && !registrationsClosed ? ' and their spot will go to the next person on the waitlist' : ''}. They can register again later.`}
+        confirmLabel="Remove"
+        variant="danger"
       />
 
       {/* Profile modal */}

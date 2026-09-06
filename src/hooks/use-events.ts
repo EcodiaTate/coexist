@@ -2430,6 +2430,43 @@ export function usePromoteFromWaitlist() {
   })
 }
 
+/**
+ * Leader removes someone from a free event's roster (Anthea Sheriff's ask,
+ * 2026-09-06: "is there a way to remove people who have registered but not
+ * showed up?"). Sets the row to 'cancelled', the same state a self-cancel
+ * lands in, so every downstream reader already understands it - and on an
+ * open event handle_registration_cancel instantly promotes the next
+ * waitlisted person into the freed seat.
+ *
+ * NON-TICKETED EVENTS ONLY (callers gate on event.is_ticketed): a paid
+ * ticket exits through the refund flow, never a roster action.
+ */
+export function useRemoveFromEvent() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ eventId, userId }: { eventId: string; userId: string }) => {
+      const { data, error } = await supabase
+        .from('event_registrations')
+        .update({ status: 'cancelled' })
+        .eq('event_id', eventId)
+        .eq('user_id', userId)
+        .in('status', ['registered', 'invited', 'waitlisted'])
+        .select('id')
+      if (error) throw error
+      if (!data || data.length === 0) {
+        throw new Error("Couldn't remove this person. They may have already cancelled or checked in.")
+      }
+    },
+    onSettled: (_, __, { eventId }) => {
+      queryClient.invalidateQueries({ queryKey: ['event-attendees', eventId] })
+      queryClient.invalidateQueries({ queryKey: ['event-roster', eventId] })
+      queryClient.invalidateQueries({ queryKey: ['event-waitlist', eventId] })
+      queryClient.invalidateQueries({ queryKey: ['event', eventId] })
+    },
+  })
+}
+
 /* ------------------------------------------------------------------ */
 /*  Calendar helpers                                                   */
 /* ------------------------------------------------------------------ */

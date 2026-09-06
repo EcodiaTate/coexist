@@ -224,6 +224,31 @@ export default function CheckInPage() {
     setTimeout(() => setShowCelebration(true), 600)
   }, [eventId, user])
 
+  /* ---- Self-promote from waitlist when a seat is actually free ---- */
+  // Before dead-ending a waitlisted person at "the coordinator can confirm
+  // your spot" (Merri Mornings 2026-09-06: 74 people hit that wall), attempt
+  // the waitlisted -> registered flip on their own row. The DB capacity
+  // trigger is the arbiter: on a full or sign-ups-closed event it demotes the
+  // write straight back to 'waitlisted', so branching on the RETURNED status
+  // is race-proof and needs no client-side seat math. Queue position is kept
+  // on a refusal (registered_at is untouched).
+  const trySelfPromote = useCallback(async (): Promise<boolean> => {
+    if (!eventId || !user) return false
+    try {
+      const { data, error } = await supabase
+        .from('event_registrations')
+        .update({ status: 'registered' })
+        .eq('event_id', eventId)
+        .eq('user_id', user.id)
+        .eq('status', 'waitlisted')
+        .select('status')
+      if (error) return false
+      return data?.[0]?.status === 'registered'
+    } catch {
+      return false
+    }
+  }, [eventId, user])
+
   /* ---- Code submit ---- */
   const handleCodeSubmit = useCallback(async () => {
     if (!user || !isComplete) return
@@ -262,6 +287,24 @@ export default function CheckInPage() {
       } else if (msg.includes('not registered')) {
         setErrorKind('not_registered')
       } else if (msg.includes('waitlist')) {
+        // A seat may have freed since they joined the queue (a no-show removed,
+        // a cancellation, capacity raised). Try claiming it before showing the
+        // dead end. On success, re-run the same check-in, whose mutation
+        // invalidates every read key ('event', 'my-events', roster, home);
+        // trySelfPromote itself changes nothing when it fails.
+        if (await trySelfPromote()) {
+          try {
+            await codeCheckIn.mutateAsync({ checkInCode: code })
+            setState('success')
+            setTimeout(() => setShowCelebration(true), 600)
+          } catch {
+            // Registered but the check-in step failed; the waitlisted screen
+            // is now wrong for them, so surface the generic retry instead.
+            setErrorKind('generic')
+            setState('error')
+          }
+          return
+        }
         setState('waitlisted')
         return
       } else if (msg.includes('cancelled')) {
@@ -462,7 +505,7 @@ export default function CheckInPage() {
             <p className="text-neutral-500 mt-2 max-w-xs">
               {isLeaderOrAbove
                 ? 'This person is waitlisted. You can confirm their spot and check them in.'
-                : "You're on the waitlist \u2014 the coordinator can confirm your spot."}
+                : 'The event is at capacity right now. If a spot opens up you will be promoted automatically, or the coordinator can confirm your spot here.'}
             </p>
             <div className="mt-6 w-full max-w-xs space-y-2">
               {isLeaderOrAbove && (

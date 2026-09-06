@@ -134,5 +134,11 @@ verify_jwt = false  # third-party callback: signature-authenticated, never JWT
 # carry a valid JWT, so the gateway check stays on.
 verify_jwt = true
 
+[functions.free-waitlist-promote]
+# Called only by pg_cron with the service-role bearer (cron_free_waitlist_promote);
+# the underlying RPC is EXECUTE-revoked from anon/authenticated, so the gateway
+# check stays on and there is no app-side caller.
+verify_jwt = true
+
 [functions.transfer-event-ticket]
 verify_jwt = true
