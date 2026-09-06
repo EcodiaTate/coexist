@@ -42,7 +42,7 @@ import {
     ACTIVITY_TYPE_OPTIONS,
 } from '@/hooks/use-events'
 import { supabase } from '@/lib/supabase'
-import { useEventForm } from '@/hooks/use-event-form'
+import { useEventForm, validateEventDates } from '@/hooks/use-event-form'
 import type { EventFormFields, ActivityType } from '@/hooks/use-event-form'
 import {
     useSaveTicketTypes,
@@ -1907,19 +1907,36 @@ export default function CreateEventPage() {
 
       const isDraft = asDraft || saveAsDraft
 
-      // Validate dates. Floating-local: compare wall-clock-as-UTC start
-      // against viewer's wall-clock-as-UTC "now" so 3pm-today doesn't
-      // false-positive as past for a Brisbane host at 11am local.
-      if (form.fields.date_start && form.fields.date_start < wallClockNow()) {
-        toastApi.error('Start date cannot be in the past')
+      // Validate dates through the shared rule so create and edit cannot
+      // diverge again (finding 2.F4). Floating-local: it compares
+      // wall-clock-as-UTC start against the viewer's wall-clock-as-UTC "now"
+      // so 3pm-today does not false-positive as past for a Brisbane host at
+      // 11am local.
+      const dateError = validateEventDates({
+        dateStart: form.fields.date_start,
+        dateEnd: form.fields.date_end,
+      })
+      if (dateError) {
+        toastApi.error(dateError)
         return
       }
-      if (
-        form.fields.date_start &&
-        form.fields.date_end &&
-        form.fields.date_end <= form.fields.date_start
-      ) {
-        toastApi.error('End date must be after start date')
+
+      // A drafted recurring series silently lost its recurrence (finding
+      // 2.F5). The fan-out is gated on !isDraft and the events table has no
+      // recurrence columns, so the only durable trace of a series is series_id
+      // on the fanned-out rows. Save a "weekly, 8 events" configuration as a
+      // draft and you got one row, series_id null, and no record anywhere that
+      // eight occurrences were intended. edit-event has no recurring UI, so
+      // publishing that draft later produced a single one-off with no warning
+      // that seven events had been dropped.
+      //
+      // Refusing the combination is the honest half of the fix. Persisting the
+      // intent needs a schema change and is logged as deferred; blocking here
+      // means the loss is never silent.
+      if (isDraft && extra.is_recurring && extra.recurring_count > 1) {
+        toastApi.error(
+          'A recurring series cannot be saved as a draft. Publish it now, or turn off Repeat to save a draft.',
+        )
         return
       }
 

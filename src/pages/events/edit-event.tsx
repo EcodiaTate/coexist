@@ -14,7 +14,7 @@ import {
     useEventDetail,
     useUpdateEvent,
 } from '@/hooks/use-events'
-import { useEventForm } from '@/hooks/use-event-form'
+import { useEventForm, validateEventDates } from '@/hooks/use-event-form'
 import {
     useEventTicketTypes,
     useSaveTicketTypes,
@@ -99,11 +99,17 @@ export default function EditEventPage() {
   // pin still saves it (locationPoint is then non-null).
   const unparseableStoredPointRef = useRef(false)
 
+  // The start currently in the database. The past-start guard compares against
+  // it so editing an event that has already begun stays possible, while MOVING
+  // a start back into the past is refused (finding 2.F4).
+  const storedStartRef = useRef<Date | null>(null)
+
   // Pre-populate from event data
   useEffect(() => {
     if (!event) return
     const pos = parseLocationPoint(event.location_point)
     unparseableStoredPointRef.current = event.location_point != null && pos == null
+    storedStartRef.current = new Date(event.date_start)
     startTransition(() => {
       form.resetFields({
         title: event.title,
@@ -200,6 +206,20 @@ export default function EditEventPage() {
         ? {}
         : { location_point: locationPoint }
 
+    const dateError = validateEventDates({
+      dateStart: form.fields.date_start,
+      dateEnd: form.fields.date_end,
+      storedStart: storedStartRef.current,
+      // Day-of mode exists to adjust times ON the day, so a start that is
+      // already behind wall-clock now is the normal case there. The
+      // end-before-start rule still applies.
+      skipPastCheck: isDayOfMode,
+    })
+    if (dateError) {
+      toast.error(dateError)
+      return
+    }
+
     try {
     if (isDayOfMode) {
       // Day-of mode: time, address/pin, and the meeting-spot photo (a leader
@@ -264,6 +284,16 @@ export default function EditEventPage() {
   // Publish a draft event - saves all fields + flips status to published (fork_mp0so5k9_0d2e77)
   const handlePublish = useCallback(async () => {
     if (!eventId || !form.isBasicsValid || !form.isDateValid) return
+
+    const dateError = validateEventDates({
+      dateStart: form.fields.date_start,
+      dateEnd: form.fields.date_end,
+      storedStart: storedStartRef.current,
+    })
+    if (dateError) {
+      toast.error(dateError)
+      return
+    }
 
     const locationPoint = form.buildLocationPoint()
     const locationPatch =

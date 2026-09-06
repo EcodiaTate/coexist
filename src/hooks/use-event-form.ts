@@ -104,6 +104,53 @@ export interface UseEventFormOptions {
   initial?: Partial<EventFormFields>
 }
 
+/**
+ * The one date rule both event forms answer to (finding 2.F4).
+ *
+ * create-event.tsx blocked a past start and an end at or before the start;
+ * edit-event.tsx checked neither, and no DB CHECK backs either rule, so a
+ * routine typo (filling the end picker before the start) persisted an event
+ * that "ends" before it begins. isPastEvent and every capacity/attendance
+ * surface downstream read date_end assuming it is after date_start.
+ *
+ * Returns a user-facing message, or null when the dates are acceptable.
+ *
+ * The past-start rule is deliberately NOT a straight copy of create's. On
+ * create, every start is new, so any past start is a mistake. On edit, the
+ * stored start of an event that has already begun is legitimately in the past,
+ * and a verbatim copy would make an in-progress or finished event permanently
+ * uneditable: no fixing the address on the day, no correcting a description
+ * afterwards. So the rule fires only when the start has actually MOVED, and is
+ * skipped entirely in day-of mode, where editing times on the day is the whole
+ * purpose of the screen.
+ */
+export function validateEventDates({
+  dateStart,
+  dateEnd,
+  storedStart,
+  skipPastCheck = false,
+}: {
+  dateStart: Date | null
+  dateEnd: Date | null
+  /** The start currently in the database. Omit on create. */
+  storedStart?: Date | null
+  /** Day-of mode: times are being edited on the day, by design. */
+  skipPastCheck?: boolean
+}): string | null {
+  if (!dateStart) return null
+
+  const startMoved =
+    storedStart == null || storedStart.getTime() !== dateStart.getTime()
+
+  if (!skipPastCheck && startMoved && dateStart < wallClockNow()) {
+    return 'Start date cannot be in the past'
+  }
+  if (dateEnd && dateEnd <= dateStart) {
+    return 'End date must be after start date'
+  }
+  return null
+}
+
 export function useEventForm({ mode, initial }: UseEventFormOptions) {
   const [fields, setFields] = useState<EventFormFields>(() => ({
     ...INITIAL_FORM_FIELDS,
