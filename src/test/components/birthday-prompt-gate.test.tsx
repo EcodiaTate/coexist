@@ -28,7 +28,11 @@ import { BottomSheet } from '@/components/bottom-sheet'
  * ------------------------------------------------------------------ */
 
 const mockMutateAsync = vi.fn().mockResolvedValue(undefined)
-let profileValue: { date_of_birth: string | null } | null = { date_of_birth: null }
+type GateProfile = { date_of_birth: string | null; onboarding_completed?: boolean; phone?: string | null }
+// A profile at THIS gate's turn in the blocking order: onboarded, phone
+// already on file (PhoneGate goes first), birthday still missing.
+const AT_BIRTHDAY_TURN: GateProfile = { onboarding_completed: true, phone: '0400 000 000', date_of_birth: null }
+let profileValue: GateProfile | null = { ...AT_BIRTHDAY_TURN }
 let isLoadingValue = false
 let userValue: { id: string } | null = { id: 'user-1' }
 
@@ -65,7 +69,7 @@ function setViewport(desktop: boolean) {
 describe('BirthdayPromptGate cannot be dismissed', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    profileValue = { date_of_birth: null }
+    profileValue = { ...AT_BIRTHDAY_TURN }
     isLoadingValue = false
     userValue = { id: 'user-1' }
     setViewport(true)
@@ -149,8 +153,27 @@ describe('BirthdayPromptGate cannot be dismissed', () => {
     expect(mockMutateAsync).not.toHaveBeenCalled()
   })
 
+  it('does not render during onboarding, where this gate used to block the front door', () => {
+    // Onboarding writes date_of_birth NOWHERE, so every brand-new user has it
+    // null the moment a profile row exists. With no onboarding term in the
+    // predicate and a mount at the App root outside every <Routes>, this sheet
+    // rendered on top of the onboarding flow. It was survivable only while the
+    // swipe dismissed it; the 4.F4 fix would have made it a hard block.
+    profileValue = { ...AT_BIRTHDAY_TURN, onboarding_completed: false }
+    render(<BirthdayPromptGate />)
+    expect(screen.queryByText(/one quick thing/i)).toBeNull()
+  })
+
+  it('waits its turn behind the phone gate rather than stacking on it', () => {
+    // Both are Modal dismissible={false}. Two at once is two undismissable
+    // sheets on one screen with no way past either.
+    profileValue = { ...AT_BIRTHDAY_TURN, phone: null }
+    render(<BirthdayPromptGate />)
+    expect(screen.queryByText(/one quick thing/i)).toBeNull()
+  })
+
   it('does not render at all when the profile already has a birthday', () => {
-    profileValue = { date_of_birth: '1990-01-01' }
+    profileValue = { ...AT_BIRTHDAY_TURN, date_of_birth: '1990-01-01' }
     render(<BirthdayPromptGate />)
     expect(screen.queryByText(/one quick thing/i)).toBeNull()
   })

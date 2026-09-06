@@ -7,6 +7,7 @@ import { Button } from '@/components/button'
 import { useToast } from '@/components/toast'
 import { Modal } from '@/components/modal'
 import { SafetyRequirementsFields } from '@/components/safety-requirements-fields'
+import { dietaryGateOrderAllows } from '@/lib/profile-gates'
 import {
   EMPTY_SAFETY_ANSWERS,
   safetyProfileUpdates,
@@ -72,16 +73,14 @@ export function DietaryGate() {
   // answer, and treating it as empty would re-ask that person forever.
   const fourWheelDriveEmpty = !hasFourWheelDriveAnswer(profile)
 
-  // Candidate = onboarded user, phone already on file (PhoneGate precedence:
-  // that gate handles phone-less users and the two must never stack), and at
-  // least one requirement field still unanswered. Only candidates run the
-  // eligibility query.
+  // Candidate = this gate's turn in the blocking order (onboarded, phone AND
+  // birthday already on file, so it can never stack on either gate ahead of
+  // it: see @/lib/profile-gates) and at least one requirement field still
+  // unanswered. Only candidates run the eligibility query.
   const candidate =
     !isLoading &&
     !!user &&
-    !!profile &&
-    profile.onboarding_completed === true &&
-    !!(profile.phone ?? '').trim() &&
+    dietaryGateOrderAllows(profile) &&
     (dietaryEmpty || medicalEmpty || emergencyEmpty || fourWheelDriveEmpty)
 
   // Does this user hold a live ticket OR registration to an upcoming event

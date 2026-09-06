@@ -102,6 +102,9 @@ const guestProps = {
 const emptySafetyProfile = {
   onboarding_completed: true,
   phone: '0400000000',
+  // This gate is third in the blocking order, so it only asks once the phone
+  // and birthday gates ahead of it are satisfied (see @/lib/profile-gates).
+  date_of_birth: '1990-01-01',
   dietary_requirements: null,
   medical_requirements: null,
   emergency_contact_name: null,

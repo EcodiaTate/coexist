@@ -5,6 +5,7 @@ import { Button } from '@/components/button'
 import { useAuth } from '@/hooks/use-auth'
 import { useProfile, useUpdateProfile } from '@/hooks/use-profile'
 import { calculateAge } from '@/lib/date-format'
+import { needsBirthdayGate } from '@/lib/profile-gates'
 
 /**
  * One-time gate that asks every existing user for their date of birth the
@@ -33,7 +34,14 @@ export function BirthdayPromptGate() {
   const [dateOfBirth, setDateOfBirth] = useState('')
   const [error, setError] = useState<string | null>(null)
 
-  const needsBirthday = !!user && !isLoading && !!profile && !profile.date_of_birth
+  // Ordering lives once, in @/lib/profile-gates. This used to be a bare
+  // `!profile.date_of_birth` with no onboarding term and no phone precedence,
+  // while mounting at the App root OUTSIDE every <Routes>. Onboarding writes
+  // date_of_birth nowhere, so every brand-new user had it null the moment a
+  // profile row existed and met this sheet on top of the onboarding flow.
+  // Survivable only while a swipe could dismiss it; closing that hole (4.F4)
+  // would otherwise have turned it into a hard block on the front door.
+  const needsBirthday = !!user && !isLoading && needsBirthdayGate(profile)
 
   if (!needsBirthday) return null
 

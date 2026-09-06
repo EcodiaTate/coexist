@@ -8,6 +8,7 @@ import { Input } from '@/components/input'
 import { useToast } from '@/components/toast'
 import { Modal } from '@/components/modal'
 import { isValidPhone } from '@/lib/validation'
+import { needsPhoneGate } from '@/lib/profile-gates'
 import { useKeyboardHeight } from '@/hooks/use-keyboard-height'
 
 /* ------------------------------------------------------------------ */
@@ -75,12 +76,7 @@ export function PhoneGate() {
   // Gating on onboarding_completed keeps it off the onboarding/auth flow
   // (those run in a bare shell anyway) and catches new users the moment
   // they land in the app after finishing onboarding without a number.
-  const show =
-    !isLoading &&
-    !!user &&
-    !!profile &&
-    profile.onboarding_completed === true &&
-    !(profile.phone ?? '').trim()
+  const show = !isLoading && !!user && needsPhoneGate(profile)
 
   // Body scroll-lock is owned by the Modal primitive (Vaul). The whole sheet
   // is lifted above the keypad by `keyboardInset` (passed to Modal below), so
