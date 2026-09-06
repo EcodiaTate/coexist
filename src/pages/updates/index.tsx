@@ -5,6 +5,7 @@ import { Pin, Megaphone, AlertTriangle, ChevronRight, Images } from 'lucide-reac
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
 import { formatRelative } from '@/lib/date-format'
+import { RichContent } from '@/components/rich-content'
 import { Avatar } from '@/components/avatar'
 import { EmptyState } from '@/components/empty-state'
 import { OptimizedImage } from '@/components/optimized-image'
@@ -57,55 +58,6 @@ function getImages(update: UpdateWithAuthor): string[] {
 // Fresh regex per call. A module-level /g pattern would retain `lastIndex`
 // across invocations, so later renders would resume from the previous text's
 // offset and silently skip matches near the start of a new string.
-const LINK_PATTERN_SOURCE = String.raw`\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|(https?:\/\/[^\s<]+)`
-
-function RichContent({ text, className }: { text: string; className?: string }) {
-  const parts: React.ReactNode[] = []
-  let lastIndex = 0
-  let match: RegExpExecArray | null
-  let key = 0
-  const linkPattern = new RegExp(LINK_PATTERN_SOURCE, 'g')
-
-  while ((match = linkPattern.exec(text)) !== null) {
-    if (match.index > lastIndex) {
-      parts.push(text.slice(lastIndex, match.index))
-    }
-
-    if (match[1] && match[2]) {
-      parts.push(
-        <a
-          key={key++}
-          href={match[2]}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-primary-600 font-semibold underline underline-offset-2 decoration-primary-300 hover:decoration-primary-500 hover:text-primary-700 transition-colors"
-        >
-          {match[1]}
-        </a>,
-      )
-    } else if (match[3]) {
-      parts.push(
-        <a
-          key={key++}
-          href={match[3]}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-primary-600 font-semibold underline underline-offset-2 decoration-primary-300 hover:decoration-primary-500 hover:text-primary-700 transition-colors break-all"
-        >
-          {match[3]}
-        </a>,
-      )
-    }
-
-    lastIndex = match.index + match[0].length
-  }
-
-  if (lastIndex < text.length) {
-    parts.push(text.slice(lastIndex))
-  }
-
-  return <div className={className}>{parts}</div>
-}
 
 /* ------------------------------------------------------------------ */
 /*  Inline update detail view (replaces list, no overlay)              */

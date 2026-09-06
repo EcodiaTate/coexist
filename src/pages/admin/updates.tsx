@@ -24,6 +24,7 @@ import {
     Clock,
 } from 'lucide-react'
 import { useAdminHeader } from '@/components/admin-layout'
+import { RichContent } from '@/components/rich-content'
 import { AdminHeroStat, AdminHeroStatRow } from '@/components/admin-hero-stat'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
@@ -73,59 +74,6 @@ function getImages(update: AdminUpdate): string[] {
 /*  Render content with clickable links (for preview)                  */
 /* ------------------------------------------------------------------ */
 
-// Module-level /g pattern retains lastIndex across calls - must reset
-// before each use or later renders skip matches near the start of the text.
-const LINK_RE = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|(https?:\/\/[^\s<]+)/g
-
-function RichContent({ text, className }: { text: string; className?: string }) {
-  const parts: React.ReactNode[] = []
-  let lastIndex = 0
-  let match: RegExpExecArray | null
-  let key = 0
-  LINK_RE.lastIndex = 0
-
-  while ((match = LINK_RE.exec(text)) !== null) {
-    if (match.index > lastIndex) {
-      parts.push(text.slice(lastIndex, match.index))
-    }
-
-    if (match[1] && match[2]) {
-      parts.push(
-        <a
-          key={key++}
-          href={match[2]}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 text-neutral-600 font-semibold underline underline-offset-2 decoration-primary-300 hover:decoration-primary-500 hover:text-neutral-700 transition-colors"
-        >
-          {match[1]}
-          <ExternalLink size={11} className="shrink-0" />
-        </a>,
-      )
-    } else if (match[3]) {
-      parts.push(
-        <a
-          key={key++}
-          href={match[3]}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 text-neutral-600 font-semibold underline underline-offset-2 decoration-primary-300 hover:decoration-primary-500 hover:text-neutral-700 transition-colors break-all"
-        >
-          {match[3]}
-          <ExternalLink size={11} className="shrink-0" />
-        </a>,
-      )
-    }
-
-    lastIndex = match.index + match[0].length
-  }
-
-  if (lastIndex < text.length) {
-    parts.push(text.slice(lastIndex))
-  }
-
-  return <div className={className}>{parts}</div>
-}
 
 /* ------------------------------------------------------------------ */
 /*  Link inserter helper                                               */
@@ -825,6 +773,7 @@ function DetailPanel({
           {/* Content preview with clickable links */}
           <RichContent
             text={update.content}
+            variant="admin"
             className="text-sm text-neutral-700 leading-[1.8] whitespace-pre-wrap break-words [overflow-wrap:anywhere]"
           />
 
