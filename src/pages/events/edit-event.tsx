@@ -26,6 +26,12 @@ import {
     type TicketQuestionDraft,
 } from '@/hooks/use-event-ticket-questions'
 import { TicketQuestionsEditor } from './components/ticket-questions-editor'
+import { EventCollaboratorsCard } from './components/event-collaborators-card'
+import {
+    CoverImageSuggestions,
+    CheckinWindowField,
+    VisibilityField,
+} from './components/event-shared-fields'
 import {
     BasicsFields,
     DateTimeFields,
@@ -36,6 +42,10 @@ import {
     MeetingSpotPhotoField,
 } from './components/event-form-fields'
 import { useActivityTypeDefaults } from '@/hooks/use-activity-defaults'
+import {
+    useCoverImageSuggestions,
+    type CoverImageSuggestion,
+} from '@/hooks/use-cover-image-suggestions'
 import { INITIAL_EXTRAS, type EventExtras } from '@/hooks/use-event-form'
 import {
     Page,
@@ -177,6 +187,26 @@ export default function EditEventPage() {
       })),
     )
   }, [existingQuestions])
+
+  // Cover-image suggestions: real photos from this collective's past events of
+  // the same activity type. This existed only at creation time (finding 2.F7),
+  // so a leader replacing the cover on a published event had to leave the app
+  // and hunt for a photo the wizard would have offered them in a row. The hook
+  // is already collective/activity parameterised; only the wiring was missing.
+  const coverSuggestions = useCoverImageSuggestions({
+    collectiveIds: event?.collective_id ? [event.collective_id] : [],
+    activityType: form.fields.activity_type,
+  })
+  const handleSelectCoverSuggestion = useCallback(
+    (s: CoverImageSuggestion) => {
+      form.updateFields({
+        cover_image_url: s.url,
+        cover_image_position_x: 50,
+        cover_image_position_y: 50,
+      })
+    },
+    [form],
+  )
 
   // Shared cover resolution: a missing cover falls back to the per-activity
   // default so neither Save nor Publish can produce a coverless event.
@@ -548,15 +578,15 @@ export default function EditEventPage() {
             onChange={form.updateFields}
             disabled={isDayOfMode}
           />
+          <VisibilityField
+            fields={form.fields}
+            onChange={form.updateFields}
+            disabled={isDayOfMode}
+          />
           {!isDayOfMode && (
-            <Dropdown
-              label="When should check-in open?"
-              value={String(checkinWindowMinutes)}
-              onChange={(v) => setCheckinWindowMinutes(parseInt(v, 10))}
-              options={[
-                { value: '0', label: 'At event start time' },
-                { value: '30', label: '30 minutes before (default)' },
-              ]}
+            <CheckinWindowField
+              minutes={checkinWindowMinutes}
+              onChange={setCheckinWindowMinutes}
             />
           )}
         </motion.div>
@@ -582,6 +612,7 @@ export default function EditEventPage() {
             extras={form.fields.extras}
             onChange={form.updateExtras}
             disabled={isDayOfMode}
+            includePartner={false}
           />
         </motion.div>
 
@@ -602,6 +633,14 @@ export default function EditEventPage() {
               <span className="text-neutral-900">Cover Image</span>
             )}
           </h3>
+          {!isDayOfMode && (
+            <CoverImageSuggestions
+              suggestions={coverSuggestions.suggestions}
+              loading={coverSuggestions.isLoading}
+              selectedUrl={form.fields.cover_image_url}
+              onSelect={handleSelectCoverSuggestion}
+            />
+          )}
           <CoverImageFields
             coverImageUrl={form.fields.cover_image_url}
             onUpload={form.handleUploadFromGallery}
@@ -800,10 +839,27 @@ export default function EditEventPage() {
           )}
         </motion.div>
 
-        {/* External Collaboration */}
+        {/* Co-hosting collectives (finding 2.F3, surfacing half). */}
+        {!isDayOfMode && eventId && event?.collective_id && (
+          <motion.div variants={fadeUp} className="space-y-4 rounded-md p-4 border bg-white border-neutral-100">
+            <EventCollaboratorsCard eventId={eventId} hostCollectiveId={event.collective_id} />
+          </motion.div>
+        )}
+
+        {/* Partner + external collaboration. These are one decision ("is this
+            ours or a partner's?") and create asks them together; edit used to
+            split partner_name into the Preparation card three sections above,
+            purely because that is where the value happens to be stored
+            (finding 2.F9). */}
         {!isDayOfMode && (
           <motion.div variants={fadeUp} className="space-y-4 rounded-md p-4 border bg-white border-neutral-100">
-            <h3 className="text-sm font-semibold text-neutral-900">External Collaboration</h3>
+            <h3 className="text-sm font-semibold text-neutral-900">Partner &amp; External Collaboration</h3>
+            <Input
+              label="Partner organisation"
+              placeholder="e.g. Landcare NSW (leave blank if none)"
+              value={form.fields.extras.partner_name}
+              onChange={(e) => form.updateExtras({ partner_name: e.target.value })}
+            />
             <Toggle
               label="External Collaboration"
               description="This event is managed by an external partner or organisation"

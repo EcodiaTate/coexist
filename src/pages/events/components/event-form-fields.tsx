@@ -284,27 +284,23 @@ function PendingReverseAddressPrompt({
 }
 
 /* ------------------------------------------------------------------ */
-/*  Details: capacity + public toggle                                  */
+/*  Details: capacity                                                  */
+/*                                                                     */
+/*  is_public used to ride along here as a bare toggle while create     */
+/*  presented the same boolean as two labelled cards (finding 2.F8).    */
+/*  Visibility is now VisibilityField in event-shared-fields.tsx and    */
+/*  both forms render it, so this component is capacity alone.          */
 /* ------------------------------------------------------------------ */
 
 export function DetailsFields({ fields, onChange, disabled }: FieldProps) {
   return (
-    <>
-      <Input
-        label="Capacity"
-        placeholder="Max participants (leave empty for unlimited)"
-        value={fields.capacity}
-        onChange={(e) => onChange({ capacity: e.target.value })}
-        disabled={disabled}
-      />
-      <Toggle
-        label="Public Event"
-        description="Anyone can discover and register for this event"
-        checked={fields.is_public}
-        onChange={(v) => onChange({ is_public: v })}
-        disabled={disabled}
-      />
-    </>
+    <Input
+      label="Capacity"
+      placeholder="Max participants (leave empty for unlimited)"
+      value={fields.capacity}
+      onChange={(e) => onChange({ capacity: e.target.value })}
+      disabled={disabled}
+    />
   )
 }
 
@@ -317,6 +313,7 @@ export function ExtrasFields({
   onChange,
   disabled,
   meetingSpotPhoto,
+  includePartner = true,
 }: {
   extras: EventExtras
   onChange: (updates: Partial<EventExtras>) => void
@@ -324,6 +321,12 @@ export function ExtrasFields({
   /** When provided, renders a "photo of the meeting spot" control directly
    *  under the Meeting Point text input. Omitted callers just get the text. */
   meetingSpotPhoto?: Omit<MeetingSpotPhotoFieldProps, 'photoUrl' | 'disabled'>
+  /** Partner organisation is a preparation field only by accident of where it
+   *  is stored. A caller that groups it with the external-collaboration
+   *  decision (as create's Partner step does) passes false and renders it
+   *  there instead, so the two forms frame one decision the same way
+   *  (finding 2.F9). */
+  includePartner?: boolean
 }) {
   return (
     <div className="space-y-4">
@@ -384,13 +387,15 @@ export function ExtrasFields({
         onChange={(v) => onChange({ wheelchair_access: v })}
         disabled={disabled}
       />
-      <Input
-        label="Partner organisation"
-        placeholder="e.g. Landcare NSW (leave blank if none)"
-        value={extras.partner_name}
-        onChange={(e) => onChange({ partner_name: e.target.value })}
-        disabled={disabled}
-      />
+      {includePartner && (
+        <Input
+          label="Partner organisation"
+          placeholder="e.g. Landcare NSW (leave blank if none)"
+          value={extras.partner_name}
+          onChange={(e) => onChange({ partner_name: e.target.value })}
+          disabled={disabled}
+        />
+      )}
     </div>
   )
 }

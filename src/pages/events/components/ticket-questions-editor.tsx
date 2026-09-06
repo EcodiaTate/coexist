@@ -5,6 +5,11 @@ import type {
   TicketQuestionDraft,
   TicketQuestionType,
 } from '@/hooks/use-event-ticket-questions'
+import {
+  QUESTION_TYPE_LABELS,
+  QUESTION_SELECT_TYPES,
+  makeQuestionDraft,
+} from './ticket-question-options'
 
 /* ------------------------------------------------------------------ */
 /*  Attendee-questions editor, shared by create-event and edit-event   */
@@ -17,28 +22,6 @@ import type {
 /*  than a copy of the markup, because a second copy is the same shape  */
 /*  as the check-in-window dropdown the audit also flags (2.F10).       */
 /* ------------------------------------------------------------------ */
-
-export const QUESTION_TYPE_LABELS: { value: TicketQuestionType; label: string }[] = [
-  { value: 'short_text', label: 'Short text' },
-  { value: 'long_text', label: 'Long text' },
-  { value: 'boolean', label: 'Yes / No' },
-  { value: 'single_select', label: 'Pick one' },
-  { value: 'multi_select', label: 'Pick many' },
-]
-
-export const QUESTION_SELECT_TYPES: TicketQuestionType[] = ['single_select', 'multi_select']
-
-export function makeQuestionDraft(sortOrder: number): TicketQuestionDraft {
-  return {
-    id: crypto.randomUUID(),
-    prompt: '',
-    help_text: '',
-    question_type: 'short_text',
-    options: [],
-    required: false,
-    sort_order: sortOrder,
-  }
-}
 
 export interface TicketQuestionsEditorProps {
   questions: TicketQuestionDraft[]

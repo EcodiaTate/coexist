@@ -35,7 +35,6 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
 import { GLOBAL_ROLE_RANK } from '@/lib/constants'
-import { useQuery } from '@tanstack/react-query'
 import {
     useCreateEvent,
     useInviteCollective,
@@ -56,7 +55,13 @@ import {
     type TicketQuestionDraft,
 } from '@/hooks/use-event-ticket-questions'
 import { TicketQuestionsEditor } from './components/ticket-questions-editor'
+import {
+    CoverImageSuggestions,
+    CheckinWindowField,
+    VisibilityField,
+} from './components/event-shared-fields'
 import { useActivityTypeDefaults } from '@/hooks/use-activity-defaults'
+import { useAllActiveCollectives } from '@/hooks/use-collectives-picker'
 import { parseLocationPoint, resolveCollectiveCoords } from '@/lib/geo'
 import type { MapCenter } from '@/components/map/use-map'
 import { wallClockNow } from '@/lib/date-format'
@@ -369,23 +374,6 @@ function SectionLabel({
 /* ------------------------------------------------------------------ */
 /*  Step Components                                                    */
 /* ------------------------------------------------------------------ */
-
-/** Lightweight hook to fetch all active collectives for admin picker */
-function useAllActiveCollectives() {
-  return useQuery({
-    queryKey: ['all-active-collectives'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('collectives')
-        .select('id, name, slug, region, state, cover_image_url, timezone, location_point')
-        .eq('is_active', true)
-        .order('name')
-      if (error) throw error
-      return data ?? []
-    },
-    staleTime: 5 * 60 * 1000,
-  })
-}
 
 // Floating local time model (Tate 2026-05-25): events have no tz. The
 // AU_TIMEZONES list + override dropdown is gone.
@@ -704,18 +692,10 @@ function StepDetails({
 
       <StepCard>
         <SectionLabel icon={<Clock size={14} />}>Check-in Window</SectionLabel>
-        <Dropdown
-          label="When should check-in open?"
-          value={String(extra.checkin_window_minutes)}
-          onChange={(v) => onExtraChange({ checkin_window_minutes: parseInt(v, 10) })}
-          options={[
-            { value: '0', label: 'At event start time' },
-            { value: '30', label: '30 minutes before (default)' },
-          ]}
+        <CheckinWindowField
+          minutes={extra.checkin_window_minutes}
+          onChange={(minutes) => onExtraChange({ checkin_window_minutes: minutes })}
         />
-        <p className="text-caption text-neutral-500 mt-2">
-          Check-in can open up to 30 minutes before the event starts. Leaders can always override this and open check-in early from the event page.
-        </p>
       </StepCard>
 
       <StepCard>
@@ -799,81 +779,6 @@ function StepDetails({
 /* ------------------------------------------------------------------ */
 /*  Cover image suggestions - real photos from past events             */
 /* ------------------------------------------------------------------ */
-
-function CoverImageSuggestions({
-  suggestions,
-  loading,
-  selectedUrl,
-  onSelect,
-}: {
-  suggestions: CoverImageSuggestion[]
-  loading: boolean
-  selectedUrl: string
-  onSelect: (s: CoverImageSuggestion) => void
-}) {
-  if (!loading && suggestions.length === 0) return null
-
-  return (
-    <div className="space-y-2">
-      <div className="flex items-center gap-2">
-        <Sparkles size={15} className="text-primary-500" />
-        <p className="text-sm font-semibold text-primary-700">
-          Suggested from past events
-        </p>
-      </div>
-      <p className="text-caption text-neutral-500">
-        Photos from this collective and activity type. Tap one to use it.
-      </p>
-
-      {loading && suggestions.length === 0 ? (
-        <div className="flex gap-2 overflow-hidden">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div
-              key={i}
-              className="h-20 w-28 shrink-0 rounded-sm bg-neutral-100 animate-pulse"
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 snap-x">
-          {suggestions.map((s) => {
-            const active = s.url === selectedUrl
-            return (
-              <button
-                key={s.storagePath}
-                type="button"
-                onClick={() => onSelect(s)}
-                aria-label={`Use photo from ${s.eventTitle ?? 'a past event'}`}
-                aria-pressed={active}
-                className={cn(
-                  'relative h-20 w-28 shrink-0 snap-start overflow-hidden rounded-sm',
-                  'cursor-pointer select-none active:scale-[0.98] transition-transform duration-150',
-                  active
-                    ? 'ring-2 ring-primary-500 ring-offset-1'
-                    : 'ring-1 ring-neutral-200 hover:ring-neutral-300',
-                )}
-              >
-                <img
-                  src={s.thumbnailUrl}
-                  alt={s.eventTitle ?? 'Past event photo'}
-                  loading="lazy"
-                  className="h-full w-full object-cover"
-                />
-                {active && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-primary-900/30">
-                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white shadow">
-                      <Check size={15} className="text-primary-600" />
-                    </span>
-                  </div>
-                )}
-              </button>
-            )
-          })}
-        </div>
-      )}
-    </div>
-  )
-}
 
 function StepCoverImage({
   coverImageUrl,
@@ -1034,96 +939,6 @@ function StepCoverImage({
           </p>
         </div>
       )}
-    </div>
-  )
-}
-
-function StepVisibility({
-  fields,
-  onChange,
-}: {
-  fields: EventFormFields
-  onChange: (updates: Partial<EventFormFields>) => void
-}) {
-  return (
-    <div className="space-y-3">
-      <p className="text-sm text-neutral-500 mb-1">
-        Choose who can discover and register for this event.
-      </p>
-
-      {/* Public option */}
-      <button
-        type="button"
-        onClick={() => onChange({ is_public: true })}
-        className={cn(
-          'w-full min-h-11 flex items-center gap-4 p-4 rounded-md cursor-pointer select-none text-left',
-          'active:scale-[0.97] transition-transform duration-200',
-          'border',
-          fields.is_public
-            ? 'border-primary-400 shadow-sm bg-sprout-50 ring-1 ring-primary-300/50'
-            : 'border-neutral-100 bg-surface-0 hover:bg-surface-1',
-        )}
-      >
-        <div
-          className={cn(
-            'w-11 h-11 rounded-sm flex items-center justify-center shrink-0 transition-colors',
-            fields.is_public
-              ? 'bg-primary-500 text-white'
-              : 'bg-surface-2 text-neutral-400',
-          )}
-        >
-          <Eye size={20} />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-neutral-900">Public</p>
-          <p className="text-caption text-neutral-500 mt-0.5">
-            Anyone can find and register for this event
-          </p>
-        </div>
-        {fields.is_public && (
-          <div className="w-6 h-6 rounded-full bg-primary-500 flex items-center justify-center shrink-0">
-            <Check size={14} className="text-white" />
-          </div>
-        )}
-      </button>
-
-      {/* Collective only option */}
-      <button
-        type="button"
-        onClick={() => onChange({ is_public: false })}
-        className={cn(
-          'w-full min-h-11 flex items-center gap-4 p-4 rounded-md cursor-pointer select-none text-left',
-          'active:scale-[0.97] transition-transform duration-200',
-          'border',
-          !fields.is_public
-            ? 'border-plum-400 shadow-sm bg-primary-50 ring-1 ring-plum-300/50'
-            : 'border-neutral-100 bg-surface-0 hover:bg-surface-1',
-        )}
-      >
-        <div
-          className={cn(
-            'w-11 h-11 rounded-sm flex items-center justify-center shrink-0 transition-colors',
-            !fields.is_public
-              ? 'bg-plum-500 text-white'
-              : 'bg-surface-2 text-neutral-400',
-          )}
-        >
-          <EyeOff size={20} />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-neutral-900">
-            Collective Only
-          </p>
-          <p className="text-caption text-neutral-500 mt-0.5">
-            Only members of the selected collectives can see and register
-          </p>
-        </div>
-        {!fields.is_public && (
-          <div className="w-6 h-6 rounded-full bg-plum-500 flex items-center justify-center shrink-0">
-            <Check size={14} className="text-white" />
-          </div>
-        )}
-      </button>
     </div>
   )
 }
@@ -2349,7 +2164,7 @@ export default function CreateEventPage() {
         required: false,
         valid: true,
         summary: form.fields.is_public ? 'Public' : 'Collective only',
-        content: <StepVisibility fields={form.fields} onChange={form.updateFields} />,
+        content: <VisibilityField fields={form.fields} onChange={form.updateFields} />,
       },
       {
         key: 'ticketing',

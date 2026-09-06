@@ -2,10 +2,8 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { readFileSync, readdirSync } from 'node:fs'
 import { resolve, join, relative, sep } from 'node:path'
-import {
-  TicketQuestionsEditor,
-  makeQuestionDraft,
-} from '@/pages/events/components/ticket-questions-editor'
+import { TicketQuestionsEditor } from '@/pages/events/components/ticket-questions-editor'
+import { makeQuestionDraft } from '@/pages/events/components/ticket-question-options'
 import type { TicketQuestionDraft } from '@/hooks/use-event-ticket-questions'
 
 /* ------------------------------------------------------------------ */
