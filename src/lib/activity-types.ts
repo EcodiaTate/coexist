@@ -5,6 +5,8 @@
  * and event-detail are merged here as the single source of truth.
  */
 
+import { titleCaseFromSnake } from '@/lib/labels-and-enums'
+
 /* ------------------------------------------------------------------ */
 /*  Badge slug mapping  (activity_type DB enum → Badge component prop) */
 /* ------------------------------------------------------------------ */
@@ -88,7 +90,7 @@ export const activityAccent: Record<string, ActivityAccent> = {
 /** Converts a DB enum value to a human-readable label: "tree_planting" → "Tree Planting" */
 export function formatActivityType(type: string | null | undefined): string {
   if (!type) return 'Event'
-  return type.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+  return titleCaseFromSnake(type)
 }
 
 export const defaultAccent: ActivityAccent = COEXIST_ACCENT

@@ -40,6 +40,7 @@ import {
     extractTemplateVariables
 } from './shared'
 import { StatusBadge } from './shared-ui'
+import { titleCaseFromSnake } from '@/lib/labels-and-enums'
 
 /* ================================================================== */
 /*  Campaign Composer (Create/Edit)                                    */
@@ -297,7 +298,7 @@ function CampaignComposer({
               {templateVars.map((varName) => (
                 <Input data-eos-id="src/pages/admin/email/campaigns-tab.tsx#16"
                   key={varName}
-                  label={varName.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
+                  label={titleCaseFromSnake(varName)}
                   placeholder={`Enter ${varName.replace(/_/g, ' ')}...`}
                   value={fieldValues[varName] ?? ''}
                   onChange={(e) => updateField(varName, e.target.value)}
