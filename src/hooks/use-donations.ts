@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
+import { invokeCheckout } from '@/lib/stripe'
 import { useAuth } from '@/hooks/use-auth'
 import type {
   Donation,
@@ -47,20 +48,16 @@ export function useCreateDonation() {
 
   return useMutation({
     mutationFn: async (params: CreateDonationParams) => {
-      const res = await supabase.functions.invoke('create-checkout', {
-        body: {
-          type: 'donation',
-          user_id: user?.id,
-          amount: params.amount,
-          frequency: params.frequency,
-          project_id: params.projectId ?? null,
-          message: params.message ?? null,
-          on_behalf_of: params.onBehalfOf ?? null,
-          is_public: params.isPublic ?? true,
-        },
+      return invokeCheckout<{ session_id: string; url: string }>({
+        type: 'donation',
+        user_id: user?.id,
+        amount: params.amount,
+        frequency: params.frequency,
+        project_id: params.projectId ?? null,
+        message: params.message ?? null,
+        on_behalf_of: params.onBehalfOf ?? null,
+        is_public: params.isPublic ?? true,
       })
-      if (res.error) throw res.error
-      return res.data as { session_id: string; url: string }
     },
   })
 }
@@ -117,13 +114,10 @@ export function useCancelRecurringDonation() {
 
   return useMutation({
     mutationFn: async (subscriptionId: string) => {
-      const res = await supabase.functions.invoke('create-checkout', {
-        body: {
-          type: 'cancel_subscription',
-          stripe_subscription_id: subscriptionId,
-        },
+      await invokeCheckout<void>({
+        type: 'cancel_subscription',
+        stripe_subscription_id: subscriptionId,
       })
-      if (res.error) throw res.error
     },
     onMutate: async (subscriptionId) => {
       await queryClient.cancelQueries({ queryKey: ['my-recurring-donations', user?.id] })
@@ -153,14 +147,10 @@ export function useCancelRecurringDonation() {
 export function useBillingPortal() {
   return useMutation({
     mutationFn: async (subscriptionId: string) => {
-      const res = await supabase.functions.invoke('create-checkout', {
-        body: {
-          type: 'billing_portal',
-          stripe_subscription_id: subscriptionId,
-        },
+      return invokeCheckout<{ url: string }>({
+        type: 'billing_portal',
+        stripe_subscription_id: subscriptionId,
       })
-      if (res.error) throw res.error
-      return res.data as { url: string }
     },
   })
 }

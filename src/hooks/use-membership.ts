@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
+import { invokeCheckout } from '@/lib/stripe'
 import { useAuth } from '@/hooks/use-auth'
 
 /* ------------------------------------------------------------------ */
@@ -123,16 +124,12 @@ export function useCreateMembership() {
 
   return useMutation({
     mutationFn: async (params: { planId: string; interval: MembershipInterval }) => {
-      const res = await supabase.functions.invoke('create-checkout', {
-        body: {
-          type: 'membership',
-          user_id: user?.id,
-          plan_id: params.planId,
-          interval: params.interval,
-        },
+      return invokeCheckout<{ session_id: string; url: string }>({
+        type: 'membership',
+        user_id: user?.id,
+        plan_id: params.planId,
+        interval: params.interval,
       })
-      if (res.error) throw res.error
-      return res.data as { session_id: string; url: string }
     },
   })
 }
@@ -147,13 +144,10 @@ export function useCancelMembership() {
 
   return useMutation({
     mutationFn: async (subscriptionId: string) => {
-      const res = await supabase.functions.invoke('create-checkout', {
-        body: {
-          type: 'cancel_membership',
-          stripe_subscription_id: subscriptionId,
-        },
+      await invokeCheckout<void>({
+        type: 'cancel_membership',
+        stripe_subscription_id: subscriptionId,
       })
-      if (res.error) throw res.error
     },
     onMutate: async (subscriptionId) => {
       await queryClient.cancelQueries({ queryKey: ['my-membership', user?.id] })
@@ -184,14 +178,10 @@ export function useCancelMembership() {
 export function useMembershipPortal() {
   return useMutation({
     mutationFn: async (subscriptionId: string) => {
-      const res = await supabase.functions.invoke('create-checkout', {
-        body: {
-          type: 'membership_portal',
-          stripe_subscription_id: subscriptionId,
-        },
+      return invokeCheckout<{ url: string }>({
+        type: 'membership_portal',
+        stripe_subscription_id: subscriptionId,
       })
-      if (res.error) throw res.error
-      return res.data as { url: string }
     },
   })
 }

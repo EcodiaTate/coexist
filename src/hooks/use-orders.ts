@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
+import { invokeCheckout } from '@/lib/stripe'
 import { useAuth } from '@/hooks/use-auth'
 import type { Order, ShippingAddress, ReturnRequest } from '@/types/merch'
 import { useCart } from '@/hooks/use-cart'
@@ -18,30 +19,26 @@ export function useCreateMerchCheckout() {
 
   return useMutation({
     mutationFn: async (params: CreateMerchCheckoutParams) => {
-      const res = await supabase.functions.invoke('create-checkout', {
-        body: {
-          type: 'merch',
-          user_id: user?.id,
-          items: cart.items.map((i) => ({
-            product_id: i.product.id,
-            variant_id: i.variant.id,
-            quantity: i.quantity,
-            price_cents: i.variant.price_cents,
-            product_name: i.product.name,
-            variant_label: [i.variant.size, i.variant.colour].filter(Boolean).join(' / '),
-            image_url: i.product.images[0] ?? null,
-          })),
-          shipping_address: params.shippingAddress,
-          promo_code_id: cart.promoCode?.id ?? null,
-          subtotal_cents: cart.subtotalCents(),
-          member_discount_cents: cart.memberDiscountCents(),
-          discount_cents: cart.discountCents(),
-          shipping_cents: cart.shippingCents(),
-          total_cents: cart.totalCents(),
-        },
+      return invokeCheckout<{ session_id: string; url: string }>({
+        type: 'merch',
+        user_id: user?.id,
+        items: cart.items.map((i) => ({
+          product_id: i.product.id,
+          variant_id: i.variant.id,
+          quantity: i.quantity,
+          price_cents: i.variant.price_cents,
+          product_name: i.product.name,
+          variant_label: [i.variant.size, i.variant.colour].filter(Boolean).join(' / '),
+          image_url: i.product.images[0] ?? null,
+        })),
+        shipping_address: params.shippingAddress,
+        promo_code_id: cart.promoCode?.id ?? null,
+        subtotal_cents: cart.subtotalCents(),
+        member_discount_cents: cart.memberDiscountCents(),
+        discount_cents: cart.discountCents(),
+        shipping_cents: cart.shippingCents(),
+        total_cents: cart.totalCents(),
       })
-      if (res.error) throw res.error
-      return res.data as { session_id: string; url: string }
     },
   })
 }
