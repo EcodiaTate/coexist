@@ -53,8 +53,8 @@ import {
 import {
     useSaveTicketQuestions,
     type TicketQuestionDraft,
-    type TicketQuestionType,
 } from '@/hooks/use-event-ticket-questions'
+import { TicketQuestionsEditor } from './components/ticket-questions-editor'
 import { useActivityTypeDefaults } from '@/hooks/use-activity-defaults'
 import { parseLocationPoint, resolveCollectiveCoords } from '@/lib/geo'
 import type { MapCenter } from '@/components/map/use-map'
@@ -124,15 +124,6 @@ function formatCreateEventError(err: unknown): string {
  * ever set a question's help text. Both now come from the hooks that own the
  * writes, which is what lets create share edit's validation (2.F1).
  */
-
-const QUESTION_TYPE_LABELS: { value: TicketQuestionType; label: string }[] = [
-  { value: 'short_text', label: 'Short text' },
-  { value: 'long_text', label: 'Long text' },
-  { value: 'boolean', label: 'Yes / No' },
-  { value: 'single_select', label: 'Pick one' },
-  { value: 'multi_select', label: 'Pick many' },
-]
-const QUESTION_SELECT_TYPES: TicketQuestionType[] = ['single_select', 'multi_select']
 
 interface CreateExtraFields {
   selected_collective_ids: string[]
@@ -1160,31 +1151,6 @@ function StepTicketing({
     onExtraChange({ ticket_tiers: extra.ticket_tiers.filter((t) => t.id !== id) })
   }
 
-  const addQuestion = () => {
-    onExtraChange({
-      ticket_questions: [
-        ...extra.ticket_questions,
-        {
-          id: crypto.randomUUID(),
-          prompt: '',
-          help_text: '',
-          question_type: 'short_text',
-          options: [],
-          required: false,
-          sort_order: extra.ticket_questions.length,
-        },
-      ],
-    })
-  }
-  const updateQuestion = (id: string, patch: Partial<TicketQuestionDraft>) => {
-    onExtraChange({
-      ticket_questions: extra.ticket_questions.map((q) => (q.id === id ? { ...q, ...patch } : q)),
-    })
-  }
-  const removeQuestion = (id: string) => {
-    onExtraChange({ ticket_questions: extra.ticket_questions.filter((q) => q.id !== id) })
-  }
-
   return (
     <div className="space-y-4">
       <StepCard>
@@ -1302,80 +1268,10 @@ function StepTicketing({
               Ask each buyer a question at checkout (e.g. "Arriving by 4WD?"). Answers appear in the attendee export.
             </p>
 
-            <div className="space-y-3">
-              {extra.ticket_questions.map((q, idx) => (
-                <motion.div
-                  key={q.id}
-                  layout
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, x: -16 }}
-                  className="rounded-sm bg-white border border-neutral-100 p-3.5 space-y-2.5"
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="flex items-center justify-center w-6 h-6 rounded-sm bg-bark-100 text-bark-600 text-xs font-bold shrink-0">
-                      {idx + 1}
-                    </span>
-                    <Input
-                      value={q.prompt}
-                      onChange={(e) => updateQuestion(q.id, { prompt: e.target.value })}
-                      placeholder="Question (e.g. Arriving by 4WD?)"
-                      compact
-                      className="flex-1"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeQuestion(q.id)}
-                      className="flex items-center justify-center min-w-9 min-h-9 rounded-sm text-neutral-300 hover:bg-error-50 hover:text-error-600 active:bg-error-100 transition-colors cursor-pointer"
-                      aria-label="Remove question"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-
-                  <Input
-                    value={q.help_text}
-                    onChange={(e) => updateQuestion(q.id, { help_text: e.target.value })}
-                    placeholder="Help text (optional, shown under the question)"
-                    compact
-                  />
-
-                  <div className="flex items-center gap-2">
-                    <Dropdown
-                      value={q.question_type}
-                      onChange={(v) => updateQuestion(q.id, { question_type: v as TicketQuestionType })}
-                      options={QUESTION_TYPE_LABELS}
-                      placeholder="Question type"
-                      size="sm"
-                      className="w-auto"
-                    />
-                    <label className="flex items-center gap-2 text-xs font-medium text-neutral-500 ml-auto">
-                      Required
-                      <Toggle checked={q.required} onChange={(checked) => updateQuestion(q.id, { required: checked })} />
-                    </label>
-                  </div>
-
-                  {QUESTION_SELECT_TYPES.includes(q.question_type) && (
-                    <Input
-                      value={q.options.join(', ')}
-                      onChange={(e) => updateQuestion(q.id, { options: e.target.value.split(',').map((o) => o.trim()).filter(Boolean) })}
-                      placeholder="Options, comma separated (e.g. Tent, Swag, Cabin)"
-                      compact
-                    />
-                  )}
-                </motion.div>
-              ))}
-            </div>
-
-            <Button
-              variant="secondary"
-              size="sm"
-              icon={<Plus size={14} />}
-              onClick={addQuestion}
-              className="mt-3 w-full"
-            >
-              Add a question
-            </Button>
+            <TicketQuestionsEditor
+              questions={extra.ticket_questions}
+              onChange={(next) => onExtraChange({ ticket_questions: next })}
+            />
           </StepCard>
 
           <div className="px-3 py-2 rounded-sm bg-bark-50/60 text-bark-700 text-xs">

@@ -21,6 +21,12 @@ import {
     type TicketTypeDraft,
 } from '@/hooks/use-event-tickets'
 import {
+    useEventTicketQuestions,
+    useSaveTicketQuestions,
+    type TicketQuestionDraft,
+} from '@/hooks/use-event-ticket-questions'
+import { TicketQuestionsEditor } from './components/ticket-questions-editor'
+import {
     BasicsFields,
     DateTimeFields,
     LocationFields,
@@ -71,6 +77,16 @@ export default function EditEventPage() {
   const [removedTierIds, setRemovedTierIds] = useState<string[]>([])
   const [checkinWindowMinutes, setCheckinWindowMinutes] = useState(30)
   const ticketsInitialised = useRef(false)
+
+  // Attendee questions. The save hook was written alongside useSaveTicketTypes
+  // and then never called from anywhere, so a published event's questions were
+  // frozen: the only way to fix a typo was to delete the ticket type and
+  // rebuild it, taking that tier's sales history with it (finding 2.F2).
+  const { data: existingQuestions } = useEventTicketQuestions(eventId)
+  const saveQuestions = useSaveTicketQuestions()
+  const [ticketQuestions, setTicketQuestions] = useState<TicketQuestionDraft[]>([])
+  const [removedQuestionIds, setRemovedQuestionIds] = useState<string[]>([])
+  const questionsInitialised = useRef(false)
 
   // Pin-drop guard (Merri Mornings class, 2026-07-06): if the stored
   // location_point exists but parseLocationPoint cannot read it, the form
@@ -137,6 +153,24 @@ export default function EditEventPage() {
       })),
     )
   }, [existingTicketTypes])
+
+  // Pre-populate attendee questions from existing data (once loaded)
+  useEffect(() => {
+    if (!existingQuestions || questionsInitialised.current) return
+    questionsInitialised.current = true
+    setTicketQuestions(
+      existingQuestions.map((q) => ({
+        id: q.id,
+        prompt: q.prompt,
+        help_text: q.help_text ?? '',
+        question_type: q.question_type,
+        options: q.options,
+        required: q.required,
+        sort_order: q.sort_order,
+        _persisted: true,
+      })),
+    )
+  }, [existingQuestions])
 
   // Shared cover resolution: a missing cover falls back to the per-activity
   // default so neither Save nor Publish can produce a coverless event.
@@ -213,13 +247,19 @@ export default function EditEventPage() {
         removedIds: removedTierIds,
         isTicketed,
       })
+
+      await saveQuestions.mutateAsync({
+        eventId,
+        questions: isTicketed ? ticketQuestions : [],
+        removedIds: removedQuestionIds,
+      })
     }
 
     navigate(`/events/${eventId}`, { replace: true })
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Could not save the event')
     }
-  }, [eventId, isDayOfMode, form, updateEvent, saveTickets, isTicketed, ticketTiers, removedTierIds, checkinWindowMinutes, resolveCoverFields, navigate, toast])
+  }, [eventId, isDayOfMode, form, updateEvent, saveTickets, saveQuestions, isTicketed, ticketTiers, removedTierIds, ticketQuestions, removedQuestionIds, checkinWindowMinutes, resolveCoverFields, navigate, toast])
 
   // Publish a draft event - saves all fields + flips status to published (fork_mp0so5k9_0d2e77)
   const handlePublish = useCallback(async () => {
@@ -260,11 +300,17 @@ export default function EditEventPage() {
         isTicketed,
       })
 
+      await saveQuestions.mutateAsync({
+        eventId,
+        questions: isTicketed ? ticketQuestions : [],
+        removedIds: removedQuestionIds,
+      })
+
       navigate(`/events/${eventId}`, { replace: true })
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Could not publish the event')
     }
-  }, [eventId, form, updateEvent, saveTickets, isTicketed, ticketTiers, removedTierIds, checkinWindowMinutes, resolveCoverFields, navigate, toast])
+  }, [eventId, form, updateEvent, saveTickets, saveQuestions, isTicketed, ticketTiers, removedTierIds, ticketQuestions, removedQuestionIds, checkinWindowMinutes, resolveCoverFields, navigate, toast])
 
   const stagger = {
     hidden: {},
@@ -707,6 +753,18 @@ export default function EditEventPage() {
 
               <div className="px-3 py-2 rounded-sm bg-bark-50/60 text-bark-700 text-xs">
                 Attendees pay via Stripe. Revenue and sales are visible in the admin dashboard.
+              </div>
+
+              <div className="pt-2 border-t border-neutral-100">
+                <h4 className="text-sm font-semibold text-neutral-900">Attendee questions</h4>
+                <p className="text-xs text-neutral-500 mb-3">
+                  Ask each buyer a question at checkout (e.g. "Arriving by 4WD?"). Answers appear in the attendee export.
+                </p>
+                <TicketQuestionsEditor
+                  questions={ticketQuestions}
+                  onChange={setTicketQuestions}
+                  onRemovePersisted={(id) => setRemovedQuestionIds((prev) => [...prev, id])}
+                />
               </div>
             </>
           )}
