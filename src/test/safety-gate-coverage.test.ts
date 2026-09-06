@@ -116,7 +116,15 @@ describe('hasEmergencyContact', () => {
 
 describe('guest checkout safety payload', () => {
   const ROOT = path.resolve(__dirname, '../..')
-  const CALLER_GLOB = ['src/pages/public/campout-type.tsx', 'src/pages/public/event.tsx']
+  /* One file since 2026-09-06 (consolidation finding 1.F5). The two public buy
+     pages each hand-built this POST; the request now lives in one module and
+     both pages call it. That is a REDUCTION in what this guard has to watch,
+     not a hole in it: there is exactly one place left that can forget a safety
+     key, and the walk below still discovers rather than assumes, so a page
+     that goes back to building its own fetch reappears here and fails the
+     expectation. The pages' own state machines were deliberately NOT merged,
+     because they differ on failure. */
+  const CALLER_GLOB = ['src/hooks/use-guest-ticket-checkout.ts']
 
   // Every source file that POSTs to the function, discovered rather than
   // listed, so a brand-new buy surface is covered the day it is added.

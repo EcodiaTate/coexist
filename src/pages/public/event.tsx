@@ -17,7 +17,8 @@ import { adminStagger as stagger, fadeUp } from '@/lib/admin-motion'
 import { TicketQuestionsModal } from '@/components/ticket-questions-modal'
 import { useEventTicketQuestions, type TicketAnswers } from '@/hooks/use-event-ticket-questions'
 import { CampoutGuestRequirementsModal } from '@/components/campout-guest-requirements-modal'
-import { isCampoutActivity, guestSafetyPayload, type GuestSafetyAnswers } from '@/lib/dietary'
+import { isCampoutActivity, type GuestSafetyAnswers } from '@/lib/dietary'
+import { startGuestCheckout } from '@/hooks/use-guest-ticket-checkout'
 
 function formatDate(date: string, _legacyTz?: string) {
   // Floating local time (Tate 2026-05-25): stored wall-clock is the
@@ -141,26 +142,14 @@ export default function PublicEventPage() {
     setBuying(true)
     setBuyError(null)
     try {
-      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/guest-ticket-checkout`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-        },
-        body: JSON.stringify({
-          event_id: id,
-          ticket_type_id: activeTypeId,
-          email: buyEmail.trim(),
-          name: buyName.trim(),
-          quantity: 1,
-          answers: answers ?? null,
-          ...(safety ? guestSafetyPayload(safety) : {}),
-        }),
+      await startGuestCheckout({
+        eventId: id!,
+        ticketTypeId: activeTypeId,
+        email: buyEmail,
+        name: buyName,
+        answers,
+        safety,
       })
-      const out = await res.json()
-      if (!res.ok || !out.url) throw new Error(out.error || 'Could not start checkout')
-      window.location.href = out.url
     } catch (e) {
       setBuyError(e instanceof Error ? e.message : 'Could not start checkout')
       setBuying(false)

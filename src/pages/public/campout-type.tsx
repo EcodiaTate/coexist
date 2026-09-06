@@ -15,6 +15,7 @@ import { CampoutGuestRequirementsModal } from '@/components/campout-guest-requir
 import { TicketQuestionsModal } from '@/components/ticket-questions-modal'
 import { useEventTicketQuestions, type TicketAnswers } from '@/hooks/use-event-ticket-questions'
 import { guestSafetyPayload, type GuestSafetyAnswers } from '@/lib/dietary'
+import { startGuestCheckout } from '@/hooks/use-guest-ticket-checkout'
 import { type CampoutEvent, resolveCampoutGroup, flagshipConfig } from '@/lib/campout-groups'
 
 interface DateRow {
@@ -142,14 +143,14 @@ export default function CampoutTypePage() {
     if (!selected?.ticket_type_id || selected.sold_out) return
     setBusy(true); setErr(null)
     try {
-      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/guest-ticket-checkout`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', apikey: import.meta.env.VITE_SUPABASE_ANON_KEY, Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}` },
-        body: JSON.stringify({ event_id: selected.id, ticket_type_id: selected.ticket_type_id, email: email.trim(), name: name.trim(), quantity: 1, answers: answers ?? null, ...guestSafetyPayload(reqs) }),
+      await startGuestCheckout({
+        eventId: selected.id,
+        ticketTypeId: selected.ticket_type_id,
+        email,
+        name,
+        answers,
+        safety: reqs,
       })
-      const out = await res.json()
-      if (!res.ok || !out.url) throw new Error(out.error || 'Could not start checkout')
-      window.location.href = out.url
     } catch (e) {
       setErr(e instanceof Error ? e.message : 'Could not start checkout')
       setBusy(false)
