@@ -1,9 +1,16 @@
 import { useState, useCallback } from 'react'
 import { Tent } from 'lucide-react'
 import { Button } from '@/components/button'
-import { Input } from '@/components/input'
 import { Modal } from '@/components/modal'
-import { NO_DIETARY_SENTINEL, NO_MEDICAL_SENTINEL, type GuestSafetyAnswers } from '@/lib/dietary'
+import { type GuestSafetyAnswers } from '@/lib/dietary'
+import { SafetyRequirementsFields } from '@/components/safety-requirements-fields'
+import {
+  EMPTY_SAFETY_ANSWERS,
+  trimSafetyAnswers,
+  validateSafetyAnswers,
+  type SafetyAnswers,
+  type SafetyFieldsNeeded,
+} from '@/lib/safety-requirements'
 
 /* ------------------------------------------------------------------ */
 /*  Guest ticket requirements modal (public booking, no account)       */
@@ -21,6 +28,18 @@ import { NO_DIETARY_SENTINEL, NO_MEDICAL_SENTINEL, type GuestSafetyAnswers } fro
 /*  only tunes the copy.                                               */
 /* ------------------------------------------------------------------ */
 
+// A guest is always asked for all three. There is no profile to check them
+// against, so nothing here is ever already-on-file. Four-wheel drive is absent
+// BY DESIGN, not by omission: a guest has no profile row to write it to, and
+// their 4WD is collected by the organiser-authored per-event question instead
+// (asserted in safety-gate-coverage.test.ts). Do not add it.
+const GUEST_NEEDS: SafetyFieldsNeeded = {
+  dietary: true,
+  medical: true,
+  emergency: true,
+  fourWheelDrive: false,
+}
+
 interface Props {
   open: boolean
   submitting: boolean
@@ -30,48 +49,30 @@ interface Props {
 }
 
 export function CampoutGuestRequirementsModal({ open, submitting, isCampout, onClose, onSubmit }: Props) {
-  const [dietary, setDietary] = useState('')
-  const [medical, setMedical] = useState('')
-  // Emergency contact. Kurt 2026-08-25: "half of the people don't have their
-  // emergency contacts on there so I'm having to email many people
-  // individually". There is no "None" escape here, unlike dietary and medical:
-  // a remote camp-out with no way to reach anyone is the one gap that cannot be
-  // answered with a shrug.
-  const [emergencyName, setEmergencyName] = useState('')
-  const [emergencyPhone, setEmergencyPhone] = useState('')
-  const [emergencyRelationship, setEmergencyRelationship] = useState('')
+  const [answers, setAnswers] = useState<SafetyAnswers>(EMPTY_SAFETY_ANSWERS)
   const [error, setError] = useState<string | null>(null)
 
+  const patch = useCallback((next: Partial<SafetyAnswers>) => {
+    setAnswers((prev) => ({ ...prev, ...next }))
+    setError((prev) => (prev ? null : prev))
+  }, [])
+
   const handleContinue = useCallback(() => {
-    const dietaryValue = dietary.trim()
-    const medicalValue = medical.trim()
-    const emName = emergencyName.trim()
-    const emPhone = emergencyPhone.trim()
-    if (!dietaryValue) {
-      setError('Tell us your dietary requirements, or tap "None"')
-      return
-    }
-    if (!medicalValue) {
-      setError('Tell us your medical / allergy info, or tap "None"')
-      return
-    }
-    if (!emName) {
-      setError('Give us an emergency contact name')
-      return
-    }
-    if (!emPhone) {
-      setError('Give us a phone number for your emergency contact')
+    const message = validateSafetyAnswers(answers, GUEST_NEEDS)
+    if (message) {
+      setError(message)
       return
     }
     setError(null)
+    const t = trimSafetyAnswers(answers)
     onSubmit({
-      dietary: dietaryValue,
-      medical: medicalValue,
-      emergencyName: emName,
-      emergencyPhone: emPhone,
-      emergencyRelationship: emergencyRelationship.trim(),
+      dietary: t.dietary,
+      medical: t.medical,
+      emergencyName: t.emergencyName,
+      emergencyPhone: t.emergencyPhone,
+      emergencyRelationship: t.emergencyRelationship,
     })
-  }, [dietary, medical, emergencyName, emergencyPhone, emergencyRelationship, onSubmit])
+  }, [answers, onSubmit])
 
   return (
     <Modal
@@ -94,73 +95,12 @@ export function CampoutGuestRequirementsModal({ open, submitting, isCampout, onC
             </p>
           </div>
 
-          <div className="space-y-1.5">
-            <Input
-              type="textarea"
-              label="Dietary requirements"
-              value={dietary}
-              onChange={(e) => { setDietary(e.target.value); if (error) setError(null) }}
-              placeholder="e.g. Vegetarian, gluten free, vegan..."
-              rows={2}
-              maxLength={500}
-            />
-            <button
-              type="button"
-              disabled={submitting}
-              onClick={() => { setDietary(NO_DIETARY_SENTINEL); if (error) setError(null) }}
-              className="text-xs font-medium text-neutral-500 underline underline-offset-2"
-            >
-              No dietary requirements
-            </button>
-          </div>
-
-          <div className="space-y-1.5">
-            <Input
-              type="textarea"
-              label="Medical / allergy info"
-              value={medical}
-              onChange={(e) => { setMedical(e.target.value); if (error) setError(null) }}
-              placeholder="e.g. Asthma, EpiPen for nut allergy..."
-              rows={2}
-              maxLength={500}
-            />
-            <button
-              type="button"
-              disabled={submitting}
-              onClick={() => { setMedical(NO_MEDICAL_SENTINEL); if (error) setError(null) }}
-              className="text-xs font-medium text-neutral-500 underline underline-offset-2"
-            >
-              No medical needs or allergies
-            </button>
-          </div>
-
-          <div className="space-y-2.5 rounded-md border border-neutral-100 bg-neutral-50/60 p-3.5">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
-              Emergency contact
-            </p>
-            <Input
-              label="Their name"
-              value={emergencyName}
-              onChange={(e) => { setEmergencyName(e.target.value); if (error) setError(null) }}
-              placeholder="e.g. Sam Rivers"
-              maxLength={120}
-            />
-            <Input
-              type="tel"
-              label="Their phone"
-              value={emergencyPhone}
-              onChange={(e) => { setEmergencyPhone(e.target.value); if (error) setError(null) }}
-              placeholder="e.g. 0400 000 000"
-              maxLength={40}
-            />
-            <Input
-              label="Relationship (optional)"
-              value={emergencyRelationship}
-              onChange={(e) => { setEmergencyRelationship(e.target.value); if (error) setError(null) }}
-              placeholder="e.g. Partner, parent, friend"
-              maxLength={80}
-            />
-          </div>
+          <SafetyRequirementsFields
+            value={answers}
+            onChange={patch}
+            needed={GUEST_NEEDS}
+            disabled={submitting}
+          />
 
           {error && <p className="text-xs text-error-500">{error}</p>}
 

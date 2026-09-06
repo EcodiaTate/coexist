@@ -1,21 +1,24 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { UtensilsCrossed } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '@/hooks/use-auth'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/button'
-import { Input } from '@/components/input'
 import { useToast } from '@/components/toast'
 import { Modal } from '@/components/modal'
-import { FourWheelDriveField, FOUR_WHEEL_DRIVE_HELP } from '@/components/four-wheel-drive-field'
+import { SafetyRequirementsFields } from '@/components/safety-requirements-fields'
+import {
+  EMPTY_SAFETY_ANSWERS,
+  safetyProfileUpdates,
+  validateSafetyAnswers,
+  type SafetyAnswers,
+} from '@/lib/safety-requirements'
 import {
   DIETARY_GATE_QUERY_KEY,
   hasEmergencyContact,
   hasFourWheelDriveAnswer,
   LIVE_REGISTRATION_STATUSES,
   LIVE_TICKET_STATUSES,
-  NO_DIETARY_SENTINEL,
-  NO_MEDICAL_SENTINEL,
   safetyGateHeading,
   SAFETY_SET_EVENT_OR_FILTER,
 } from '@/lib/dietary'
@@ -51,19 +54,13 @@ import {
 export function DietaryGate() {
   const { user, profile, isLoading, refreshProfile } = useAuth()
   const { toast } = useToast()
-  const [dietary, setDietary] = useState('')
-  const [medical, setMedical] = useState('')
-  // Emergency contact. Kurt 2026-08-25: "half of the people don't have their
-  // emergency contacts on there so I'm having to email many people
-  // individually". Unlike dietary and medical there is NO "None" quick-fill:
-  // a remote camp-out with nobody to call is not a valid answer.
-  const [emName, setEmName] = useState('')
-  const [emPhone, setEmPhone] = useState('')
-  const [emRel, setEmRel] = useState('')
-  // Four-wheel drive. Tate 2026-08-30: the safety set is four things asked at
-  // one point, and this is the fourth. null = unanswered in this session; there
-  // is no default because `false` is a real answer we have to be able to store.
-  const [fourWheelDrive, setFourWheelDrive] = useState<boolean | null>(null)
+  // One bag for the whole safety set. Kurt 2026-08-25: "half of the people
+  // don't have their emergency contacts on there so I'm having to email many
+  // people individually". The emergency contact has NO "None" quick-fill,
+  // unlike dietary and medical, and four-wheel drive starts null rather than
+  // false because `false` is a real answer we have to be able to store: both
+  // rules now live once, in @/lib/safety-requirements.
+  const [answers, setAnswers] = useState<SafetyAnswers>(EMPTY_SAFETY_ANSWERS)
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
 
@@ -146,51 +143,32 @@ export function DietaryGate() {
   // Capacitor signal that also works under Keyboard.resize:'none', which the
   // old visualViewport-only path missed on native).
 
+  const needed = useMemo(
+    () => ({
+      dietary: needDietary,
+      medical: needMedical,
+      emergency: needEmergency,
+      fourWheelDrive: needFourWheelDrive,
+    }),
+    [needDietary, needMedical, needEmergency, needFourWheelDrive],
+  )
+
+  const patch = useCallback((next: Partial<SafetyAnswers>) => {
+    setAnswers((prev) => ({ ...prev, ...next }))
+    setError((prev) => (prev ? null : prev))
+  }, [])
+
   const handleSave = useCallback(async () => {
     if (!user) return
-    // Validate every shown field is answered (an explicit "None" quick-fill
-    // is a valid answer; a blank is not).
-    const dietaryValue = dietary.trim()
-    const medicalValue = medical.trim()
-    if (needDietary && !dietaryValue) {
-      setError('Tell us your dietary requirements, or tap "None"')
+    // An explicit "None" quick-fill is a valid answer; a blank is not.
+    const message = validateSafetyAnswers(answers, needed)
+    if (message) {
+      setError(message)
       return
     }
-    if (needMedical && !medicalValue) {
-      setError('Tell us your medical / allergy info, or tap "None"')
-      return
-    }
-    const emNameValue = emName.trim()
-    const emPhoneValue = emPhone.trim()
-    if (needEmergency && !emNameValue) {
-      setError('Give us an emergency contact name')
-      return
-    }
-    if (needEmergency && !emPhoneValue) {
-      setError('Give us a phone number for your emergency contact')
-      return
-    }
-    if (needFourWheelDrive && fourWheelDrive === null) {
-      setError('Let us know whether you have a four-wheel drive')
-      return
-    }
-
-    const updates: {
-      dietary_requirements?: string
-      medical_requirements?: string
-      emergency_contact_name?: string
-      emergency_contact_phone?: string
-      emergency_contact_relationship?: string
-      has_four_wheel_drive?: boolean
-    } = {}
-    if (needDietary) updates.dietary_requirements = dietaryValue
-    if (needMedical) updates.medical_requirements = medicalValue
-    if (needEmergency) {
-      updates.emergency_contact_name = emNameValue
-      updates.emergency_contact_phone = emPhoneValue
-      if (emRel.trim()) updates.emergency_contact_relationship = emRel.trim()
-    }
-    if (needFourWheelDrive && fourWheelDrive !== null) updates.has_four_wheel_drive = fourWheelDrive
+    // Only the columns actually asked about, so a member answering one missing
+    // field does not have another blanked.
+    const updates = safetyProfileUpdates(answers, needed)
 
     setError(null)
     setSaving(true)
@@ -208,7 +186,7 @@ export function DietaryGate() {
     } finally {
       setSaving(false)
     }
-  }, [user, needDietary, needMedical, needEmergency, needFourWheelDrive, dietary, medical, emName, emPhone, emRel, fourWheelDrive, refreshProfile, toast])
+  }, [user, answers, needed, refreshProfile, toast])
 
   // Blocking gate: `dismissible={false}` = no backdrop tap, no Escape, no drag.
   return (
@@ -235,88 +213,12 @@ export function DietaryGate() {
             </p>
           </div>
 
-          {needDietary && (
-            <div data-eos-id="src/components/dietary-gate.tsx#9" className="space-y-1.5">
-              <Input data-eos-id="src/components/dietary-gate.tsx#10"
-                type="textarea"
-                label="Dietary requirements"
-                value={dietary}
-                onChange={(e) => { setDietary(e.target.value); if (error) setError(null) }}
-                placeholder="e.g. Vegetarian, gluten free, vegan..."
-                rows={2}
-                maxLength={500}
-              />
-              <button data-eos-id="src/components/dietary-gate.tsx#11"
-                type="button"
-                disabled={saving}
-                onClick={() => { setDietary(NO_DIETARY_SENTINEL); if (error) setError(null) }}
-                className="text-xs font-medium text-neutral-500 underline underline-offset-2"
-              >
-                No dietary requirements
-              </button>
-            </div>
-          )}
-
-          {needMedical && (
-            <div data-eos-id="src/components/dietary-gate.tsx#12" className="space-y-1.5">
-              <Input data-eos-id="src/components/dietary-gate.tsx#13"
-                type="textarea"
-                label="Medical / allergy info"
-                value={medical}
-                onChange={(e) => { setMedical(e.target.value); if (error) setError(null) }}
-                placeholder="e.g. Asthma, EpiPen for nut allergy..."
-                rows={2}
-                maxLength={500}
-              />
-              <button data-eos-id="src/components/dietary-gate.tsx#14"
-                type="button"
-                disabled={saving}
-                onClick={() => { setMedical(NO_MEDICAL_SENTINEL); if (error) setError(null) }}
-                className="text-xs font-medium text-neutral-500 underline underline-offset-2"
-              >
-                No medical needs or allergies
-              </button>
-            </div>
-          )}
-
-          {needEmergency && (
-            <div className="space-y-2.5 rounded-md border border-neutral-100 bg-neutral-50/60 p-3.5">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
-                Emergency contact
-              </p>
-              <Input
-                label="Their name"
-                value={emName}
-                onChange={(e) => { setEmName(e.target.value); if (error) setError(null) }}
-                placeholder="e.g. Sam Rivers"
-                maxLength={120}
-              />
-              <Input
-                type="tel"
-                label="Their phone"
-                value={emPhone}
-                onChange={(e) => { setEmPhone(e.target.value); if (error) setError(null) }}
-                placeholder="e.g. 0400 000 000"
-                maxLength={40}
-              />
-              <Input
-                label="Relationship (optional)"
-                value={emRel}
-                onChange={(e) => { setEmRel(e.target.value); if (error) setError(null) }}
-                placeholder="e.g. Partner, parent, friend"
-                maxLength={80}
-              />
-            </div>
-          )}
-
-          {needFourWheelDrive && (
-            <FourWheelDriveField
-              value={fourWheelDrive}
-              onChange={(v) => { setFourWheelDrive(v); if (error) setError(null) }}
-              disabled={saving}
-              helpText={FOUR_WHEEL_DRIVE_HELP}
-            />
-          )}
+          <SafetyRequirementsFields
+            value={answers}
+            onChange={patch}
+            needed={needed}
+            disabled={saving}
+          />
 
           {error && <p data-eos-id="src/components/dietary-gate.tsx#15" className="text-xs text-error-500">{error}</p>}
 

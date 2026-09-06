@@ -279,24 +279,69 @@ describe('every signed-in intake surface asks the whole set', () => {
     'src/components/dietary-gate.tsx',
   ]
 
-  it.each(SURFACES)('%s renders the shared 4WD field', (file) => {
-    const body = fs.readFileSync(path.join(ROOT, file), 'utf8')
+  /* CONSOLIDATION 2026-09-06 (1.F4 + 4.F1). The two gate surfaces no longer
+     hold the field set or the write themselves: both now render
+     SafetyRequirementsFields and persist through safetyProfileUpdates, so the
+     literals this walk used to find in each file live in ONE module each.
+
+     This is a NARROWING, not a weakening, and it is the same move CA1 made to
+     CALLER_GLOB. Before, three files each had to be caught doing the right
+     thing separately. Now there is exactly one renderer and one writer that
+     can be got wrong, plus a routing assertion per surface: a gate that goes
+     back to hand-rolling the form stops importing the shared component and
+     fails here immediately. The onboarding surfaces are NOT part of the
+     extraction and keep their original assertions verbatim. */
+
+  const SHARED_FIELDS = 'src/components/safety-requirements-fields.tsx'
+  const SHARED_LOGIC = 'src/lib/safety-requirements.ts'
+
+  // The gates route; onboarding still owns its own field, so it is asserted
+  // directly the way it always was.
+  const ROUTED_SURFACES = [
+    'src/components/campout-requirements-modal.tsx',
+    'src/components/dietary-gate.tsx',
+  ]
+
+  it('the one shared field set renders the shared 4WD control', () => {
+    const body = fs.readFileSync(path.join(ROOT, SHARED_FIELDS), 'utf8')
     expect(body).toContain('FourWheelDriveField')
   })
 
-  it.each(SURFACES)('%s does not hand-roll the 4WD control', (file) => {
+  it('the onboarding step still renders the shared 4WD control itself', () => {
+    const body = fs.readFileSync(path.join(ROOT, 'src/pages/onboarding/steps/step-safety.tsx'), 'utf8')
+    expect(body).toContain('FourWheelDriveField')
+  })
+
+  it.each(ROUTED_SURFACES)('%s renders the shared field set rather than its own', (file) => {
+    const body = fs.readFileSync(path.join(ROOT, file), 'utf8')
+    expect(body).toContain('<SafetyRequirementsFields')
+  })
+
+  it.each([...SURFACES, SHARED_FIELDS])('%s does not hand-roll the 4WD control', (file) => {
     const body = fs.readFileSync(path.join(ROOT, file), 'utf8')
     // A surface that builds its own yes/no is how the copy, the help text and
     // the null-vs-false handling drift apart across three screens.
     expect(body).not.toContain('four-wheel drive?</label>')
   })
 
-  it.each(SURFACES.slice(1))('%s reads the shared answered-predicate', (file) => {
+  it.each(ROUTED_SURFACES)('%s reads the shared answered-predicate', (file) => {
     // The two GATES must decide "already answered" through the shared
     // predicate. The onboarding step is exempt: it asks unconditionally and
     // holds no opinion about whether the answer already exists.
     const body = fs.readFileSync(path.join(ROOT, file), 'utf8')
     expect(body).toMatch(/hasFourWheelDriveAnswer|needFourWheelDrive/)
+  })
+
+  // THE GUEST PATH MUST STAY 4WD-FREE, and the extraction is what makes this
+  // worth asserting: before it, the guest modal could not have rendered a 4WD
+  // control without someone writing one. Now it renders the same component the
+  // gates do and is one flipped flag away from asking a guest a question we
+  // have nowhere to store. A guest has no profile row; their 4WD is collected
+  // by the organiser-authored per-event question instead.
+  it('the guest modal asks the shared field set for no four-wheel drive', () => {
+    const body = fs.readFileSync(path.join(ROOT, 'src/components/campout-guest-requirements-modal.tsx'), 'utf8')
+    expect(body).toMatch(/fourWheelDrive:\s*false/)
+    expect(body).not.toMatch(/fourWheelDrive:\s*true/)
   })
 
   // Where each surface's answer is actually PERSISTED. The onboarding step is
@@ -307,13 +352,19 @@ describe('every signed-in intake surface asks the whole set', () => {
   // precisely what campout-type.tsx did with three fields on 2026-08-28.
   const WRITERS = [
     'src/pages/onboarding/onboarding.tsx',
-    'src/components/campout-requirements-modal.tsx',
-    'src/components/dietary-gate.tsx',
+    SHARED_LOGIC,
   ]
 
   it.each(WRITERS)('%s writes the answer to the profile column', (file) => {
     const body = fs.readFileSync(path.join(ROOT, file), 'utf8')
     expect(body).toContain('has_four_wheel_drive')
+  })
+
+  it.each(ROUTED_SURFACES)('%s persists through the shared updates builder', (file) => {
+    // The gates no longer hand-build the profile patch. If one starts again,
+    // it stops calling this and the drift is back.
+    const body = fs.readFileSync(path.join(ROOT, file), 'utf8')
+    expect(body).toContain('safetyProfileUpdates(')
   })
 
   it.each(WRITERS)('%s does not launder a null answer into a false one', (file) => {
