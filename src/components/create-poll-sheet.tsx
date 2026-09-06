@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { chatPollSchema } from '@/lib/validation'
 import { Plus, Trash2, BarChart3 } from 'lucide-react'
 import { BottomSheet } from '@/components/bottom-sheet'
 import { Button } from '@/components/button'
@@ -25,11 +26,30 @@ export function CreatePollSheet({ open, onClose, onSubmit, loading }: CreatePoll
 
   const canSubmit = question.trim().length > 0 && options.filter((o) => o.trim()).length >= 2
 
+  const [error, setError] = useState<string | null>(null)
+
   const handleSubmit = () => {
     if (!canSubmit) return
-    onSubmit({
+    const cleanOptions = options.filter((o) => o.trim()).map((o) => o.trim())
+    // The UI caps the option COUNT and nothing else. A pasted essay went
+    // straight into the question or an option and only the database had an
+    // opinion about it, at which point the sheet had already closed and the
+    // poll was lost. chatPollSchema is the rule that was written for this form
+    // and never wired to it.
+    const parsed = chatPollSchema.safeParse({
       question: question.trim(),
-      options: options.filter((o) => o.trim()).map((o) => o.trim()),
+      options: cleanOptions,
+      allow_multiple: allowMultiple,
+      anonymous,
+    })
+    if (!parsed.success) {
+      setError(parsed.error.issues[0]?.message ?? 'Check the question and options')
+      return
+    }
+    setError(null)
+    onSubmit({
+      question: parsed.data.question,
+      options: parsed.data.options,
       allowMultiple,
       anonymous,
     })
@@ -45,6 +65,7 @@ export function CreatePollSheet({ open, onClose, onSubmit, loading }: CreatePoll
         setOptions(['', ''])
         setAllowMultiple(false)
         setAnonymous(false)
+        setError(null)
       }, 300)
       return () => clearTimeout(timer)
     }
@@ -135,6 +156,8 @@ export function CreatePollSheet({ open, onClose, onSubmit, loading }: CreatePoll
           <Checkbox data-eos-id="src/components/create-poll-sheet.tsx#20" checked={allowMultiple} onChange={setAllowMultiple} label="Allow multiple votes" />
           <Checkbox data-eos-id="src/components/create-poll-sheet.tsx#21" checked={anonymous} onChange={setAnonymous} label="Anonymous voting" />
         </div>
+
+        {error && <p className="mb-3 text-xs text-error-500">{error}</p>}
 
         {/* Submit */}
         <Button data-eos-id="src/components/create-poll-sheet.tsx#22"

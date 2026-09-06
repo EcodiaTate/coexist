@@ -6,7 +6,10 @@ import { isValidPhone, PHONE_REGEX } from '@/lib/validation'
  * hard-block every non-Australian member (backpackers are a real cohort).
  * These tests pin that the canonical validator accepts international formats
  * with a leading + and country code, and still rejects junk. Shared by the
- * PhoneGate, edit-profile, and profileUpdateSchema.phone.
+ * PhoneGate, onboarding's phone step, and edit-profile, all of which call
+ * isValidPhone directly. (It was also cited here as backing
+ * profileUpdateSchema.phone; that schema had no consumer at all and was
+ * deleted on 2026-09-06 with the rest of the unadopted layer.)
  */
 
 describe('isValidPhone - international acceptance', () => {

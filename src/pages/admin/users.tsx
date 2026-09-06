@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo, useEffect } from 'react'
+import { roleChangeSchema } from '@/lib/validation'
 import { formatRole } from '@/lib/labels-and-enums'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { adminVariants, expandCollapse as expandCollapseVariants } from '@/lib/admin-motion'
@@ -326,9 +327,15 @@ function UserAdminControls({
       if ((role === 'admin' || role === 'manager') && !isSuperAdmin) {
         throw new Error('Only admins can assign admin/manager roles')
       }
+      // `role` arrives as a plain string from the picker. It used to be written
+      // with `role as UserRole`, which tells the compiler it is a role and
+      // checks nothing at runtime, so anything that ever reached this mutation
+      // by another path went straight at the column. Parse it instead.
+      const parsed = roleChangeSchema.safeParse({ role })
+      if (!parsed.success) throw new Error(`Not a role we recognise: ${role}`)
       const { data: rows, error } = await supabase
         .from('profiles')
-        .update({ role: role as UserRole })
+        .update({ role: parsed.data.role })
         .eq('id', userId)
         .select('id')
       if (error) throw error

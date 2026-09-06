@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tansta
 import { supabase } from '@/lib/supabase'
 import { invokeAndReport } from '@/lib/invoke-report'
 import { subscribeWithReconnect } from '@/lib/realtime'
-import { MAX_MESSAGE_LENGTH as _IMPORTED_MAX_LEN } from '@/lib/validation'
+import { MAX_MESSAGE_LENGTH } from '@/lib/validation'
 import { useAuth } from '@/hooks/use-auth'
 import { useOffline } from '@/hooks/use-offline'
 import { useToast } from '@/components/toast'
@@ -348,7 +348,11 @@ export function useChatMessages(collectiveId: string | undefined) {
 /*  Send message (with optimistic update)                              */
 /* ------------------------------------------------------------------ */
 
-const MAX_MESSAGE_LENGTH = 4000
+// MAX_MESSAGE_LENGTH is imported from @/lib/validation above. It used to be
+// redeclared here as a local 4000 while the import sat aliased to an unused
+// _IMPORTED_MAX_LEN, so the shared constant was imported and then ignored and
+// two copies of the same number decided what a message may be. Changing the
+// shared one would have moved nothing.
 const RATE_LIMIT_WINDOW_MS = 10_000
 const RATE_LIMIT_MAX = 5
 
