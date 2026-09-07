@@ -32,8 +32,29 @@ import type { MyUpcomingEvent } from '@/hooks/use-home-feed'
 type ActivityType = Database['public']['Enums']['activity_type']
 type RegistrationStatus = Database['public']['Enums']['registration_status']
 
+/**
+ * The collective columns an event select is guaranteed to have fetched.
+ *
+ * Two shapes, declared here together because they were three independent
+ * hand-written interfaces of the same name (CA3 finding 5a.F6): this one,
+ * plus byte-identical narrow copies in use-home-feed and use-nearby. Each
+ * name below says which select it matches, because that is the fact the
+ * copies had lost.
+ */
+export type EventCollectiveRef = Pick<Collective, 'id' | 'name'>
+
+/** An event plus `collectives(id, name, timezone)`. The app-side event lists. */
 export interface EventWithCollective extends Event {
-  collectives: Pick<Collective, 'id' | 'name' | 'cover_image_url' | 'timezone'> | null
+  collectives: Pick<Collective, 'id' | 'name' | 'timezone'> | null
+}
+
+/**
+ * An event plus `collectives(id, name)`. use-nearby only, whose two selects
+ * fetch exactly that. Typing those rows as EventWithCollective would claim a
+ * timezone column the query never asked for.
+ */
+export interface EventWithCollectiveRef extends Event {
+  collectives: EventCollectiveRef | null
 }
 
 export interface EventDetailData extends Event {

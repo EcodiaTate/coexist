@@ -10,6 +10,7 @@ import type {
   Database,
   Tables,
 } from '@/types/database.types'
+import type { EventWithCollective } from '@/hooks/use-events'
 
 type ActivityType = Database['public']['Enums']['activity_type']
 
@@ -27,9 +28,7 @@ export interface CollectiveWithNextEvent extends Collective {
   events_this_month: number
 }
 
-interface EventWithCollective extends Event {
-  collectives: Pick<Collective, 'id' | 'name'> | null
-}
+
 
 export interface MyUpcomingEvent extends Event {
   collectives: Pick<Collective, 'id' | 'name'> | null

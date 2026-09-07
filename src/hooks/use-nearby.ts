@@ -3,6 +3,7 @@ import { Capacitor } from '@capacitor/core'
 import { supabase } from '@/lib/supabase'
 import { wallClockNow } from '@/lib/date-format'
 import type { Tables, Database } from '@/types/database.types'
+import type { EventWithCollectiveRef } from '@/hooks/use-events'
 
 type ActivityType = Database['public']['Enums']['activity_type']
 
@@ -18,9 +19,7 @@ export interface Location {
   lng: number
 }
 
-interface EventWithCollective extends Event {
-  collectives: Pick<Collective, 'id' | 'name'> | null
-}
+
 
 /* ------------------------------------------------------------------ */
 /*  Nearby events                                                      */
@@ -43,7 +42,7 @@ export function useNearbyEvents(
           p_limit: 20,
         })
         if (rpcError) throw rpcError
-        if (!rpcData?.length) return [] as EventWithCollective[]
+        if (!rpcData?.length) return [] as EventWithCollectiveRef[]
 
         // Re-fetch with collective join (RPC returns raw events)
         const eventIds = (rpcData as Event[]).map((e) => e.id)
@@ -57,7 +56,7 @@ export function useNearbyEvents(
         }
         const { data, error } = await query
         if (error) throw error
-        return (data ?? []) as EventWithCollective[]
+        return (data ?? []) as EventWithCollectiveRef[]
       }
 
       // Fallback: no location - return all upcoming published events.
@@ -76,7 +75,7 @@ export function useNearbyEvents(
 
       const { data, error } = await query.limit(20)
       if (error) throw error
-      return (data ?? []) as EventWithCollective[]
+      return (data ?? []) as EventWithCollectiveRef[]
     },
     staleTime: 5 * 60 * 1000,
   })
