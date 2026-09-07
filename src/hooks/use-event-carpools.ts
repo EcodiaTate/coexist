@@ -49,7 +49,7 @@ export function useEventCarpools(eventId: string | undefined) {
       const { data: widgets, error: widgetsErr } = await supabase
         .from('carpool_widgets')
         .select(
-          'id, driver_id, departure_point_text, departure_time, seats_total, status, driver:profiles!carpool_widgets_driver_id_fkey(display_name)',
+          'id, driver_id, departure_point_text, departure_time, seats_total, status, driver:public_profiles!carpool_widgets_driver_id_fkey(display_name)',
         )
         .eq('event_id', eventId)
         .neq('status', 'archived')

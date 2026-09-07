@@ -175,7 +175,7 @@ export function usePendingImpactFormTasks() {
       const eventIds = relevantEvents.map((e) => e.id)
       const { data: existingImpact } = await supabase
         .from('event_impact')
-        .select('event_id, logged_by, logged_at, profiles:logged_by(display_name)')
+        .select('event_id, logged_by, logged_at, profiles:public_profiles(display_name)')
         .in('event_id', eventIds)
 
       const impactByEvent = new Map(

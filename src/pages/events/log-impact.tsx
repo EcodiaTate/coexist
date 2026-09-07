@@ -635,7 +635,7 @@ export default function LogImpactPage() {
       if (!event?.collective_id) return []
       const { data, error } = await supabase
         .from('collective_members')
-        .select('profiles(display_name)')
+        .select('profiles:public_profiles(display_name)')
         .eq('collective_id', event.collective_id)
         .in('role', ['leader', 'co_leader', 'assist_leader'])
       if (error) throw error
@@ -972,7 +972,7 @@ export default function LogImpactPage() {
       if (!existingImpact) {
         const { data: freshImpact, error: freshErr } = await supabase
           .from('event_impact')
-          .select('logged_by, logged_at, profiles:logged_by(display_name)')
+          .select('logged_by, logged_at, profiles:public_profiles(display_name)')
           .eq('event_id', eventId)
           .maybeSingle()
         if (freshErr) throw freshErr

@@ -31,7 +31,7 @@ export function useChatSearch(collectiveId: string | undefined) {
         .from('chat_messages')
         .select(`
           *,
-          profiles!chat_messages_user_id_fkey(id, display_name, avatar_url)
+          profiles:public_profiles!chat_messages_user_id_fkey(id, display_name, avatar_url)
         `)
         .eq('collective_id', collectiveId)
         .eq('is_deleted', false)

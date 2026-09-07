@@ -74,7 +74,7 @@ export function useMyTasks() {
           task_templates(*),
           collectives(id, name),
           events(id, title),
-          profiles!task_instances_completed_by_fkey(display_name, avatar_url)
+          profiles:public_profiles!task_instances_completed_by_fkey(display_name, avatar_url)
         `)
         .in('collective_id', staffCollectiveIds)
         .gte('due_date', cutoff.toISOString())
@@ -131,7 +131,7 @@ export function useCollectiveTasks(collectiveId: string | undefined) {
           task_templates(*),
           collectives(id, name),
           events(id, title),
-          profiles!task_instances_completed_by_fkey(display_name, avatar_url)
+          profiles:public_profiles!task_instances_completed_by_fkey(display_name, avatar_url)
         `)
         .eq('collective_id', collectiveId)
         .gte('due_date', cutoff.toISOString())

@@ -360,7 +360,7 @@ export function useEventDetail(eventId: string | undefined) {
         // Attendee avatars (first 8)
         supabase
           .from('event_registrations')
-          .select('profiles!event_registrations_user_id_fkey(id, display_name, first_name, last_name, avatar_url)')
+          .select('profiles:public_profiles!event_registrations_user_id_fkey(id, display_name, avatar_url)')
           .eq('event_id', eventId)
           .in('status', ['registered', 'attended'])
           .limit(8),
@@ -452,7 +452,7 @@ export function prefetchEventDetail(
 
       const { data: attendeeData } = await supabase
         .from('event_registrations')
-        .select('profiles!event_registrations_user_id_fkey(id, display_name, first_name, last_name, avatar_url)')
+        .select('profiles:public_profiles!event_registrations_user_id_fkey(id, display_name, avatar_url)')
         .eq('event_id', eventId)
         .in('status', ['registered', 'attended'])
         .limit(8)
@@ -756,7 +756,7 @@ export function useEventWaitlist(eventId: string | undefined) {
 
       const { data, error } = await supabase
         .from('event_registrations')
-        .select('id, user_id, registered_at, profiles!event_registrations_user_id_fkey(id, display_name, first_name, last_name, avatar_url)')
+        .select('id, user_id, registered_at, profiles:public_profiles!event_registrations_user_id_fkey(id, display_name, avatar_url)')
         .eq('event_id', eventId)
         .eq('status', 'waitlisted')
         .order('registered_at', { ascending: true })
@@ -1732,7 +1732,7 @@ export function useCancelEvent() {
       const [{ data: event }, { data: registrations }] = await Promise.all([
         supabase.from('events').select('title, date_start').eq('id', eventId).single(),
         supabase.from('event_registrations')
-          .select('user_id, profiles!inner(display_name)')
+          .select('user_id, profiles:public_profiles!inner(display_name)')
           .eq('event_id', eventId)
           .in('status', ['registered', 'waitlisted', 'invited']),
       ])
@@ -2121,7 +2121,7 @@ export function useInviteCollective() {
 
           if (audience.length > 0) {
             const { data: audienceProfiles } = await supabase
-              .from('profiles')
+              .from('public_profiles')
               .select('id, display_name')
               .in('id', audience)
             const nameMap = new Map((audienceProfiles ?? []).map((pr) => [pr.id, pr.display_name]))
@@ -2290,7 +2290,7 @@ export function useInviteCollective() {
         // Batch-fetch display names for invite emails
         const invitedUserIds = registrations.map((r) => r.user_id)
         const { data: invitedProfiles } = await supabase
-          .from('profiles')
+          .from('public_profiles')
           .select('id, display_name')
           .in('id', invitedUserIds)
         const nameMap = new Map((invitedProfiles ?? []).map((p) => [p.id, p.display_name]))
@@ -2383,7 +2383,7 @@ export function usePromoteFromWaitlist() {
       // Send waitlist promotion email
       const [{ data: event }, { data: promotedProfile }] = await Promise.all([
         supabase.from('events').select('title, date_start').eq('id', eventId).maybeSingle(),
-        supabase.from('profiles').select('display_name').eq('id', userId).maybeSingle(),
+        supabase.from('public_profiles').select('display_name').eq('id', userId).maybeSingle(),
       ])
 
       if (event) {

@@ -81,7 +81,7 @@ export function useCarpool(carpoolId: string | undefined) {
       })
         .from('carpool_widgets')
         .select(
-          '*, driver:profiles!carpool_widgets_driver_id_fkey(id, display_name, avatar_url)',
+          '*, driver:public_profiles!carpool_widgets_driver_id_fkey(id, display_name, avatar_url)',
         )
         .eq('id', carpoolId)
         .maybeSingle()
@@ -121,7 +121,7 @@ export function useCarpoolSeats(carpoolId: string | undefined) {
         // cache of every co-member. RLS grants row read to all members and
         // cannot mask columns, so the omission is the guard.
         .select(
-          'id, carpool_id, passenger_id, status, created_at, passenger:profiles!carpool_seats_passenger_id_fkey(id, display_name, avatar_url)',
+          'id, carpool_id, passenger_id, status, created_at, passenger:public_profiles!carpool_seats_passenger_id_fkey(id, display_name, avatar_url)',
         )
         .eq('carpool_id', carpoolId)
         .order('created_at', { ascending: true })

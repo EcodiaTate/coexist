@@ -58,7 +58,7 @@ function useCollectiveFeedback(collectiveId: string | undefined) {
         .from('survey_responses')
         .select(
           'id, survey_id, event_id, answers, submitted_at,' +
-            ' profiles:user_id(display_name),' +
+            ' profiles:public_profiles(display_name),' +
             ' surveys:survey_id(title, questions),' +
             ' events:event_id!inner(title, date_start, collective_id)',
         )

@@ -183,7 +183,7 @@ export function useChannelMessages(channelId: string | undefined) {
         .from('chat_messages')
         .select(`
           *,
-          profiles!chat_messages_user_id_fkey(id, display_name, avatar_url)
+          profiles:public_profiles!chat_messages_user_id_fkey(id, display_name, avatar_url)
         `)
         .eq('channel_id', channelId)
         .eq('is_deleted', false)
@@ -253,7 +253,7 @@ export function useChannelMessages(channelId: string | undefined) {
           // Fetch full message with profile
           const { data } = await supabase
             .from('chat_messages')
-            .select(`*, profiles!chat_messages_user_id_fkey(id, display_name, avatar_url)`)
+            .select(`*, profiles:public_profiles!chat_messages_user_id_fkey(id, display_name, avatar_url)`)
             .eq('id', newMsg.id)
             .single()
 

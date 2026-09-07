@@ -451,7 +451,7 @@ export function useRecentUpdates() {
         .from('updates')
         .select(`
           *,
-          author:profiles!updates_author_id_fkey(id, display_name, avatar_url, role)
+          author:public_profiles!updates_author_id_fkey(id, display_name, avatar_url, role)
         `)
         .order('is_pinned', { ascending: false })
         .order('created_at', { ascending: false })

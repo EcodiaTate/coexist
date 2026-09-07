@@ -110,7 +110,7 @@ async function fetchLeaderDashboard(collectiveId: string): Promise<LeaderDashboa
       .gte('logged_at', startOfMonth),
     supabase
       .from('collective_members')
-      .select('id, user_id, joined_at, profiles(display_name, avatar_url)')
+      .select('id, user_id, joined_at, profiles:public_profiles(display_name, avatar_url)')
       .eq('collective_id', collectiveId)
       .eq('status', 'active')
       .order('joined_at', { ascending: false })
@@ -319,7 +319,7 @@ async function fetchEngagementScores(collectiveId: string) {
 
   const { data: allMembers } = await supabase
     .from('collective_members')
-    .select('user_id, profiles(display_name, avatar_url)')
+    .select('user_id, profiles:public_profiles(display_name, avatar_url)')
     .eq('collective_id', collectiveId)
     .eq('status', 'active')
 

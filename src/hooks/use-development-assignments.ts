@@ -106,7 +106,7 @@ export function useCollectiveProgress(collectiveId: string | undefined) {
     queryFn: async () => {
       const { data: members, error: membersError } = await supabase
         .from('collective_members')
-        .select('user_id, profile:profiles(display_name, avatar_url)')
+        .select('user_id, profile:public_profiles(display_name, avatar_url)')
         .eq('collective_id', collectiveId!)
         .eq('status', 'active')
       if (membersError) throw membersError

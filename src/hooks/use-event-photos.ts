@@ -85,7 +85,7 @@ export function useEventPhotos(eventId: string | undefined) {
         .from('event_photos')
         .select(`
           *,
-          uploader:profiles!event_photos_uploaded_by_fkey(id, display_name, avatar_url)
+          uploader:public_profiles!event_photos_uploaded_by_fkey(id, display_name, avatar_url)
         `)
         .eq('event_id', eventId)
         .is('archived_at', null)
@@ -175,7 +175,7 @@ export function useUploadEventPhoto(eventId: string | undefined) {
         })
         .select(`
           *,
-          uploader:profiles!event_photos_uploaded_by_fkey(id, display_name, avatar_url)
+          uploader:public_profiles!event_photos_uploaded_by_fkey(id, display_name, avatar_url)
         `)
         .single()
       if (error) throw error

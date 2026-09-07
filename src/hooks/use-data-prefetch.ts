@@ -65,7 +65,7 @@ export function useDataPrefetch() {
           .from('updates')
           .select(`
             *,
-            author:profiles!updates_author_id_fkey(id, display_name, avatar_url, role)
+            author:public_profiles!updates_author_id_fkey(id, display_name, avatar_url, role)
           `)
           .order('is_pinned', { ascending: false })
           .order('created_at', { ascending: false })
@@ -244,7 +244,7 @@ export function useDataPrefetch() {
                 task_templates(*),
                 collectives(id, name),
                 events(id, title),
-                profiles!task_instances_completed_by_fkey(display_name, avatar_url)
+                profiles:public_profiles!task_instances_completed_by_fkey(display_name, avatar_url)
               `)
               .in('collective_id', staffCollectiveIds)
               .order('due_date', { ascending: true })

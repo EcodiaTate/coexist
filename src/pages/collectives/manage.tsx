@@ -363,11 +363,11 @@ export default function CollectiveManagePage() {
       const q = searchQuery.toLowerCase()
       result = result.filter((m) => {
         const p = m.profiles
-        return (
-          p?.display_name?.toLowerCase().includes(q) ||
-          p?.email?.toLowerCase().includes(q) ||
-          p?.instagram_handle?.toLowerCase().includes(q)
-        )
+        // Search is display_name only. email and instagram_handle came off the
+        // base table via the fellow-member policy; that policy is being dropped
+        // and public_profiles does not carry either column. Restoring search on
+        // them means adding the column to the view, not to this select.
+        return p?.display_name?.toLowerCase().includes(q)
       })
     }
     return result
@@ -662,9 +662,6 @@ export default function CollectiveManagePage() {
               )}>
                 {ROLE_LABELS[selectedUser.role!]}
               </span>
-              {selectedUser.profiles?.location && (
-                <span className="text-xs text-neutral-500">{selectedUser.profiles.location}</span>
-              )}
             </div>
             <div className="mt-4 w-full">
               <Button

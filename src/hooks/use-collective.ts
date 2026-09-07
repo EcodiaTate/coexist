@@ -25,7 +25,11 @@ export interface CollectiveWithLeader extends Collective {
 }
 
 export interface CollectiveMemberWithProfile extends CollectiveMember {
-  profiles: Pick<Profile, 'id' | 'display_name' | 'avatar_url' | 'instagram_handle' | 'pronouns' | 'location' | 'membership_level' | 'email'> | null
+  // Sourced from public_profiles, whose column list IS the security boundary.
+  // instagram_handle, location and email are deliberately absent: they live on
+  // the base table, which after the column-grain migration is readable only by
+  // self and global staff. Do not re-add one here without adding it to the view.
+  profiles: Pick<Profile, 'id' | 'display_name' | 'avatar_url' | 'pronouns' | 'membership_level'> | null
 }
 
 export interface CollectiveStats {
@@ -55,7 +59,7 @@ export function useCollective(idOrSlug: string | undefined) {
       if (!idOrSlug) throw new Error('No collective ID or slug')
       const { data, error } = await supabase
         .from('collectives')
-        .select('*, profiles!collectives_leader_id_fkey(id, display_name, avatar_url)')
+        .select('*, profiles:public_profiles!collectives_leader_id_fkey(id, display_name, avatar_url)')
         .eq(isUuid ? 'id' : 'slug', idOrSlug)
         .single()
       if (error) throw error
@@ -76,7 +80,7 @@ export function useCollectives(filters?: { state?: string; search?: string; incl
     queryFn: async () => {
       let query = supabase
         .from('collectives')
-        .select('*, profiles!collectives_leader_id_fkey(id, display_name, avatar_url)')
+        .select('*, profiles:public_profiles!collectives_leader_id_fkey(id, display_name, avatar_url)')
         .eq('is_active', true)
         .order('name')
 
@@ -134,7 +138,7 @@ export function useCollectiveMembers(collectiveId: string | undefined) {
       if (!collectiveId) throw new Error('No collective ID')
       const { data, error } = await supabase
         .from('collective_members')
-        .select('*, profiles(id, display_name, avatar_url, instagram_handle, pronouns, location, membership_level, email)')
+        .select('*, profiles:public_profiles(id, display_name, avatar_url, pronouns, membership_level)')
         .eq('collective_id', collectiveId)
         .eq('status', 'active')
         .order('role', { ascending: false })
@@ -157,7 +161,7 @@ export function useCollectiveLeaders(collectiveId: string | undefined) {
       if (!collectiveId) throw new Error('No collective ID')
       const { data, error } = await supabase
         .from('collective_members')
-        .select('*, profiles(id, display_name, avatar_url, instagram_handle)')
+        .select('*, profiles:public_profiles(id, display_name, avatar_url)')
         .eq('collective_id', collectiveId)
         .eq('status', 'active')
         .in('role', ['leader', 'co_leader', 'assist_leader'])
@@ -563,14 +567,16 @@ export function useUpdateMemberRole() {
 /* ------------------------------------------------------------------ */
 
 export function exportMembersCSV(members: CollectiveMemberWithProfile[]) {
-  const header = 'Name,Role,Instagram,Location,Joined\n'
+  // Instagram and Location were dropped when this export moved to
+  // public_profiles: the view does not carry them, so keeping the columns would
+  // have emitted a silently-empty cell for every member rather than an honest
+  // narrower file. Restoring them means adding both columns to the view.
+  const header = 'Name,Role,Joined\n'
   const rows = members.map((m) => {
     const p = m.profiles
     return [
       `"${p?.display_name ?? ''}"`,
       m.role,
-      p?.instagram_handle ?? '',
-      `"${p?.location ?? ''}"`,
       new Date(m.joined_at!).toLocaleDateString(),
     ].join(',')
   }).join('\n')

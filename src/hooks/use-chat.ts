@@ -146,7 +146,7 @@ export function useChatMessages(collectiveId: string | undefined) {
         .from('chat_messages')
         .select(`
           *,
-          profiles!chat_messages_user_id_fkey(id, display_name, avatar_url)
+          profiles:public_profiles!chat_messages_user_id_fkey(id, display_name, avatar_url)
         `)
         .eq('collective_id', collectiveId)
         .is('channel_id', null)
@@ -222,7 +222,7 @@ export function useChatMessages(collectiveId: string | undefined) {
             .from('chat_messages')
             .select(`
               *,
-              profiles!chat_messages_user_id_fkey(id, display_name, avatar_url)
+              profiles:public_profiles!chat_messages_user_id_fkey(id, display_name, avatar_url)
             `)
             .eq('id', newMsg.id)
             .single()
@@ -702,7 +702,7 @@ export function usePinnedMessages(collectiveId: string | undefined) {
         .from('chat_messages')
         .select(`
           *,
-          profiles!chat_messages_user_id_fkey(id, display_name, avatar_url)
+          profiles:public_profiles!chat_messages_user_id_fkey(id, display_name, avatar_url)
         `)
         .eq('collective_id', collectiveId)
         .eq('is_pinned', true)
@@ -984,7 +984,7 @@ export function usePollDetail(pollId: string | undefined) {
         .from('chat_polls')
         .select(`
           *,
-          profiles!chat_polls_created_by_fkey(id, display_name, avatar_url)
+          profiles:public_profiles!chat_polls_created_by_fkey(id, display_name, avatar_url)
         `)
         .eq('id', pollId)
         .single()
@@ -1090,7 +1090,7 @@ export function useAnnouncementDetail(announcementId: string | undefined) {
         .from('chat_announcements')
         .select(`
           *,
-          profiles!chat_announcements_created_by_fkey(id, display_name, avatar_url)
+          profiles:public_profiles!chat_announcements_created_by_fkey(id, display_name, avatar_url)
         `)
         .eq('id', announcementId)
         .single()
@@ -1101,7 +1101,7 @@ export function useAnnouncementDetail(announcementId: string | undefined) {
       // on the announcement event-invite card - 1.8.4 item 10).
       const { data: responses } = await supabase
         .from('chat_announcement_responses')
-        .select('*, profiles(id, display_name, avatar_url)')
+        .select('*, profiles:public_profiles(id, display_name, avatar_url)')
         .eq('announcement_id', announcementId)
 
       return { ...data, responses: responses ?? [] } as unknown as ChatAnnouncement
@@ -1200,7 +1200,7 @@ export function useBroadcastLog(collectiveId: string | undefined) {
         .from('chat_broadcast_log')
         .select(`
           *,
-          profiles!chat_broadcast_log_sent_by_fkey(id, display_name, avatar_url)
+          profiles:public_profiles!chat_broadcast_log_sent_by_fkey(id, display_name, avatar_url)
         `)
         .eq('collective_id', collectiveId)
         .order('created_at', { ascending: false })
@@ -1361,7 +1361,7 @@ export async function exportChatLog(
 ) {
   const { data, error } = await supabase
     .from('chat_messages')
-    .select('content, created_at, profiles!chat_messages_user_id_fkey(display_name)')
+    .select('content, created_at, profiles:public_profiles!chat_messages_user_id_fkey(display_name)')
     .eq('collective_id', collectiveId)
     .gte('created_at', startDate)
     .lte('created_at', endDate)

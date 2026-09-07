@@ -86,7 +86,7 @@ export function useUpdates() {
         .from('updates')
         .select(`
           *,
-          author:profiles!updates_author_id_fkey(id, display_name, avatar_url, role)
+          author:public_profiles!updates_author_id_fkey(id, display_name, avatar_url, role)
         `)
         .order('is_pinned', { ascending: false })
         .order('created_at', { ascending: false })
@@ -405,7 +405,7 @@ export function useAdminUpdates() {
         .from('updates')
         .select(`
           *,
-          author:profiles!updates_author_id_fkey(id, display_name, avatar_url, role),
+          author:public_profiles!updates_author_id_fkey(id, display_name, avatar_url, role),
           collective:collectives!updates_target_collective_id_fkey(id, name)
         `)
         .order('created_at', { ascending: false })
