@@ -7,6 +7,7 @@ import { cn } from '@/lib/cn'
 import { useCollectiveEvents, type EventWithCollective } from '@/hooks/use-events'
 import { wallClockToUtcIso, wallClockNow } from '@/lib/date-format'
 import { SheetHeader } from '@/components/sheet-header'
+import { useResetOnClose } from '@/hooks/use-reset-on-close'
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -269,19 +270,15 @@ export function CreateCarpoolSheet({
     startTransition(() => setDepartureTime(toWallClockInputValue(oneHourBefore)))
   }, [eventId, upcomingEvents])
 
-  // Reset on close (after exit animation)
-  useEffect(() => {
-    if (!open) {
-      const t = setTimeout(() => {
-        setEventId('')
-        setDeparturePoint('')
-        setDepartureTime('')
-        setSeatsTotal(3)
-        setNotes('')
-      }, 300)
-      return () => clearTimeout(t)
-    }
-  }, [open])
+  // Reset on close (after exit animation). The delay is the primitive's own
+  // SHEET_ANIM_MS, imported rather than copied.
+  useResetOnClose(open, () => {
+    setEventId('')
+    setDeparturePoint('')
+    setDepartureTime('')
+    setSeatsTotal(3)
+    setNotes('')
+  })
 
   // The departure field is now a native <input type="datetime-local">, whose
   // value is always a well-formed `YYYY-MM-DDTHH:mm` wall-clock string (or ''

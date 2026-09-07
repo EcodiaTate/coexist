@@ -33,7 +33,14 @@ const DISMISS_DISTANCE = 0.25  // fraction of sheet height
 // snap, and desynced from React's declarative value so later opens/closes lost
 // their animation too).
 const SHEET_TRANSITION = 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1), bottom 0.25s ease-out, max-height 0.25s ease-out'
-const SHEET_ANIM_MS = 300
+/**
+ * How long the sheet takes to slide out. Exported because consumers reset their
+ * form fields on close and must outlast this animation to avoid the fields
+ * visibly blanking mid-slide. Three sheets used to hard-code a copy of the
+ * number (CA3 finding 4.F3); they now import it through `useResetOnClose`, so
+ * changing the animation here moves their reset timers with it.
+ */
+export const SHEET_ANIM_MS = 300
 
 const instantTransition = { duration: 0 }
 

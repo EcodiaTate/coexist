@@ -10,6 +10,7 @@ import { cn } from '@/lib/cn'
 import { useCollectiveEvents, type EventWithCollective } from '@/hooks/use-events'
 import { useCollectives } from '@/hooks/use-collective'
 import { SheetHeader } from '@/components/sheet-header'
+import { useResetOnClose } from '@/hooks/use-reset-on-close'
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -330,19 +331,15 @@ export function CreateAnnouncementSheet({
     onClose()
   }
 
-  // Reset form fields when the sheet closes (re-opens fresh)
-  useEffect(() => {
-    if (!open) {
-      const timer = setTimeout(() => {
-        setTitle('')
-        setBody('')
-        setEventId('')
-        setInviteCollectiveIds([])
-        setInviteMessage('')
-      }, 300) // wait for close animation
-      return () => clearTimeout(timer)
-    }
-  }, [open])
+  // Reset form fields when the sheet closes (re-opens fresh). The delay is the
+  // primitive's own SHEET_ANIM_MS, imported rather than copied.
+  useResetOnClose(open, () => {
+    setTitle('')
+    setBody('')
+    setEventId('')
+    setInviteCollectiveIds([])
+    setInviteMessage('')
+  })
 
   // "Event Invite" already renders RSVP buttons inline (see chat-bubble.tsx),
   // so the standalone "RSVP Request" option was a duplicate path. Keep

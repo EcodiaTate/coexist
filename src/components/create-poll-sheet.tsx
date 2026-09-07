@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { chatPollSchema } from '@/lib/validation'
 import { Plus, Trash2, BarChart3 } from 'lucide-react'
 import { BottomSheet } from '@/components/bottom-sheet'
@@ -6,6 +6,7 @@ import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { Checkbox } from '@/components/checkbox'
 import { SheetHeader } from '@/components/sheet-header'
+import { useResetOnClose } from '@/hooks/use-reset-on-close'
 
 interface CreatePollSheetProps {
   open: boolean
@@ -58,19 +59,15 @@ export function CreatePollSheet({ open, onClose, onSubmit, loading }: CreatePoll
     onClose()
   }
 
-  // Reset form fields when the sheet closes
-  useEffect(() => {
-    if (!open) {
-      const timer = setTimeout(() => {
-        setQuestion('')
-        setOptions(['', ''])
-        setAllowMultiple(false)
-        setAnonymous(false)
-        setError(null)
-      }, 300)
-      return () => clearTimeout(timer)
-    }
-  }, [open])
+  // Reset form fields when the sheet closes. The delay is the primitive's own
+  // SHEET_ANIM_MS, imported rather than copied.
+  useResetOnClose(open, () => {
+    setQuestion('')
+    setOptions(['', ''])
+    setAllowMultiple(false)
+    setAnonymous(false)
+    setError(null)
+  })
 
   const addOption = () => {
     if (options.length >= 8) return
