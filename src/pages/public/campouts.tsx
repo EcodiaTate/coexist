@@ -12,6 +12,8 @@ import {
   type CampoutGroup,
   groupUpcomingCampouts,
   flagshipPlaceholders,
+  cheapestActiveTicketTypeByEvent,
+  type ActiveTicketTypeRow,
 } from '@/lib/campout-groups'
 
 // Gap-free bento that adapts to the tile count. Mobile always stacks a single
@@ -50,11 +52,9 @@ export default function PublicCampoutsPage() {
       const ids = rows.filter((e) => new Date((e.date_end ?? e.date_start) as string) >= now).map((e) => e.id)
       const priceByEvent: Record<string, number> = {}
       if (ids.length) {
-        const { data: tt } = await supabase.from('event_ticket_types').select('event_id, price_cents').in('event_id', ids).eq('is_active', true)
-        for (const t of tt ?? []) {
-          const c = t.price_cents as number
-          if (priceByEvent[t.event_id as string] === undefined || c < priceByEvent[t.event_id as string]) priceByEvent[t.event_id as string] = c
-        }
+        const { data: tt } = await supabase.from('event_ticket_types').select('event_id, id, price_cents').in('event_id', ids).eq('is_active', true)
+        const cheapest = cheapestActiveTicketTypeByEvent(tt as ActiveTicketTypeRow[] | null)
+        for (const [eventId, tier] of Object.entries(cheapest)) priceByEvent[eventId] = tier.price_cents
       }
 
       return groupUpcomingCampouts(rows, priceByEvent)

@@ -256,3 +256,51 @@ export function flagshipPlaceholders(): CampoutGroup[] {
     isFlagship: true,
   }))
 }
+
+/* ------------------------------------------------------------------ */
+/*  Cheapest active ticket type per event                              */
+/* ------------------------------------------------------------------ */
+
+/** One row of the `event_ticket_types` select both campout pages run. */
+export interface ActiveTicketTypeRow {
+  event_id: string
+  id: string
+  price_cents: number
+}
+
+/** The winning tier for one event: its id, and what it costs. */
+export interface CheapestTicketType {
+  id: string
+  price_cents: number
+}
+
+/**
+ * Reduce active ticket-type rows to the cheapest tier per event.
+ *
+ * The /campouts index and the /campouts/:type page each ran this loop
+ * (CA3 finding 1.F7). The index kept only the price, the type page also
+ * threaded the winning tier id through to its booking link, so the two
+ * loops looked different enough to survive review while doing one thing.
+ * This returns both and lets the index read `.price_cents`.
+ *
+ * Pure on purpose: the fetch stays at the call site, because the two pages
+ * scope their event ids differently (the index filters to upcoming, the type
+ * page to one resolved group) and that scoping is page logic, not this
+ * function's. Pure is also what makes it testable, and neither copy had a
+ * test.
+ *
+ * FIRST tier wins a price tie, matching both prior copies: the comparison is
+ * strictly-less-than, so an equal-priced later row does not displace it.
+ */
+export function cheapestActiveTicketTypeByEvent(
+  rows: readonly ActiveTicketTypeRow[] | null | undefined,
+): Record<string, CheapestTicketType> {
+  const out: Record<string, CheapestTicketType> = {}
+  for (const row of rows ?? []) {
+    const current = out[row.event_id]
+    if (!current || row.price_cents < current.price_cents) {
+      out[row.event_id] = { id: row.id, price_cents: row.price_cents }
+    }
+  }
+  return out
+}

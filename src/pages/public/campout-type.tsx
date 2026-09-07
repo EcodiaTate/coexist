@@ -16,7 +16,7 @@ import { TicketQuestionsModal } from '@/components/ticket-questions-modal'
 import { useEventTicketQuestions, type TicketAnswers } from '@/hooks/use-event-ticket-questions'
 import { guestSafetyPayload, type GuestSafetyAnswers } from '@/lib/dietary'
 import { startGuestCheckout } from '@/hooks/use-guest-ticket-checkout'
-import { type CampoutEvent, resolveCampoutGroup, flagshipConfig } from '@/lib/campout-groups'
+import { type CampoutEvent, resolveCampoutGroup, flagshipConfig, cheapestActiveTicketTypeByEvent, type ActiveTicketTypeRow } from '@/lib/campout-groups'
 
 interface DateRow {
   id: string
@@ -61,11 +61,7 @@ export default function CampoutTypePage() {
       const { data: tt } = mine.length
         ? await supabase.from('event_ticket_types').select('event_id, id, price_cents').in('event_id', mine.map((e) => e.id)).eq('is_active', true)
         : { data: [] }
-      const ttByEvent: Record<string, { id: string; price_cents: number }> = {}
-      for (const t of tt ?? []) {
-        const cur = ttByEvent[t.event_id as string]
-        if (!cur || (t.price_cents as number) < cur.price_cents) ttByEvent[t.event_id as string] = { id: t.id as string, price_cents: t.price_cents as number }
-      }
+      const ttByEvent = cheapestActiveTicketTypeByEvent(tt as ActiveTicketTypeRow[] | null)
       // Real availability, not just the manual Eventbrite flag. Until
       // 2026-09-05 this page read event_extras.sold_out alone, so a date that
       // was genuinely at capacity rendered as bookable, took the buyer through
