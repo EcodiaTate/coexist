@@ -51,6 +51,54 @@ interface PastEventRow {
   date_start?: string
 }
 
+/* ------------------------------------------------------------------ */
+/*  Attendance rate                                                    */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Attended as a whole percent of registered-or-attended.
+ *
+ * Split out from the fetch so it can be tested at all: the two callers below
+ * ran this arithmetic inline (CA3 finding 3.F2) and nothing in the suite
+ * touched either copy. Zero registrations is 0 percent, not NaN, which is the
+ * case an inline expression gets wrong the first time it meets a collective
+ * with no past events.
+ */
+export function attendanceRateFrom(
+  totalRegistered: number | null | undefined,
+  totalAttended: number | null | undefined,
+): number {
+  if (!totalRegistered || totalRegistered <= 0) return 0
+  return Math.round(((totalAttended ?? 0) / totalRegistered) * 100)
+}
+
+/**
+ * The two head-count queries behind the leader dashboard's attendance figure.
+ *
+ * fetchLeaderDashboard and fetchCollectiveFullStats each ran this same pair
+ * against event_registrations with the same status sets and the same formula.
+ * They differed only in that one issued the queries sequentially and the
+ * other in parallel; the parallel shape is what survived.
+ *
+ * The denominator is registered-or-attended, NOT every registration: a
+ * cancelled or waitlisted row is not someone who failed to turn up.
+ */
+async function fetchAttendanceStats(
+  eventIds: string[],
+): Promise<{ attendanceCount: number; attendanceRate: number }> {
+  if (eventIds.length === 0) return { attendanceCount: 0, attendanceRate: 0 }
+  const [{ count: totalReg }, { count: totalAttended }] = await Promise.all([
+    supabase.from('event_registrations').select('id', { count: 'exact', head: true })
+      .in('event_id', eventIds).in('status', ['registered', 'attended']),
+    supabase.from('event_registrations').select('id', { count: 'exact', head: true })
+      .in('event_id', eventIds).eq('status', 'attended'),
+  ])
+  return {
+    attendanceCount: totalAttended ?? 0,
+    attendanceRate: attendanceRateFrom(totalReg, totalAttended),
+  }
+}
+
 async function fetchLeaderDashboard(collectiveId: string): Promise<LeaderDashboardData> {
   // Floating-local: event.date_start is wall-clock-as-UTC. Build `now`
   // and `startOfMonth` in the same wall-clock-as-UTC space so a leader
@@ -128,26 +176,8 @@ async function fetchLeaderDashboard(collectiveId: string): Promise<LeaderDashboa
     .eq('collective_id', collectiveId)
     .lt('date_start', now.toISOString())
 
-  let attendanceRate = 0
   const eventIds = (allEventIds ?? []).map((e) => e.id)
-
-  if (eventIds.length > 0) {
-    const { count: totalReg } = await supabase
-      .from('event_registrations')
-      .select('id', { count: 'exact', head: true })
-      .in('event_id', eventIds)
-      .in('status', ['registered', 'attended'])
-
-    const { count: totalAttended } = await supabase
-      .from('event_registrations')
-      .select('id', { count: 'exact', head: true })
-      .in('event_id', eventIds)
-      .eq('status', 'attended')
-
-    if (totalReg && totalReg > 0) {
-      attendanceRate = Math.round(((totalAttended ?? 0) / totalReg) * 100)
-    }
-  }
+  const { attendanceRate } = await fetchAttendanceStats(eventIds)
 
   return {
     activeMembers: membersRes.count ?? 0,
@@ -237,20 +267,7 @@ async function fetchCollectiveFullStats(collectiveId: string): Promise<Collectiv
     cleanupCount = count ?? 0
   }
 
-  let attendanceCount = 0
-  let attendanceRate = 0
-  if (eventIds.length > 0) {
-    const [{ count: totalReg }, { count: totalAttended }] = await Promise.all([
-      supabase.from('event_registrations').select('id', { count: 'exact', head: true })
-        .in('event_id', eventIds).in('status', ['registered', 'attended']),
-      supabase.from('event_registrations').select('id', { count: 'exact', head: true })
-        .in('event_id', eventIds).eq('status', 'attended'),
-    ])
-    attendanceCount = totalAttended ?? 0
-    if (totalReg && totalReg > 0) {
-      attendanceRate = Math.round(((totalAttended ?? 0) / totalReg) * 100)
-    }
-  }
+  const { attendanceCount, attendanceRate } = await fetchAttendanceStats(eventIds)
 
   return {
     // Canonical "Attendances" = composeSummaryMetrics totalAttendees (from
