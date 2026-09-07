@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion, useReducedMotion } from 'framer-motion'
-import { Calendar, CreditCard, AlertTriangle, Loader2, ArrowLeft } from 'lucide-react'
+import { Calendar, CreditCard, AlertTriangle, Loader2 } from 'lucide-react'
 import {
   useMyMembership,
   useCancelMembership,
@@ -10,7 +9,7 @@ import {
   type Membership,
 } from '@/hooks/use-membership'
 import { Page } from '@/components/page'
-import { OptimizedImage } from '@/components/optimized-image'
+import { MembershipHero } from '@/components/membership-hero'
 import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
 import { ConfirmationSheet } from '@/components/confirmation-sheet'
@@ -30,7 +29,6 @@ const STATUS_BADGE: Record<Membership['status'], { label: string; className: str
 
 export default function MembershipManagePage() {
   const navigate = useNavigate()
-  const rm = useReducedMotion()
   const { toast } = useToast()
   const { data: membership, isLoading } = useMyMembership()
   const { data: heroImage } = useMembershipHeroImage()
@@ -74,62 +72,28 @@ export default function MembershipManagePage() {
 
   return (
     <Page noBackground className="bg-surface-2">
-      {/* Full-bleed photographic hero carrying the membership status */}
-      <div className="-mx-4 lg:-mx-6">
-        <div className="relative min-h-[300px] overflow-hidden bg-primary-900">
-          {heroImage && (
-            <OptimizedImage
-              src={heroImage}
-              alt=""
-              priority
-              quality={72}
-              sizes="100vw"
-              srcSetWidths={[640, 960, 1280, 1600]}
-              wrapperClassName="absolute inset-0"
-              className={cn(membership && !isLive && 'grayscale')}
-            />
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/15" aria-hidden="true" />
-
-          <div className="absolute top-3 left-4 z-10">
-            <button
-              onClick={() => navigate(-1)}
-              className="flex items-center justify-center w-11 h-11 rounded-full bg-white/15 backdrop-blur-sm text-white hover:bg-white/25 active:scale-[0.98] transition-[colors,transform] duration-150"
-              aria-label="Back"
-            >
-              <ArrowLeft size={18} />
-            </button>
-          </div>
-
-          <motion.div
-            className="absolute inset-x-0 bottom-0 z-10 p-6"
-            variants={rm ? undefined : { hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } }}
-            initial="hidden"
-            animate="visible"
-          >
-            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/70 mb-3">My Membership</p>
-            <div className="flex items-center gap-2.5 flex-wrap">
-              <h1 className="font-heading text-[2rem] font-bold uppercase leading-[0.95] tracking-tight text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.5)]">
-                {membership?.membership_plans?.name ?? 'Co-Exist Membership'}
-              </h1>
-              {badge && (
-                <span className={cn('text-[10px] font-semibold px-2 py-0.5 rounded-full backdrop-blur-sm uppercase tracking-wide', badge.className)}>
-                  {badge.label}
-                </span>
-              )}
-            </div>
-            {membership && (
-              <p className="text-sm text-white/85 mt-1">{priceLabel}</p>
-            )}
-            {membership?.current_period_end && isLive && (
-              <p className="text-[11px] text-white/75 mt-1.5 flex items-center gap-1">
-                <Calendar size={11} />
-                Renews {fmtDate(membership.current_period_end)}
-              </p>
-            )}
-          </motion.div>
-        </div>
-      </div>
+      <MembershipHero
+        variant="manage"
+        heroImage={heroImage}
+        eyebrow="My Membership"
+        title={membership?.membership_plans?.name ?? 'Co-Exist Membership'}
+        imageClassName={cn(membership && !isLive && 'grayscale')}
+        badge={badge && (
+          <span className={cn('text-[10px] font-semibold px-2 py-0.5 rounded-full backdrop-blur-sm uppercase tracking-wide', badge.className)}>
+            {badge.label}
+          </span>
+        )}
+      >
+        {membership && (
+          <p className="text-sm text-white/85 mt-1">{priceLabel}</p>
+        )}
+        {membership?.current_period_end && isLive && (
+          <p className="text-[11px] text-white/75 mt-1.5 flex items-center gap-1">
+            <Calendar size={11} />
+            Renews {fmtDate(membership.current_period_end)}
+          </p>
+        )}
+      </MembershipHero>
 
       {/* De-chromed content */}
       <div className="px-1 pt-6 pb-12 space-y-5">
