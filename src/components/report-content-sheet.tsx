@@ -4,6 +4,7 @@ import { BottomSheet } from '@/components/bottom-sheet'
 import { Button } from '@/components/button'
 import { useReportContent } from '@/hooks/use-report-content'
 import { useToast } from '@/components/toast'
+import { SheetHeader } from '@/components/sheet-header'
 
 const REPORT_REASONS = [
   'Offensive or abusive content',
@@ -53,19 +54,13 @@ export function ReportContentSheet({
   return (
     <BottomSheet data-eos-id="src/components/report-content-sheet.tsx#0" data-eos-v="2" open={open} onClose={onClose}>
       <div data-eos-id="src/components/report-content-sheet.tsx#1" className="px-1 pb-2">
-        <div data-eos-id="src/components/report-content-sheet.tsx#2" className="flex items-center gap-2.5 mb-4">
-          <div data-eos-id="src/components/report-content-sheet.tsx#3" className="flex items-center justify-center w-9 h-9 rounded-full bg-warning-100 text-warning-600">
-            <Flag data-eos-id="src/components/report-content-sheet.tsx#4" size={16} />
-          </div>
-          <div data-eos-id="src/components/report-content-sheet.tsx#5">
-            <h3 data-eos-id="src/components/report-content-sheet.tsx#6" className="font-heading text-base font-semibold text-neutral-900">
-              Report content
-            </h3>
-            <p data-eos-id="src/components/report-content-sheet.tsx#7" className="text-xs text-neutral-500">
-              Select a reason for reporting
-            </p>
-          </div>
-        </div>
+        <SheetHeader
+          variant="compact"
+          icon={<Flag size={16} />}
+          iconClassName="bg-warning-100 text-warning-600"
+          title="Report content"
+          subtitle="Select a reason for reporting"
+        />
 
         <div data-eos-id="src/components/report-content-sheet.tsx#8" className="space-y-1.5 mb-5">
           {REPORT_REASONS.map((reason) => (

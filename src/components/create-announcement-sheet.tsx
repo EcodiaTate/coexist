@@ -9,6 +9,7 @@ import { Avatar } from '@/components/avatar'
 import { cn } from '@/lib/cn'
 import { useCollectiveEvents, type EventWithCollective } from '@/hooks/use-events'
 import { useCollectives } from '@/hooks/use-collective'
+import { SheetHeader } from '@/components/sheet-header'
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -360,15 +361,13 @@ export function CreateAnnouncementSheet({
           otherwise be cut at the left/right edges). */}
       <div data-eos-id="src/components/create-announcement-sheet.tsx#31" className="px-1 pb-4 max-h-[80vh] overflow-y-auto overscroll-contain">
         {/* Header */}
-        <div data-eos-id="src/components/create-announcement-sheet.tsx#32" className="flex items-center gap-2.5 mb-4">
-          <div data-eos-id="src/components/create-announcement-sheet.tsx#33" className="flex h-10 w-10 items-center justify-center rounded-sm bg-accent-100 text-accent-600">
-            <Megaphone data-eos-id="src/components/create-announcement-sheet.tsx#34" size={20} />
-          </div>
-          <div data-eos-id="src/components/create-announcement-sheet.tsx#35">
-            <h3 data-eos-id="src/components/create-announcement-sheet.tsx#36" className="text-base font-bold text-neutral-900">Create Announcement</h3>
-            <p data-eos-id="src/components/create-announcement-sheet.tsx#37" className="text-xs text-neutral-500">Share something with your collective</p>
-          </div>
-        </div>
+        <SheetHeader
+          variant="panel"
+          icon={<Megaphone size={20} />}
+          iconClassName="bg-accent-100 text-accent-600"
+          title="Create Announcement"
+          subtitle="Share something with your collective"
+        />
 
         {/* Type selector - shared SegmentedControl (sliding olive pill, centred,
             animated). Was a pair of hand-rolled flex-1 cards with no layout-shift

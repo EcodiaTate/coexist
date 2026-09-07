@@ -6,6 +6,7 @@ import { Input } from '@/components/input'
 import { Avatar } from '@/components/avatar'
 import { formatRelative } from '@/lib/date-format'
 import type { BroadcastLogEntry } from '@/hooks/use-chat'
+import { SheetHeader } from '@/components/sheet-header'
 
 interface BroadcastNotificationSheetProps {
   open: boolean
@@ -46,17 +47,14 @@ export function BroadcastNotificationSheet({
     <BottomSheet data-eos-id="src/components/broadcast-notification-sheet.tsx#0" data-eos-v="2" open={open} onClose={onClose}>
       <div data-eos-id="src/components/broadcast-notification-sheet.tsx#1" className="pb-4">
         {/* Header */}
-        <div data-eos-id="src/components/broadcast-notification-sheet.tsx#2" className="flex items-center gap-2.5 mb-4">
-          <div data-eos-id="src/components/broadcast-notification-sheet.tsx#3" className="flex h-10 w-10 items-center justify-center rounded-sm bg-warning-100 text-warning-600">
-            <Bell data-eos-id="src/components/broadcast-notification-sheet.tsx#4" size={20} />
-          </div>
-          <div data-eos-id="src/components/broadcast-notification-sheet.tsx#5">
-            <h3 data-eos-id="src/components/broadcast-notification-sheet.tsx#6" className="text-base font-bold text-primary-900">Push Notification</h3>
-            <p data-eos-id="src/components/broadcast-notification-sheet.tsx#7" className="text-xs text-neutral-500">
-              Send to all {collectiveName ? `${collectiveName} ` : ''}members
-            </p>
-          </div>
-        </div>
+        <SheetHeader
+          variant="panel"
+          icon={<Bell size={20} />}
+          iconClassName="bg-warning-100 text-warning-600"
+          title="Push Notification"
+          titleClassName="text-primary-900"
+          subtitle={`Send to all ${collectiveName ? `${collectiveName} ` : ''}members`}
+        />
 
         {/* Recent broadcasts warning (dedup) */}
         {recentBroadcasts24h.length > 0 && (

@@ -5,6 +5,7 @@ import { BottomSheet } from '@/components/bottom-sheet'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { Checkbox } from '@/components/checkbox'
+import { SheetHeader } from '@/components/sheet-header'
 
 interface CreatePollSheetProps {
   open: boolean
@@ -85,15 +86,13 @@ export function CreatePollSheet({ open, onClose, onSubmit, loading }: CreatePoll
     <BottomSheet data-eos-id="src/components/create-poll-sheet.tsx#0" data-eos-v="2" open={open} onClose={onClose}>
       <div data-eos-id="src/components/create-poll-sheet.tsx#1" className="pb-4">
         {/* Header */}
-        <div data-eos-id="src/components/create-poll-sheet.tsx#2" className="flex items-center gap-2.5 mb-4">
-          <div data-eos-id="src/components/create-poll-sheet.tsx#3" className="flex h-10 w-10 items-center justify-center rounded-sm bg-primary-100 text-primary-600">
-            <BarChart3 data-eos-id="src/components/create-poll-sheet.tsx#4" size={20} />
-          </div>
-          <div data-eos-id="src/components/create-poll-sheet.tsx#5">
-            <h3 data-eos-id="src/components/create-poll-sheet.tsx#6" className="text-base font-bold text-neutral-900">Create Poll</h3>
-            <p data-eos-id="src/components/create-poll-sheet.tsx#7" className="text-xs text-neutral-500">Ask your collective a question</p>
-          </div>
-        </div>
+        <SheetHeader
+          variant="panel"
+          icon={<BarChart3 size={20} />}
+          iconClassName="bg-primary-100 text-primary-600"
+          title="Create Poll"
+          subtitle="Ask your collective a question"
+        />
 
         {/* Question */}
         <div data-eos-id="src/components/create-poll-sheet.tsx#8" className="mb-4">

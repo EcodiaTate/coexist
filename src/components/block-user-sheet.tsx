@@ -5,6 +5,7 @@ import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { useBlockUser } from '@/hooks/use-user-blocks'
 import { useToast } from '@/components/toast'
+import { SheetHeader } from '@/components/sheet-header'
 
 interface BlockUserSheetProps {
   open: boolean
@@ -42,19 +43,13 @@ export function BlockUserSheet({
   return (
     <BottomSheet data-eos-id="src/components/block-user-sheet.tsx#0" data-eos-v="2" open={open} onClose={onClose}>
       <div data-eos-id="src/components/block-user-sheet.tsx#1" className="px-1 pb-2">
-        <div data-eos-id="src/components/block-user-sheet.tsx#2" className="flex items-center gap-2.5 mb-4">
-          <div data-eos-id="src/components/block-user-sheet.tsx#3" className="flex items-center justify-center w-9 h-9 rounded-full bg-error-100 text-error-600">
-            <ShieldOff data-eos-id="src/components/block-user-sheet.tsx#4" size={16} />
-          </div>
-          <div data-eos-id="src/components/block-user-sheet.tsx#5">
-            <h3 data-eos-id="src/components/block-user-sheet.tsx#6" className="font-heading text-base font-semibold text-neutral-900">
-              Block {userName}?
-            </h3>
-            <p data-eos-id="src/components/block-user-sheet.tsx#7" className="text-xs text-neutral-500">
-              They won&apos;t be notified
-            </p>
-          </div>
-        </div>
+        <SheetHeader
+          variant="compact"
+          icon={<ShieldOff size={16} />}
+          iconClassName="bg-error-100 text-error-600"
+          title={`Block ${userName}?`}
+          subtitle="They won't be notified"
+        />
 
         <p data-eos-id="src/components/block-user-sheet.tsx#8" className="text-sm text-primary-500 leading-relaxed mb-4">
           Blocking this user will:

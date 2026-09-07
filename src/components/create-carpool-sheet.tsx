@@ -6,6 +6,7 @@ import { Input } from '@/components/input'
 import { cn } from '@/lib/cn'
 import { useCollectiveEvents, type EventWithCollective } from '@/hooks/use-events'
 import { wallClockToUtcIso, wallClockNow } from '@/lib/date-format'
+import { SheetHeader } from '@/components/sheet-header'
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -312,15 +313,13 @@ export function CreateCarpoolSheet({
     <BottomSheet data-eos-id="src/components/create-carpool-sheet.tsx#24" open={open} onClose={onClose}>
       <div data-eos-id="src/components/create-carpool-sheet.tsx#25" className="pb-4 max-h-[80vh] overflow-y-auto overscroll-contain">
         {/* Header */}
-        <div data-eos-id="src/components/create-carpool-sheet.tsx#26" className="flex items-center gap-2.5 mb-4">
-          <div data-eos-id="src/components/create-carpool-sheet.tsx#27" className="flex h-10 w-10 items-center justify-center rounded-sm bg-success-100 text-success-600">
-            <Car data-eos-id="src/components/create-carpool-sheet.tsx#28" size={20} />
-          </div>
-          <div data-eos-id="src/components/create-carpool-sheet.tsx#29">
-            <h3 data-eos-id="src/components/create-carpool-sheet.tsx#30" className="text-base font-bold text-neutral-900">Offer a carpool</h3>
-            <p data-eos-id="src/components/create-carpool-sheet.tsx#31" className="text-xs text-neutral-500">Drive other members to an event</p>
-          </div>
-        </div>
+        <SheetHeader
+          variant="panel"
+          icon={<Car size={20} />}
+          iconClassName="bg-success-100 text-success-600"
+          title="Offer a carpool"
+          subtitle="Drive other members to an event"
+        />
 
         {/* Event picker (locked to the channel's event in campout mode) */}
         <div data-eos-id="src/components/create-carpool-sheet.tsx#32" className="mb-3">
@@ -497,15 +496,13 @@ export function EditCarpoolSheet({
     <BottomSheet open={open} onClose={onClose}>
       <div className="pb-4 max-h-[80vh] overflow-y-auto overscroll-contain">
         {/* Header */}
-        <div className="flex items-center gap-2.5 mb-4">
-          <div className="flex h-10 w-10 items-center justify-center rounded-sm bg-success-100 text-success-600">
-            <Car size={20} />
-          </div>
-          <div>
-            <h3 className="text-base font-bold text-neutral-900">Edit your carpool</h3>
-            <p className="text-xs text-neutral-500">Update seats, departure or notes</p>
-          </div>
-        </div>
+        <SheetHeader
+          variant="panel"
+          icon={<Car size={20} />}
+          iconClassName="bg-success-100 text-success-600"
+          title="Edit your carpool"
+          subtitle="Update seats, departure or notes"
+        />
 
         {/* Departure point */}
         <div className="mb-3">

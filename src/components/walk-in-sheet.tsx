@@ -21,6 +21,7 @@ import { Avatar } from '@/components/avatar'
 import { UserPlus, AlertTriangle, Search as SearchIcon, UserCheck } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { useImeSafeOnChange } from '@/hooks/use-ime-safe-on-change'
+import { SheetHeader } from '@/components/sheet-header'
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -253,16 +254,20 @@ export function WalkInSheet({ eventId, open, onClose, onSuccess, onAddExistingUs
   return (
     <BottomSheet data-eos-id="src/components/walk-in-sheet.tsx#3" open={open} onClose={handleClose} snapPoints={[0.92]}>
       <div data-eos-id="src/components/walk-in-sheet.tsx#4" className="px-5 pb-6 space-y-4">
-        {/* Header */}
-        <div data-eos-id="src/components/walk-in-sheet.tsx#5" className="flex items-center gap-2 pt-1 pb-1">
-          <div data-eos-id="src/components/walk-in-sheet.tsx#6" className="flex items-center justify-center w-9 h-9 rounded-full bg-primary-100">
-            <UserPlus data-eos-id="src/components/walk-in-sheet.tsx#7" size={18} className="text-primary-600" />
-          </div>
-          <div data-eos-id="src/components/walk-in-sheet.tsx#8">
-            <p data-eos-id="src/components/walk-in-sheet.tsx#9" className="font-heading text-base font-bold text-neutral-900">Add Walk-In</p>
-            <p data-eos-id="src/components/walk-in-sheet.tsx#10" className="text-xs text-neutral-500">Search by name or email - or fill out the form below.</p>
-          </div>
-        </div>
+        {/* Header. `className` keeps this one's own spacing: the parent is a
+            space-y-4 stack, so the shared header's mb-4 would stack on top of
+            the parent's 16px. `titleClassName` keeps its bold weight. Rendered
+            output is byte-for-byte what it was, bar the title element, which
+            becomes the h3 every sibling sheet already used. */}
+        <SheetHeader
+          variant="compact"
+          className="gap-2 mb-0 pt-1 pb-1"
+          icon={<UserPlus size={18} className="text-primary-600" />}
+          iconClassName="bg-primary-100"
+          title="Add Walk-In"
+          titleClassName="font-bold"
+          subtitle="Search by name or email - or fill out the form below."
+        />
 
         {/* === Existing-user search === */}
         <div data-eos-id="src/components/walk-in-sheet.tsx#11" className="space-y-2">
