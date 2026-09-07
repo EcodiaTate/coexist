@@ -13,6 +13,8 @@ import { WAVE_PATHS } from '@/components/wave-paths'
 import { useCollective } from '@/hooks/use-collective'
 import { useLayout } from '@/hooks/use-layout'
 import { BottomTabBar, type Tab } from '@/components/bottom-tab-bar'
+import { navEntry } from '@/components/sidebar/nav-lookup'
+import { leaderNavCategories } from '@/components/sidebar/leader-nav'
 import { useMenuSheet } from '@/hooks/use-menu-sheet'
 import {
     LeaderCollectiveScopeContext,
@@ -141,8 +143,8 @@ const leaderBottomTabs: Tab[] = [
   },
   {
     key: 'leader-events',
-    label: 'Events',
-    path: '/leader/events',
+    // Read from the sidebar nav data, not typed again. See admin-layout.
+    ...navEntry(leaderNavCategories, '/leader/events'),
     icon: <CalendarDays data-eos-id="src/components/leader-layout.tsx#4" size={22} strokeWidth={1.5} />,
     activeIcon: <CalendarDays data-eos-id="src/components/leader-layout.tsx#5" size={22} strokeWidth={2} fill="currentColor" />,
   },

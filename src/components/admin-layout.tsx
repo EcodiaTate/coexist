@@ -30,6 +30,8 @@ import {
 import { cn } from '@/lib/cn'
 import { useLayout } from '@/hooks/use-layout'
 import { BottomTabBar, type Tab } from '@/components/bottom-tab-bar'
+import { navEntry } from '@/components/sidebar/nav-lookup'
+import { adminNavCategories } from '@/components/sidebar/admin-nav'
 import { useMenuSheet } from '@/hooks/use-menu-sheet'
 import type { NavItem, NavCategory } from '@/components/sidebar/types'
 
@@ -170,8 +172,11 @@ const adminBottomTabs: Tab[] = [
   },
   {
     key: 'admin-collectives',
-    label: 'Collectives',
-    path: '/admin/collectives',
+    // Path and label read from the sidebar nav data rather than typed again.
+    // If /admin/collectives moves or is renamed there, this follows, and if
+    // it disappears navEntry throws at module load instead of shipping a tab
+    // that 404s on a phone.
+    ...navEntry(adminNavCategories, '/admin/collectives'),
     icon: <MapPin data-eos-id="src/components/admin-layout.tsx#4" size={21} strokeWidth={1.5} />,
     activeIcon: <MapPin data-eos-id="src/components/admin-layout.tsx#5" size={21} strokeWidth={2.2} />,
   },
