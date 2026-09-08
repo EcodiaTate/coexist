@@ -45,6 +45,12 @@ class FakeDb implements RefundNotifyClient {
   claimAttempts: Array<[string, number]> = []
 
   from(table: string) {
+    // The fake mirrors supabase-js's builder shape, whose every rung is an object-literal
+    // method, so `this` inside them is the rung and not the db. Capturing the instance once
+    // is what lets the whole chain reach the fixture rows. Converting the chain to arrows to
+    // satisfy the rule would rewrite the double that guards live ticket email, to change no
+    // behaviour.
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this
     return {
       update(values: Record<string, unknown>) {
