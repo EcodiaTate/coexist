@@ -64,6 +64,7 @@ import { generate as uuidv5 } from 'https://deno.land/std@0.224.0/uuid/v5.ts'
 import { withSentry } from '../_shared/sentry.ts'
 import { timingSafeEqual } from '../_shared/d3-guards.ts'
 import { normaliseCollectiveName, resolveCollectiveId } from '../_shared/collective-match.ts'
+import { note, realErrors } from '../_shared/run-log.ts'
 
 // ---- Config ----
 const GRAPH_TENANT_ID = Deno.env.get('GRAPH_TENANT_ID') ?? ''
@@ -975,7 +976,7 @@ function mapSheetActivityType(row: unknown[], errors: string[], rowLabel: string
     const strategy = l3Paren !== label
       ? (l3 !== l3Paren ? 'paren-strip+hyphen-strip' : 'paren-strip')
       : 'hyphen-strip'
-    errors.push(`INFO ${rowLabel}: activity type "${label}" resolved to "${mappedL3}" via ${strategy}`)
+    note(errors, `${rowLabel}: activity type "${label}" resolved to "${mappedL3}" via ${strategy}`)
     return mappedL3
   }
 
@@ -983,7 +984,7 @@ function mapSheetActivityType(row: unknown[], errors: string[], rowLabel: string
   for (const [token, actType] of TOKEN_TO_ACTIVITY_TYPE) {
     const escaped = token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
     if (new RegExp(`\\b${escaped}\\b`, 'i').test(label)) {
-      errors.push(`INFO ${rowLabel}: activity type "${label}" resolved to "${actType}" via token-contains: ${token}`)
+      note(errors, `${rowLabel}: activity type "${label}" resolved to "${actType}" via token-contains: ${token}`)
       return actType
     }
   }
@@ -1241,7 +1242,7 @@ async function syncToExcel(
           if (!data.hasImpactData) skippedNoImpact++
           skipped++
           console.log(`[excel-sync] skip append: event=${eid} hasImpactData=${data.hasImpactData} hasHappened=${data.hasHappened}`)
-          errors.push(`INFO Event ${eid}: skipped append (hasImpactData=${data.hasImpactData} hasHappened=${data.hasHappened})`)
+          note(errors, `Event ${eid}: skipped append (hasImpactData=${data.hasImpactData} hasHappened=${data.hasHappened})`)
           continue
         }
 
@@ -1251,7 +1252,7 @@ async function syncToExcel(
         const eventSig = sigOf(data.collective_name, data.date_start, data.title)
         if (formsSignatures.has(eventSig)) {
           skippedDuplicates++
-          errors.push(`Event ${eid}: skipped (matches Forms row signature ${eventSig})`)
+          note(errors, `Event ${eid}: skipped (matches Forms row signature ${eventSig})`)
           continue
         }
 
@@ -1541,7 +1542,7 @@ async function syncFromExcel(
         const collectiveName = String(row[3] ?? '').trim()
         const collectiveId = resolveCollectiveId(collectiveName, collectiveNameToId)
         if (!collectiveId) {
-          errors.push(`${rowLabel}: no collective match for "${collectiveName}" - skipped`)
+          note(errors, `${rowLabel}: no collective match for "${collectiveName}" - skipped`)
           skippedNoCollective++
           continue
         }
@@ -1559,7 +1560,7 @@ async function syncFromExcel(
         } else if (typeof dateRaw === 'string' && dateRaw.match(/\d{4}-\d{2}-\d{2}/)) {
           dateIso = dateRaw.includes('T') ? dateRaw : dateRaw + 'T12:00:00+10:00'
         } else {
-          errors.push(`${rowLabel}: unparseable date "${dateRaw}" - skipped`)
+          note(errors, `${rowLabel}: unparseable date "${dateRaw}" - skipped`)
           skippedLegacy++
           continue
         }
@@ -1572,7 +1573,7 @@ async function syncFromExcel(
         const migratedAtForCollective = collectiveMigratedAt.get(collectiveId)
         if (migratedAtForCollective &&
             new Date(dateIso).getTime() >= new Date(migratedAtForCollective).getTime()) {
-          errors.push(`INFO ${rowLabel}: collective is post-cutover migrated (${migratedAtForCollective}); skipped from-excel`)
+          note(errors, `${rowLabel}: collective is post-cutover migrated (${migratedAtForCollective}); skipped from-excel`)
           skippedPostCutoverMigrated++
           continue
         }
@@ -1631,7 +1632,7 @@ async function syncFromExcel(
               errors.push(`${rowLabel}: link-to-app insert failed: ${insertErr.message}`)
               continue
             }
-            errors.push(`INFO ${rowLabel}: linked Forms impact to app event ${matchedAppEventId} (title="${title}")`)
+            note(errors, `${rowLabel}: linked Forms impact to app event ${matchedAppEventId} (title="${title}")`)
             seenEventIds.add(matchedAppEventId)
             syncedFormsRows++
             continue
@@ -1640,7 +1641,7 @@ async function syncFromExcel(
           // App event already has event_impact (leader logged via the app
           // path, or PR #8 trigger already fired). Don't clobber. Skip the
           // synthetic write too: linkage is the source of truth now.
-          errors.push(`INFO ${rowLabel}: app event ${matchedAppEventId} already has impact; skipped (linked)`)
+          note(errors, `${rowLabel}: app event ${matchedAppEventId} already has impact; skipped (linked)`)
           seenEventIds.add(matchedAppEventId)
           syncedFormsRows++
           continue
@@ -1697,7 +1698,7 @@ async function syncFromExcel(
             if (guardImpactErr) {
               errors.push(`${rowLabel}: existence-guard impact upsert failed for ${existingMatch.id}: ${guardImpactErr.message}`)
             } else {
-              errors.push(`INFO ${rowLabel}: existence guard matched existing event ${existingMatch.id} (title="${existingMatch.title}"); impact updated, no new synthetic created`)
+              note(errors, `${rowLabel}: existence guard matched existing event ${existingMatch.id} (title="${existingMatch.title}"); impact updated, no new synthetic created`)
             }
             seenEventIds.add(existingMatch.id)
             syncedFormsRows++
@@ -1969,20 +1970,15 @@ Deno.serve(withSentry('excel-sync', async (req: Request) => {
       }
       const sheetRows = (fromEx as any)?._sheetRows ?? null // hook for future surfacing
 
-      // The `errors` array is a MIXED log, not an error list: layers 3-4 of the
-      // activity-type resolver, the skipped-append path and the from-excel
-      // migrated/linked paths all push lines prefixed `INFO `. Counting its raw
-      // length wrote every one of those into to_excel_error_count, so a healthy
-      // run reported 49 errors and 136,178 lifetime "errors" accumulated with no
-      // failure behind them. Measured 2026-08-30 on the 17:02:20Z run: 46 of 49
-      // were literally `INFO ... skipped append`, the other 3 were correct
-      // duplicate-signature skips, and the true failure count was 0. A metric
-      // that reads red on a healthy run is a metric nobody reads, which is how
-      // a real excel-sync failure would go unnoticed. Count only the lines that
-      // are NOT informational; the full mixed log is still written verbatim to
-      // `summary`, so nothing is lost.
-      const realErrors = (arr?: string[]) =>
-        (arr ?? []).filter((e) => !String(e).startsWith('INFO ')).length
+      // The `errors` arrays are a MIXED log, not a failure list. realErrors()
+      // counts only the entries that are NOT `INFO `-prefixed; the full mixed
+      // log is still written verbatim to `summary` below, so nothing is lost.
+      // The severity rule and the measurements behind it live in
+      // ../_shared/run-log.ts, and the note() helper there is what a deliberate
+      // skip calls so that this counter stays honest. Short version: a metric
+      // that reads red on a healthy run is a metric nobody reads, and the
+      // EcodiaOS canary watching this client alerts on a relative threshold, so
+      // phantom errors raise the bar a real failure has to clear.
       await supabase.from('excel_sync_runs').insert({
         run_at: new Date().toISOString(),
         direction,
